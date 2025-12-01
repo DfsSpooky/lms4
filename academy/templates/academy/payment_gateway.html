@@ -6,7 +6,7 @@
 <div class="min-h-screen bg-[#0B1120] py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden font-sans selection:bg-indigo-500 selection:text-white"
      x-data="{
         activeTab: 0,
-        paymentPlan: 'full',
+        paymentPlan: {{ course.allow_monthly_payment|yesno:"'monthly','full'" }},
         allowMonthly: {{ course.allow_monthly_payment|yesno:'true,false' }},
         monthlyPrice: {{ course.monthly_price|default:0|stringformat:'f' }},
         fullPrice: {{ course.price|stringformat:'f' }},
@@ -72,7 +72,7 @@
                                 S/ {{ course.price }}
                             </span>
                             <span class="text-emerald-400 text-xs font-bold bg-emerald-500/10 px-2 py-1 rounded"
-                                  x-text="paymentPlan === 'full' ? 'Pago Único' : 'Pago Mensual'">
+                                  x-text="paymentPlan === 'full' ? 'Pago completo por el curso' : 'Pago por mes'">
                                 Total a Pagar
                             </span>
                         </div>
@@ -82,30 +82,30 @@
                     <div x-show="allowMonthly" class="mt-6 border-t border-slate-700 pt-6">
                         <h3 class="text-white text-sm font-bold mb-3">Elige tu modalidad de pago:</h3>
                         <div class="grid grid-cols-2 gap-4">
-                            <!-- Opción Pago Completo -->
-                            <div @click="paymentPlan = 'full'"
-                                 :class="{'ring-2 ring-emerald-500 bg-emerald-500/10': paymentPlan === 'full', 'bg-slate-900 border border-slate-700': paymentPlan !== 'full'}"
-                                 class="cursor-pointer rounded-xl p-4 transition-all hover:bg-slate-700/50">
-                                <div class="flex justify-between items-center mb-1">
-                                    <span class="text-sm font-bold text-white">Pago Completo</span>
-                                    <div x-show="paymentPlan === 'full'" class="text-emerald-500"><i class="fas fa-check-circle"></i></div>
-                                </div>
-                                <p class="text-2xl font-bold text-emerald-400">S/ {{ course.price }}</p>
-                                <p class="text-xs text-slate-400 mt-1">Acceso ilimitado por siempre.</p>
-                            </div>
-
                             <!-- Opción Pago Mensual -->
                             <div @click="paymentPlan = 'monthly'"
                                  :class="{'ring-2 ring-emerald-500 bg-emerald-500/10': paymentPlan === 'monthly', 'bg-slate-900 border border-slate-700': paymentPlan !== 'monthly'}"
                                  class="cursor-pointer rounded-xl p-4 transition-all hover:bg-slate-700/50">
                                 <div class="flex justify-between items-center mb-1">
-                                    <span class="text-sm font-bold text-white">Mensualidad</span>
+                                    <span class="text-sm font-bold text-white">Pago por mes</span>
                                     <div x-show="paymentPlan === 'monthly'" class="text-emerald-500"><i class="fas fa-check-circle"></i></div>
                                 </div>
                                 <p class="text-2xl font-bold text-emerald-400" x-text="'S/ ' + monthlyPrice">S/ 0.00</p>
                                 <p class="text-xs text-slate-400 mt-1">
                                     <span x-text="duration"></span> pagos mensuales.
                                 </p>
+                            </div>
+
+                            <!-- Opción Pago Completo -->
+                            <div @click="paymentPlan = 'full'"
+                                 :class="{'ring-2 ring-emerald-500 bg-emerald-500/10': paymentPlan === 'full', 'bg-slate-900 border border-slate-700': paymentPlan !== 'full'}"
+                                 class="cursor-pointer rounded-xl p-4 transition-all hover:bg-slate-700/50">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-sm font-bold text-white">Pago completo por el curso</span>
+                                    <div x-show="paymentPlan === 'full'" class="text-emerald-500"><i class="fas fa-check-circle"></i></div>
+                                </div>
+                                <p class="text-2xl font-bold text-emerald-400">S/ {{ course.price }}</p>
+                                <p class="text-xs text-slate-400 mt-1">Acceso ilimitado por siempre.</p>
                             </div>
                         </div>
                     </div>
