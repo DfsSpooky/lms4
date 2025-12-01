@@ -1,4 +1,5 @@
 import re
+import uuid
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
@@ -627,3 +628,61 @@ class SiteConfiguration(models.Model):
     def get_solo(cls):
         obj, created = cls.objects.get_or_create(id=1)
         return obj
+
+# --- EMPRESAS Y EVENTOS ---
+
+class ServiceRequest(models.Model):
+    company_name = models.CharField(max_length=200, verbose_name="Nombre de la Empresa")
+    contact_name = models.CharField(max_length=200, verbose_name="Nombre de Contacto")
+    email = models.EmailField(verbose_name="Correo Electrónico")
+    phone = models.CharField(max_length=20, verbose_name="Teléfono")
+    message = models.TextField(verbose_name="Mensaje / Requerimiento")
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_handled = models.BooleanField(default=False, verbose_name="Atendido")
+
+    def __str__(self):
+        return f"{self.company_name} - {self.contact_name}"
+
+class Event(models.Model):
+    title = models.CharField(max_length=200, verbose_name="Título del Evento")
+    slug = models.SlugField(unique=True, blank=True)
+    description = models.TextField(verbose_name="Descripción")
+    date = models.DateTimeField(verbose_name="Fecha y Hora")
+    location = models.CharField(max_length=200, verbose_name="Ubicación (Dirección o Link)")
+    capacity = models.PositiveIntegerField(default=100, verbose_name="Capacidad Máxima")
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Precio de Entrada")
+    image = models.ImageField(upload_to='events/', blank=True, null=True, verbose_name="Imagen del Evento")
+    is_active = models.BooleanField(default=True, verbose_name="Activo")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+            original_slug = self.slug
+            count = 1
+            while Event.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
+                self.slug = f"{original_slug}-{count}"
+                count += 1
+        super().save(*args, **kwargs)
+
+    @property
+    def spots_left(self):
+        sold = self.tickets.count()
+        return max(0, self.capacity - sold)
+
+class Ticket(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tickets')
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='tickets')
+    purchase_date = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False, verbose_name="Usado / Asistió")
+
+    class Meta:
+        unique_together = ('user', 'event')
+
+    def __str__(self):
+        return f"Ticket {self.id} - {self.user.username}"

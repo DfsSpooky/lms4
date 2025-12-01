@@ -5,3 +5,4 @@ from .payments import *
 from .teacher import *
 from .forum import *
 from .admin_dashboard import *
+from .events import *

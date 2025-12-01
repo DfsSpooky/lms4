@@ -1,0 +1,49 @@
+{% extends 'academy/base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-10">
+    <h1 class="text-3xl font-bold mb-8">Próximos Eventos y Seminarios</h1>
+
+    {% if events %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for event in events %}
+                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition">
+                    {% if event.image %}
+                        <img src="{{ event.image.url }}" alt="{{ event.title }}" class="w-full h-48 object-cover">
+                    {% else %}
+                        <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                            <i class="fas fa-calendar-alt text-4xl text-gray-400"></i>
+                        </div>
+                    {% endif %}
+
+                    <div class="p-6">
+                        <div class="text-sm text-blue-600 font-bold mb-2">
+                            {{ event.date|date:"d M Y, h:i A" }}
+                        </div>
+                        <h2 class="text-xl font-bold mb-2 text-gray-800">{{ event.title }}</h2>
+                        <p class="text-gray-600 mb-4 line-clamp-3">{{ event.description }}</p>
+
+                        <div class="flex justify-between items-center border-t pt-4">
+                            <span class="text-gray-700 font-medium">
+                                {% if event.price > 0 %}
+                                    ${{ event.price }}
+                                {% else %}
+                                    Gratis
+                                {% endif %}
+                            </span>
+                            <a href="{% url 'academy:event_detail' slug=event.slug %}" class="text-blue-600 hover:text-blue-800 font-semibold">
+                                Ver Detalles &rarr;
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-20 bg-gray-50 rounded-lg">
+            <h3 class="text-xl text-gray-600">No hay eventos programados por el momento.</h3>
+            <p class="mt-2 text-gray-500">Vuelve pronto para ver nuestras novedades.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
