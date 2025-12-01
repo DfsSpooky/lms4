@@ -335,7 +335,7 @@
 
                             <div class="mb-6 relative z-10" 
                                  x-data="{ 
-                                    pricingMode: 'full', 
+                                    pricingMode: {{ course.allow_monthly_payment|yesno:"'monthly','full'" }},
                                     hasMonthly: {{ course.allow_monthly_payment|yesno:'true,false' }} 
                                  }">
 
@@ -343,17 +343,17 @@
                                     
                                     <div x-show="hasMonthly" class="flex bg-slate-900 p-1 rounded-xl mb-6 border border-slate-700 w-full relative">
                                         <div class="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-indigo-600 rounded-lg transition-all duration-300 shadow-lg"
-                                             :class="pricingMode === 'full' ? 'left-1' : 'left-[calc(50%+4px)]'"></div>
+                                             :class="pricingMode === 'monthly' ? 'left-1' : 'left-[calc(50%+4px)]'"></div>
                                         
-                                        <button @click="pricingMode = 'full'" 
-                                                class="flex-1 py-2 text-xs font-bold uppercase tracking-wide relative z-10 transition-colors"
-                                                :class="pricingMode === 'full' ? 'text-white' : 'text-slate-400 hover:text-white'">
-                                            Un Solo Pago
-                                        </button>
                                         <button @click="pricingMode = 'monthly'" 
                                                 class="flex-1 py-2 text-xs font-bold uppercase tracking-wide relative z-10 transition-colors"
                                                 :class="pricingMode === 'monthly' ? 'text-white' : 'text-slate-400 hover:text-white'">
-                                            En Cuotas
+                                            Pago por mes
+                                        </button>
+                                        <button @click="pricingMode = 'full'"
+                                                class="flex-1 py-2 text-xs font-bold uppercase tracking-wide relative z-10 transition-colors"
+                                                :class="pricingMode === 'full' ? 'text-white' : 'text-slate-400 hover:text-white'">
+                                            Pago completo por el curso
                                         </button>
                                     </div>
 
@@ -492,15 +492,56 @@
     </div>
     
     <div class="fixed bottom-0 left-0 right-0 p-4 bg-[#0B1120]/95 backdrop-blur-xl border-t border-slate-800 z-50 lg:hidden shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-        <div class="flex items-center justify-between gap-4 max-w-7xl mx-auto">
-            <div>
-                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Precio Total</p>
-                <p class="text-2xl font-black text-white leading-none">{% if course.price > 0 %}S/ {{ course.price|floatformat:0 }}{% else %}Gratis{% endif %}</p>
+        {% if enrollment %}
+             {% if enrollment.status == 'approved' %}
+                 {% if course.is_upcoming %}
+                      <div class="w-full text-center">
+                           <button disabled class="w-full bg-slate-700 text-slate-400 font-bold py-3 rounded-xl cursor-not-allowed mb-2 border border-slate-600 shadow-inner flex items-center justify-center gap-2">
+                                <i class="fas fa-lock"></i> Acceso Bloqueado
+                           </button>
+                           <div x-data="courseCountdown('{{ course.launch_date|date:'Y-m-d H:i:s' }}')" class="flex justify-center gap-2 text-xs font-mono text-slate-400 bg-slate-900/50 p-2 rounded-lg">
+                                <span x-text="days + 'd'"></span> : <span x-text="hours + 'h'"></span> : <span x-text="minutes + 'm'"></span>
+                           </div>
+                      </div>
+                 {% else %}
+                      {% if course.course_type == 'seminar' and course.live_url %}
+                          <a href="{{ course.live_url }}" target="_blank" class="flex items-center justify-center w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-red-500/30 transition-colors gap-2">
+                               <i class="fas fa-video"></i> Unirse al Live
+                          </a>
+                      {% else %}
+                          <a href="{% url 'academy:dashboard' %}" class="flex items-center justify-center w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-emerald-500/30 transition-colors gap-2">
+                               <i class="fas fa-play-circle"></i> Ir al Aula Virtual
+                          </a>
+                      {% endif %}
+                 {% endif %}
+             {% elif enrollment.status == 'review' %}
+                 <div class="w-full bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 text-center">
+                      <p class="text-blue-400 font-bold text-sm">Validando tu pago...</p>
+                 </div>
+             {% else %}
+                 <a href="{% url 'academy:payment_gateway' enrollment.id %}" class="block w-full text-center bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-3 px-4 rounded-xl shadow-lg shadow-amber-500/20 transition-colors">
+                      Completar Pago
+                 </a>
+             {% endif %}
+        {% else %}
+            <div class="flex flex-col gap-2">
+                 <div class="flex items-center justify-between gap-4 max-w-7xl mx-auto w-full">
+                    <div>
+                        <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Precio Total</p>
+                        <p class="text-2xl font-black text-white leading-none">{% if course.price > 0 %}S/ {{ course.price|floatformat:0 }}{% else %}Gratis{% endif %}</p>
+                    </div>
+                    <a href="{% url 'academy:enroll_step1' course.slug %}" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-xl text-center shadow-lg shadow-indigo-500/30 transition-colors">
+                        {% if course.is_upcoming %}Pre-inscribirme{% else %}Inscribirme{% endif %}
+                    </a>
+                </div>
+
+                {% if course.is_upcoming %}
+                     <div x-data="courseCountdown('{{ course.launch_date|date:'Y-m-d H:i:s' }}')" class="flex justify-center gap-2 text-xs font-mono text-slate-400 bg-slate-900/50 p-1 rounded-lg">
+                          Lanzamiento en: <span x-text="days + 'd'"></span> : <span x-text="hours + 'h'"></span> : <span x-text="minutes + 'm'"></span>
+                     </div>
+                {% endif %}
             </div>
-            <a href="{% url 'academy:enroll_step1' course.slug %}" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-xl text-center shadow-lg shadow-indigo-500/30 transition-colors">
-                Inscribirse
-            </a>
-        </div>
+        {% endif %}
     </div>
 
 </div>
