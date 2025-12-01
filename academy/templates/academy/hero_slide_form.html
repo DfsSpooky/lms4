@@ -1,0 +1,184 @@
+{% extends 'academy/base.html' %}
+
+{% block title %}
+    {% if form.instance.pk %}Editar Slide{% else %}Nuevo Slide{% endif %} - Admin
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#0B1120] py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+
+    <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none animate-pulse"></div>
+    <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-600/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+    <div class="max-w-6xl mx-auto relative z-10">
+
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <a href="{% url 'academy:admin_dashboard' %}" class="text-indigo-400 hover:text-white transition-colors text-sm font-bold flex items-center gap-2 mb-2">
+                    <i class="fas fa-arrow-left"></i> Volver al Dashboard
+                </a>
+                <h1 class="text-3xl font-black text-white tracking-tight">
+                    {% if form.instance.pk %}Editar <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Hero Slide</span>{% else %}Crear <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Hero Slide</span>{% endif %}
+                </h1>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <div class="lg:col-span-2">
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-3xl border border-slate-700/50 p-8 shadow-2xl">
+                    <form method="post" enctype="multipart/form-data" class="space-y-6">
+                        {% csrf_token %}
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="col-span-2">
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Título (Soporta HTML)</label>
+                                {{ form.title }}
+                                <p class="text-[10px] text-slate-500 mt-1">Usa &lt;span class="text-indigo-400"&gt;texto&lt;/span&gt; para colores.</p>
+                            </div>
+
+                            <div class="col-span-2">
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Descripción</label>
+                                {{ form.description }}
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Estilo Visual</label>
+                                {{ form.style }}
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Etiqueta (Tag)</label>
+                                {{ form.tag_text }}
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Texto Botón 1</label>
+                                {{ form.btn1_text }}
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">URL Botón 1</label>
+                                {{ form.btn1_url }}
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Texto Botón 2</label>
+                                {{ form.btn2_text }}
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">URL Botón 2</label>
+                                {{ form.btn2_url }}
+                            </div>
+                        </div>
+
+                        <div class="pt-6 border-t border-slate-700/50">
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-4">Imagen de Fondo / Hero</label>
+
+                            <div class="flex items-center gap-6">
+                                <div class="shrink-0">
+                                    {% if form.instance.image %}
+                                        <img src="{{ form.instance.image.url }}" class="h-24 w-40 object-cover rounded-xl border border-slate-600 shadow-lg">
+                                    {% else %}
+                                        <div class="h-24 w-40 bg-slate-900 rounded-xl border border-slate-700 flex items-center justify-center text-slate-500">
+                                            <i class="fas fa-image text-2xl"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-1">
+                                    <label class="cursor-pointer inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-bold text-xs transition-colors border border-slate-600">
+                                        <i class="fas fa-upload"></i> Subir Nueva Imagen
+                                        <input type="file" name="image" class="hidden">
+                                    </label>
+                                    <p class="text-xs text-slate-500 mt-2">Recomendado: PNG transparente o JPG alta calidad (1920x1080).</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-6 border-t border-slate-700/50">
+                            <div class="flex items-center gap-3 bg-slate-900/50 px-4 py-2 rounded-xl border border-slate-700">
+                                <span class="text-sm font-bold text-white">Orden:</span>
+                                {{ form.order }}
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    {{ form.is_active }}
+                                    <span class="text-sm font-bold text-slate-300">Activo</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end pt-4">
+                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-indigo-500/25 transition-all transform hover:-translate-y-1 flex items-center gap-2">
+                                <i class="fas fa-save"></i> Guardar Slide
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="hidden lg:block space-y-6">
+                <div class="sticky top-24">
+                    <div class="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-3xl border border-indigo-500/30 p-6 text-center relative overflow-hidden shadow-2xl">
+                        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+
+                        <div class="relative z-10">
+                            <div class="w-16 h-16 bg-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-500/40 rotate-12">
+                                <i class="fas fa-layer-group text-3xl text-white transform -rotate-12"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-2">Vista Previa</h3>
+                            <p class="text-slate-400 text-sm mb-6">Así es como se estructurará la información en el banner principal.</p>
+
+                            <div class="bg-slate-950/80 rounded-xl p-4 text-left border border-slate-700">
+                                <div class="h-2 w-16 bg-yellow-500 rounded-full mb-3"></div>
+                                <div class="h-4 w-3/4 bg-slate-700 rounded mb-2"></div>
+                                <div class="h-4 w-1/2 bg-slate-700 rounded mb-4"></div>
+                                <div class="flex gap-2">
+                                    <div class="h-8 w-24 bg-indigo-600 rounded-lg"></div>
+                                    <div class="h-8 w-24 bg-slate-800 rounded-lg border border-slate-600"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 bg-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+                        <h4 class="text-white font-bold mb-2 flex items-center gap-2">
+                            <i class="fas fa-info-circle text-indigo-400"></i> Tips de Diseño
+                        </h4>
+                        <ul class="text-sm text-slate-400 space-y-2 list-disc list-inside">
+                            <li>Usa imágenes PNG con fondo transparente para que se integren mejor.</li>
+                            <li>Mantén los títulos cortos e impactantes.</li>
+                            <li>Usa el estilo <strong>"Promo"</strong> para ofertas y <strong>"Business"</strong> para servicios.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Ajustes específicos para los inputs de Django renderizados */
+    input[type="text"], input[type="number"], select, textarea {
+        background-color: #0f172a !important; /* slate-900 */
+        border-color: #334155 !important; /* slate-700 */
+        color: white !important;
+        border-radius: 0.75rem !important; /* rounded-xl */
+        padding: 0.75rem 1rem !important;
+        width: 100%;
+    }
+    input:focus, select:focus, textarea:focus {
+        border-color: #6366f1 !important; /* indigo-500 */
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+    /* El checkbox necesita un estilo diferente */
+    input[type="checkbox"] {
+        width: 1.25rem !important;
+        height: 1.25rem !important;
+        border-radius: 0.25rem !important;
+        background-color: #1e293b !important;
+    }
+</style>
+{% endblock %}

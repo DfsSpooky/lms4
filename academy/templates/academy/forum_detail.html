@@ -1,0 +1,144 @@
+{% extends 'academy/base.html' %}
+
+{% block title %}{{ topic.title }} - LMS Academy{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-950 text-slate-300 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Breadcrumb / Nav -->
+        <div class="flex items-center justify-between mb-4">
+            <a href="{% url 'academy:forum_list' %}" class="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-white transition-colors uppercase tracking-wide">
+                <i class="fas fa-chevron-left"></i> Volver al Foro
+            </a>
+            {% if topic.course %}
+                <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400 bg-slate-900 border border-indigo-500/30 px-2 py-0.5 rounded">
+                    {{ topic.course.title }}
+                </span>
+            {% endif %}
+        </div>
+
+        <!-- Thread Title -->
+        <div class="mb-4">
+            <h1 class="text-2xl font-bold text-white leading-tight">{{ topic.title }}</h1>
+        </div>
+
+        <!-- Thread Container -->
+        <div class="space-y-4">
+
+            <!-- OP (Original Post) as "Post #1" -->
+            <div class="bg-slate-900 border border-slate-800 rounded-md overflow-hidden shadow-sm" id="post-{{ topic.id }}">
+                <!-- Post Header -->
+                <div class="bg-slate-800/50 border-b border-slate-800 px-4 py-1.5 flex justify-between items-center text-xs text-slate-400">
+                    <div>
+                        <span class="font-bold text-slate-300">{{ topic.created_at|date:"d M Y, H:i" }}</span>
+                    </div>
+                    <div>
+                        <a href="#post-{{ topic.id }}" class="hover:text-white">#1</a>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row">
+                    <!-- User Info Sidebar (Left) -->
+                    <div class="md:w-48 bg-slate-900/50 md:border-r border-slate-800 p-4 flex md:flex-col items-center md:items-start gap-3 md:gap-2 text-center md:text-left">
+                        <div class="shrink-0 relative group cursor-pointer">
+                            {% if topic.user.profile.avatar %}
+                                <img src="{{ topic.user.profile.avatar.url }}" class="w-12 h-12 md:w-16 md:h-16 rounded shadow-md border border-slate-700">
+                            {% else %}
+                                <div class="w-12 h-12 md:w-16 md:h-16 rounded bg-slate-800 flex items-center justify-center text-slate-500 border border-slate-700 text-2xl">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="overflow-hidden w-full">
+                            <a href="{% url 'academy:public_profile' topic.user.username %}" class="block font-bold text-sm text-indigo-400 hover:underline truncate">{{ topic.user.get_full_name|default:topic.user.username }}</a>
+                            <div class="text-[10px] text-slate-500 font-medium uppercase mt-0.5">
+                                {% if topic.user.profile.role == 'teacher' %}Profesor{% else %}Estudiante{% endif %}
+                            </div>
+                            <div class="text-[10px] text-slate-600 mt-1">
+                                Miembro desde: <br> {{ topic.user.date_joined|date:"M Y" }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Post Content (Right) -->
+                    <div class="flex-1 p-4 md:p-6 min-w-0">
+                        <div class="prose prose-invert prose-sm max-w-none text-slate-300 leading-relaxed">
+                            {{ topic.content|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Replies -->
+            {% for reply in replies %}
+                <div class="bg-slate-900 border border-slate-800 rounded-md overflow-hidden shadow-sm" id="reply-{{ reply.id }}">
+                    <!-- Post Header -->
+                    <div class="bg-slate-800/50 border-b border-slate-800 px-4 py-1.5 flex justify-between items-center text-xs text-slate-400">
+                        <div>
+                            <span class="font-bold text-slate-300">{{ reply.created_at|date:"d M Y, H:i" }}</span>
+                        </div>
+                        <div>
+                            <a href="#reply-{{ reply.id }}" class="hover:text-white">#{{ forloop.counter|add:1 }}</a>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col md:flex-row">
+                        <!-- User Info Sidebar -->
+                        <div class="md:w-48 bg-slate-900/50 md:border-r border-slate-800 p-4 flex md:flex-col items-center md:items-start gap-3 md:gap-2 text-center md:text-left">
+                            <div class="shrink-0 relative group cursor-pointer">
+                                {% if reply.user.profile.avatar %}
+                                    <img src="{{ reply.user.profile.avatar.url }}" class="w-12 h-12 md:w-16 md:h-16 rounded shadow-md border border-slate-700">
+                                {% else %}
+                                    <div class="w-12 h-12 md:w-16 md:h-16 rounded bg-slate-800 flex items-center justify-center text-slate-500 border border-slate-700 text-2xl">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="overflow-hidden w-full">
+                                <a href="{% url 'academy:public_profile' reply.user.username %}" class="block font-bold text-sm text-indigo-400 hover:underline truncate">{{ reply.user.get_full_name|default:reply.user.username }}</a>
+                                <div class="text-[10px] text-slate-500 font-medium uppercase mt-0.5">
+                                    {% if reply.user.profile.role == 'teacher' %}Profesor{% else %}Estudiante{% endif %}
+                                </div>
+                                <div class="text-[10px] text-slate-600 mt-1">
+                                    Miembro desde: <br> {{ reply.user.date_joined|date:"M Y" }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Post Content -->
+                        <div class="flex-1 p-4 md:p-6 min-w-0">
+                            <div class="prose prose-invert prose-sm max-w-none text-slate-300 leading-relaxed">
+                                {{ reply.content|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+        </div>
+
+        <!-- Quick Reply Box (Standard forum style at bottom) -->
+        <div class="mt-8 bg-slate-900 border border-slate-800 rounded-md overflow-hidden">
+            <div class="bg-slate-800/50 border-b border-slate-800 px-4 py-2 text-sm font-bold text-white">
+                Respuesta Rápida
+            </div>
+            <div class="p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    <textarea name="content" required rows="4" class="w-full bg-slate-950 border border-slate-700 rounded p-3 text-slate-300 text-sm focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-y placeholder-slate-600" placeholder="Escribe tu respuesta..."></textarea>
+
+                    <div class="flex justify-end mt-3">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2 px-6 rounded shadow transition-colors">
+                            Publicar Respuesta
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

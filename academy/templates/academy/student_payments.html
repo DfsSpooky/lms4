@@ -1,0 +1,191 @@
+{% extends 'academy/base.html' %}
+{% load static %}
+
+{% block title %}Mis Pagos - LMS Academy{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#0B1120] py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden font-sans selection:bg-indigo-500 selection:text-white">
+
+    <div class="absolute top-0 left-0 w-[800px] h-[800px] bg-indigo-600/10 rounded-full blur-[120px] animate-pulse pointer-events-none"></div>
+    <div class="absolute bottom-0 right-0 w-[800px] h-[800px] bg-cyan-600/10 rounded-full blur-[120px] animate-pulse pointer-events-none"></div>
+
+    <div class="max-w-5xl mx-auto relative z-10">
+
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+            <div>
+                <h1 class="text-4xl font-black text-white tracking-tight">
+                    Gestión de <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Pagos</span>
+                </h1>
+                <p class="text-slate-400 mt-2 text-lg font-light">Administra tus suscripciones y sube tus comprobantes.</p>
+            </div>
+            <a href="{% url 'academy:dashboard' %}" class="group inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800/50 border border-slate-700 hover:bg-slate-800 text-slate-300 hover:text-white transition-all">
+                <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+                <span>Volver al Dashboard</span>
+            </a>
+        </div>
+
+        {% if not payments_data %}
+            <div class="bg-slate-800/40 backdrop-blur-md rounded-3xl border border-slate-700/50 p-12 text-center relative overflow-hidden group">
+                <div class="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                
+                <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-slate-800 border border-slate-700 mb-6 shadow-xl relative z-10 group-hover:scale-110 transition-transform duration-500">
+                    <i class="fas fa-check-circle text-4xl text-emerald-500"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-2 relative z-10">¡Todo en orden!</h3>
+                <p class="text-slate-400 max-w-md mx-auto relative z-10">No tienes pagos mensuales pendientes ni cursos con cuotas activas en este momento.</p>
+                
+                <a href="{% url 'academy:course_catalog' %}" class="mt-8 inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/25 relative z-10 hover:-translate-y-1">
+                    Explorar Nuevos Cursos
+                </a>
+            </div>
+        {% else %}
+
+            <div class="space-y-8">
+                {% for item in payments_data %}
+                <div class="bg-slate-800/40 backdrop-blur-md border border-slate-700/50 rounded-3xl overflow-hidden shadow-xl transition-all hover:border-indigo-500/30 group">
+                    
+                    <div class="p-6 md:p-8 border-b border-slate-700/50 bg-slate-900/30 flex flex-col md:flex-row gap-6 items-start md:items-center">
+                        <div class="relative shrink-0">
+                            {% if item.course.thumbnail %}
+                                <img src="{{ item.course.thumbnail.url }}" class="w-24 h-24 object-cover rounded-2xl shadow-lg border border-slate-600" alt="{{ item.course.title }}">
+                            {% else %}
+                                <div class="w-24 h-24 bg-slate-800 rounded-2xl flex items-center justify-center border border-slate-700">
+                                    <i class="fas fa-graduation-cap text-3xl text-slate-600"></i>
+                                </div>
+                            {% endif %}
+                            <div class="absolute -bottom-2 -right-2 bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-lg border border-indigo-400">
+                                MENSUAL
+                            </div>
+                        </div>
+
+                        <div class="flex-1">
+                            <h2 class="text-2xl font-bold text-white mb-2 group-hover:text-indigo-400 transition-colors">{{ item.course.title }}</h2>
+                            
+                            <div class="flex flex-wrap items-center gap-4 text-sm text-slate-400">
+                                <div class="flex items-center gap-1.5">
+                                    <i class="far fa-calendar-alt text-indigo-400"></i>
+                                    <span>Inscrito: {{ item.enrollment.enrolled_at|date:"d M, Y" }}</span>
+                                </div>
+                                <div class="w-1 h-1 rounded-full bg-slate-600"></div>
+                                <div class="flex items-center gap-1.5">
+                                    <i class="fas fa-layer-group text-purple-400"></i>
+                                    <span>{{ item.installments|length }} Cuotas Totales</span>
+                                </div>
+                                <div class="w-1 h-1 rounded-full bg-slate-600"></div>
+                                <div class="flex items-center gap-1.5">
+                                    <i class="fas fa-tag text-emerald-400"></i>
+                                    <span class="text-emerald-400 font-bold">S/ {{ item.course.monthly_price }} / mes</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 min-w-[180px] text-center">
+                            <span class="block text-xs text-slate-500 uppercase tracking-widest font-bold mb-1">Tu Progreso</span>
+                            <div class="flex items-end justify-center gap-1">
+                                <span class="text-3xl font-black text-white">{{ item.enrollment.installments_paid }}</span>
+                                <span class="text-sm text-slate-500 font-medium mb-1">/ {{ item.installments|length }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-6 md:p-8 bg-gradient-to-b from-transparent to-slate-900/20">
+                        <div class="relative">
+                            <div class="absolute left-6 top-4 bottom-4 w-0.5 bg-slate-700/50 hidden md:block"></div>
+
+                            <div class="space-y-4">
+                                {% for installment in item.installments %}
+                                <div class="relative flex flex-col md:flex-row md:items-center gap-4 p-4 rounded-2xl border transition-all duration-300
+                                    {% if installment.status == 'approved' %}
+                                        bg-emerald-500/5 border-emerald-500/20 hover:bg-emerald-500/10
+                                    {% elif installment.status == 'rejected' %}
+                                        bg-red-500/5 border-red-500/20 hover:bg-red-500/10
+                                    {% elif installment.status == 'review' %}
+                                        bg-blue-500/5 border-blue-500/20
+                                    {% else %}
+                                        bg-slate-800/50 border-slate-700 hover:border-slate-600
+                                    {% endif %}">
+                                    
+                                    <div class="flex items-center gap-4 md:w-1/3 relative z-10">
+                                        <div class="w-12 h-12 rounded-full flex items-center justify-center font-black text-lg shrink-0 shadow-lg border-4 
+                                            {% if installment.status == 'approved' %} bg-emerald-500 border-slate-800 text-white
+                                            {% elif installment.status == 'rejected' %} bg-red-500 border-slate-800 text-white
+                                            {% elif installment.status == 'review' %} bg-blue-500 border-slate-800 text-white
+                                            {% else %} bg-slate-700 border-slate-800 text-slate-400 {% endif %}">
+                                            {{ installment.installment_number }}
+                                        </div>
+                                        <div>
+                                            <h4 class="font-bold text-white text-base">Cuota #{{ installment.installment_number }}</h4>
+                                            <div class="text-xs flex items-center gap-2 mt-0.5">
+                                                {% if installment.status == 'approved' %}
+                                                    <span class="text-emerald-400 font-medium">Pagado el {{ installment.paid_at|date:"d M" }}</span>
+                                                {% else %}
+                                                    <span class="text-slate-400">Vence: <span class="text-slate-200 font-mono">{{ installment.due_date|date:"d/m/Y" }}</span></span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex-1 md:px-4">
+                                        {% if installment.status == 'rejected' and installment.feedback %}
+                                            <div class="flex items-start gap-2 text-xs text-red-300 bg-red-500/10 p-2 rounded-lg border border-red-500/20">
+                                                <i class="fas fa-exclamation-circle mt-0.5"></i>
+                                                <p>{{ installment.feedback }}</p>
+                                            </div>
+                                        {% elif installment.status == 'review' %}
+                                            <div class="flex items-center gap-2 text-xs text-blue-300">
+                                                <i class="fas fa-spinner fa-spin"></i> Validando tu pago...
+                                            </div>
+                                        {% elif installment.status == 'pending' %}
+                                            <div class="flex items-center gap-2 text-xs text-amber-400/80">
+                                                <i class="fas fa-clock"></i> Pendiente de pago
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="flex flex-row md:flex-col items-center justify-between gap-3 md:items-end md:w-1/4">
+                                        <span class="text-lg font-bold text-white tracking-tight">S/ {{ installment.amount }}</span>
+
+                                        {% if installment.status == 'approved' %}
+                                            <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider border border-emerald-500/20 flex items-center gap-1">
+                                                <i class="fas fa-check"></i> Pagado
+                                            </span>
+                                        {% elif installment.status == 'review' %}
+                                            <span class="px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 text-[10px] font-bold uppercase tracking-wider border border-blue-500/20">
+                                                En Revisión
+                                            </span>
+                                        {% else %}
+                                            <form action="{% url 'academy:upload_installment_voucher' installment.id %}" method="POST" enctype="multipart/form-data">
+                                                {% csrf_token %}
+                                                <label class="cursor-pointer group/upload relative overflow-hidden inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-all shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5 active:translate-y-0">
+                                                    <i class="fas fa-cloud-upload-alt"></i>
+                                                    <span>
+                                                        {% if installment.status == 'rejected' %}Reintentar{% else %}Subir Voucher{% endif %}
+                                                    </span>
+                                                    <input type="file" name="voucher_image" class="hidden" accept="image/*" onchange="this.form.submit()">
+                                                    
+                                                    <div class="absolute inset-0 -translate-x-full group-hover/upload:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"></div>
+                                                </label>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+        {% endif %}
+
+        <div class="mt-12 flex items-center justify-center">
+            <p class="text-xs text-slate-500 flex items-center gap-2 bg-slate-900/50 px-4 py-2 rounded-full border border-slate-800">
+                <i class="fas fa-lock text-slate-400"></i> Tus pagos y datos están encriptados y seguros.
+            </p>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

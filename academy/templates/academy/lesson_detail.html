@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ lesson.title }} | {{ course.title }}</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@alpinejs/collapse@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Plyr Video Player -->
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                    colors: { slate: { 750: '#1e293b', 850: '#151F2E', 900: '#0B1120', 950: '#020617' } },
+                    animation: { 'fade-in': 'fadeIn 0.5s ease-out' },
+                    keyframes: { fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } } }
+                }
+            }
+        }
+    </script>
+    <style>
+        [x-cloak] { display: none !important; }
+        /* Scrollbar oscuro y fino */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        
+        /* Estilos para el contenido TinyMCE */
+        .prose img { border-radius: 0.75rem; margin: 1.5rem 0; }
+        .prose iframe { border-radius: 0.75rem; width: 100%; aspect-ratio: 16/9; }
+
+        /* Plyr Customization */
+        .plyr {
+            --plyr-color-main: #6366f1;
+            border-radius: 0;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans text-slate-300 antialiased selection:bg-indigo-500 selection:text-white overflow-hidden"
+      x-data="{ sidebarOpen: window.innerWidth > 1024 }"
+      x-init="$nextTick(() => {
+          if(document.querySelector('.js-player')) {
+              const player = new Plyr('.js-player', {
+                  controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'],
+                  youtube: { noCookie: true, rel: 0, showinfo: 0, iv_load_policy: 3, modestbranding: 1 }
+              });
+          }
+      })">
+
+    <header class="h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 z-30 shrink-0 shadow-lg">
+        <div class="flex items-center gap-4">
+            <a href="{% url 'academy:dashboard' %}" class="flex items-center gap-2 text-slate-400 hover:text-white transition-colors group">
+                <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-slate-700 border border-slate-700 group-hover:border-indigo-500/50">
+                    <i class="fas fa-arrow-left text-xs transition-transform group-hover:-translate-x-0.5"></i>
+                </div>
+                <span class="hidden sm:inline font-medium text-sm">Volver al Panel</span>
+            </a>
+            <div class="h-6 w-px bg-slate-800 mx-2"></div>
+            <div>
+                <h1 class="font-bold text-slate-100 truncate max-w-[150px] sm:max-w-md text-sm sm:text-base">{{ course.title }}</h1>
+                <p class="text-[10px] text-slate-500 uppercase tracking-widest hidden sm:block">Módulo: {{ lesson.module.title }}</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+            {% if not is_completed %}
+                <a href="{% url 'academy:complete_lesson' lesson.id %}" 
+                   onclick="confetti({particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#6366f1', '#10b981']});"
+                   class="hidden sm:inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all hover:-translate-y-0.5">
+                    <i class="fas fa-check-circle"></i> Marcar Vista
+                </a>
+            {% else %}
+                <span class="hidden sm:inline-flex items-center gap-2 text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-lg border border-emerald-500/20 text-xs font-bold uppercase tracking-wider">
+                    <i class="fas fa-check"></i> Completada
+                </span>
+            {% endif %}
+
+            <button @click="sidebarOpen = !sidebarOpen" 
+                    class="text-slate-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-slate-800 focus:outline-none border border-transparent hover:border-slate-700">
+                <i class="fas fa-bars text-lg"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="flex-1 flex overflow-hidden relative">
+        
+        <main class="flex-1 flex flex-col overflow-y-auto scroll-smooth relative z-10 bg-slate-950 transition-all duration-300"
+              :class="sidebarOpen ? 'lg:mr-96' : 'mr-0'">
+            
+            {% if locked %}
+                <div class="flex-1 flex flex-col items-center justify-center p-10 text-center">
+                    <div class="w-24 h-24 bg-slate-800 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-lock text-4xl text-slate-500"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white mb-2">Lección Bloqueada</h2>
+                    <p class="text-slate-400 max-w-md">{{ lock_message }}</p>
+                </div>
+            {% else %}
+
+            <div class="w-full bg-black relative shadow-2xl border-b border-slate-800/50 min-h-[200px]">
+                
+                {% if lesson.lesson_type == 'video' %}
+                    <div class="aspect-video relative">
+                        {% if lesson.video_url %}
+                            {% if lesson.youtube_id %}
+                                <div class="js-player" data-plyr-provider="youtube" data-plyr-embed-id="{{ lesson.youtube_id }}"></div>
+                            {% else %}
+                                <div class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 pattern-dots">
+                                    <i class="fas fa-video text-6xl text-slate-700 mb-4 animate-pulse"></i>
+                                    <p class="text-slate-400 mb-6 font-medium">Este video está alojado externamente</p>
+                                    <a href="{{ lesson.video_url }}" target="_blank" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20 hover:scale-105">
+                                        <i class="fas fa-external-link-alt"></i> Ver Video Original
+                                    </a>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900">
+                                <i class="fas fa-video-slash text-5xl text-slate-700 mb-4"></i>
+                                <p class="text-slate-500">No se ha configurado una URL de video.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                {% elif lesson.lesson_type == 'pdf' %}
+                    <div class="w-full h-[85vh] bg-slate-800 flex flex-col">
+                        {% if lesson.file %}
+                            <iframe src="{{ lesson.file.url }}" class="w-full h-full" type="application/pdf"></iframe>
+                        {% else %}
+                            <div class="flex-1 flex flex-col items-center justify-center text-slate-500">
+                                <i class="fas fa-file-pdf text-5xl mb-4 text-slate-600"></i>
+                                <p>Archivo PDF no encontrado.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                {% elif lesson.lesson_type == 'resource' %}
+                    <div class="py-24 px-6 text-center bg-gradient-to-b from-slate-900 to-slate-950 flex flex-col items-center justify-center">
+                        <div class="w-24 h-24 rounded-3xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 mb-6 border border-indigo-500/20 shadow-[0_0_40px_rgba(99,102,241,0.1)]">
+                            <i class="fas fa-folder-open text-5xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Material de Recurso</h3>
+                        <p class="text-slate-400 mb-8 max-w-md">
+                            Este módulo contiene archivos esenciales para tu aprendizaje. Descárgalos para continuar.
+                        </p>
+                        
+                        {% if lesson.file %}
+                            <a href="{{ lesson.file.url }}" download class="inline-flex items-center gap-3 bg-white hover:bg-slate-100 text-slate-900 px-8 py-4 rounded-xl font-bold transition-all shadow-xl hover:scale-105 transform">
+                                <i class="fas fa-download text-indigo-600"></i> Descargar Archivo
+                            </a>
+                            <p class="text-xs text-slate-600 mt-4 font-mono">{{ lesson.file.size|filesizeformat }}</p>
+                        {% else %}
+                            <span class="text-red-400 bg-red-400/10 px-4 py-2 rounded-lg text-sm border border-red-400/20">
+                                <i class="fas fa-exclamation-triangle mr-2"></i> Archivo no disponible
+                            </span>
+                        {% endif %}
+                    </div>
+
+                {% else %}
+                    <div class="py-16 px-6 bg-gradient-to-r from-slate-900 via-indigo-950/30 to-slate-900 border-b border-white/5">
+                        <div class="max-w-4xl mx-auto">
+                            <span class="inline-block px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-bold uppercase tracking-widest border border-indigo-500/30 mb-4">
+                                <i class="fas fa-book-reader mr-2"></i> Lectura
+                            </span>
+                            <h1 class="text-3xl md:text-5xl font-black text-white leading-tight mb-4">{{ lesson.title }}</h1>
+                            <div class="flex items-center gap-4 text-sm text-slate-400">
+                                <span><i class="far fa-clock mr-1"></i> {{ lesson.duration }} min de lectura</span>
+                                <span class="w-1 h-1 bg-slate-600 rounded-full"></span>
+                                <span>Publicado por {{ course.instructor.first_name }}</span>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="max-w-4xl mx-auto w-full px-6 py-12">
+                
+                {% if lesson.lesson_type != 'article' %}
+                <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8 border-b border-slate-800 pb-8">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-bold text-white mb-2">{{ lesson.title }}</h2>
+                        <div class="flex items-center gap-3 text-sm">
+                            <span class="px-2 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700 text-xs font-bold uppercase tracking-wider">
+                                {{ lesson.get_lesson_type_display }}
+                            </span>
+                            <span class="text-slate-500"><i class="far fa-clock mr-1"></i> {{ lesson.duration }} min</span>
+                        </div>
+                    </div>
+                    
+                    <div class="sm:hidden w-full">
+                        {% if not is_completed %}
+                            <a href="{% url 'academy:complete_lesson' lesson.id %}" 
+                               onclick="confetti({particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#6366f1', '#10b981']});"
+                               class="flex items-center justify-center gap-2 bg-indigo-600 text-white w-full py-3 rounded-xl font-bold active:scale-95 transition-transform">
+                                <i class="fas fa-check-circle"></i> Marcar como Vista
+                            </a>
+                        {% else %}
+                            <div class="flex items-center justify-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 w-full py-3 rounded-xl font-bold">
+                                <i class="fas fa-check-circle"></i> Lección Completada
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if lesson.content %}
+                <div class="prose prose-invert prose-lg max-w-none 
+                            prose-headings:text-white prose-p:text-slate-400 prose-a:text-indigo-400 hover:prose-a:text-indigo-300 
+                            prose-strong:text-white prose-li:text-slate-400 prose-blockquote:border-l-indigo-500 prose-blockquote:bg-slate-800/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg">
+                    {{ lesson.content|safe }}
+                </div>
+                {% endif %}
+
+                {% if lesson.lesson_type == 'assignment' %}
+                    <div class="mt-12 bg-slate-900 rounded-2xl border border-slate-700 overflow-hidden">
+                        <div class="bg-indigo-900/20 px-6 py-4 border-b border-indigo-500/20 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-indigo-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-white text-lg">Entrega de Tarea</h3>
+                                {% if lesson.due_date %}
+                                    <p class="text-xs text-indigo-300 font-mono"><i class="far fa-calendar-alt mr-1"></i> Fecha límite: {{ lesson.due_date }}</p>
+                                {% else %}
+                                    <p class="text-xs text-indigo-300 font-mono">Sin fecha límite</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="p-6 md:p-8">
+                            {% if assignment_progress.is_completed %}
+                                <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-6 text-center mb-6">
+                                    <div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-white text-2xl mx-auto mb-4 shadow-lg shadow-emerald-500/20">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                    <h4 class="text-emerald-400 font-bold text-xl mb-2">¡Tarea Entregada!</h4>
+                                    <p class="text-slate-400 text-sm mb-4">Tu trabajo ha sido enviado para revisión.</p>
+
+                                    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm">
+                                        {% if assignment_progress.assignment_file %}
+                                            <a href="{{ assignment_progress.assignment_file.url }}" target="_blank" class="text-indigo-400 hover:text-white underline decoration-indigo-500/50">
+                                                <i class="fas fa-paperclip mr-1"></i> Ver archivo adjunto
+                                            </a>
+                                        {% endif %}
+                                        <span class="text-slate-500">Enviado: {{ assignment_progress.updated_at }}</span>
+                                    </div>
+                                </div>
+
+                                {% if assignment_progress.score is not None %}
+                                    <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+                                        <h4 class="font-bold text-white mb-4 border-b border-slate-700 pb-2">Resultado de la Evaluación</h4>
+                                        <div class="flex items-start gap-4">
+                                            <div class="text-center">
+                                                <span class="block text-3xl font-black text-white">{{ assignment_progress.score|floatformat:0 }}</span>
+                                                <span class="text-[10px] uppercase text-slate-500 font-bold tracking-wider">Nota</span>
+                                            </div>
+                                            <div class="flex-1 border-l border-slate-700 pl-4">
+                                                <p class="text-slate-400 text-sm italic">"{{ assignment_progress.instructor_feedback|default:'Sin comentarios adicionales.' }}"</p>
+                                                <p class="text-xs text-slate-500 mt-2 font-bold">- Instructor</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="text-center py-4 text-slate-500 text-sm">
+                                        <i class="fas fa-hourglass-half mr-2 animate-pulse"></i> Esperando calificación del instructor...
+                                    </div>
+                                {% endif %}
+
+                            {% else %}
+                                <form action="{% url 'academy:submit_assignment' lesson.id %}" method="post" enctype="multipart/form-data" class="space-y-6">
+                                    {% csrf_token %}
+
+                                    <div>
+                                        <label class="block text-sm font-bold text-slate-300 mb-2">Respuesta de Texto</label>
+                                        {{ submission_form.assignment_text }}
+                                        <p class="text-xs text-slate-500 mt-1">Escribe tu respuesta o comentarios sobre tu entrega aquí.</p>
+                                    </div>
+
+                                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                                        <label class="block text-sm font-bold text-slate-300 mb-3"><i class="fas fa-cloud-upload-alt mr-2 text-indigo-500"></i> Adjuntar Archivo</label>
+                                        {{ submission_form.assignment_file }}
+                                        <p class="text-xs text-slate-500 mt-2">Sube tu tarea en formato PDF, Word, o ZIP.</p>
+                                    </div>
+
+                                    <div class="flex justify-end pt-4 border-t border-slate-800">
+                                        <button type="submit" class="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition-all hover:scale-105 flex items-center gap-2">
+                                            <span>Enviar Tarea</span>
+                                            <i class="fas fa-paper-plane"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="grid grid-cols-2 gap-4 mt-16 pt-8 border-t border-slate-800">
+                    {% if prev_lesson %}
+                        <a href="{% url 'academy:lesson_detail' prev_lesson.id %}" class="flex items-center gap-4 p-4 rounded-xl border border-slate-800 hover:border-indigo-500/30 hover:bg-slate-800/50 transition-all group">
+                            <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-indigo-400 group-hover:scale-110 transition-all border border-slate-700">
+                                <i class="fas fa-chevron-left"></i>
+                            </div>
+                            <div class="overflow-hidden hidden sm:block">
+                                <span class="block text-xs text-slate-500 uppercase tracking-wider font-bold">Anterior</span>
+                                <span class="block text-sm font-medium text-slate-300 truncate group-hover:text-white transition-colors">{{ prev_lesson.title }}</span>
+                            </div>
+                        </a>
+                    {% else %}
+                        <div></div>
+                    {% endif %}
+
+                    {% if next_lesson %}
+                        <a href="{% url 'academy:lesson_detail' next_lesson.id %}" class="flex items-center justify-between sm:justify-end gap-4 p-4 rounded-xl border border-slate-800 hover:border-indigo-500/30 hover:bg-slate-800/50 transition-all group text-right w-full">
+                            <div class="overflow-hidden text-left sm:text-right">
+                                <span class="block text-xs text-slate-500 uppercase tracking-wider font-bold">Siguiente Lección</span>
+                                <span class="block text-sm font-medium text-slate-300 truncate group-hover:text-white transition-colors max-w-[150px] sm:max-w-none">{{ next_lesson.title }}</span>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-indigo-400 group-hover:scale-110 transition-all border border-slate-700 shrink-0">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </a>
+                    {% elif lesson.module.quizzes.exists %}
+                         <a href="{% url 'academy:quiz_detail' lesson.module.quizzes.first.id %}" class="flex items-center justify-end gap-3 p-4 rounded-xl border border-indigo-500/50 bg-indigo-600/10 hover:bg-indigo-600/20 transition-all group text-right">
+                            <div>
+                                <span class="block text-xs text-indigo-300 uppercase tracking-wider font-bold">Evaluación</span>
+                                <span class="block text-sm font-bold text-white">Tomar Examen Final</span>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
+                                <i class="fas fa-flag-checkered"></i>
+                            </div>
+                        </a>
+                    {% endif %}
+                </div>
+
+                <div class="mt-20 pt-12 border-t border-slate-800" id="comments-section">
+                    
+                    <h3 class="text-xl font-bold text-white mb-8 flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                            <i class="fas fa-comments text-sm"></i>
+                        </span>
+                        Preguntas y Respuestas
+                        <span class="text-sm font-normal text-slate-500 ml-auto">{{ comments.count }} preguntas</span>
+                    </h3>
+
+                    <div class="mb-12 bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50 flex gap-4">
+                        <div class="shrink-0">
+                            {% if user.profile.avatar %}
+                                <img src="{{ user.profile.avatar.url }}" class="w-10 h-10 rounded-full border border-slate-600 object-cover">
+                            {% else %}
+                                <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 border border-slate-600">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <form action="{% url 'academy:add_comment' lesson.id %}" method="post" class="flex-1">
+                            {% csrf_token %}
+                            {{ comment_form.content }}
+                            <div class="flex justify-end mt-3">
+                                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all hover:-translate-y-0.5">
+                                    Publicar Pregunta
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="space-y-8">
+                        {% for comment in comments %}
+                        <div class="animate-fade-in">
+                            <div class="flex gap-4">
+                                <div class="shrink-0 pt-1">
+                                    {% if comment.user.profile.avatar %}
+                                        <img src="{{ comment.user.profile.avatar.url }}" class="w-10 h-10 rounded-full border-2 {% if comment.user.profile.role == 'teacher' %}border-indigo-500{% else %}border-slate-700{% endif %} object-cover">
+                                    {% else %}
+                                        <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-slate-400">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="flex-1 group">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="font-bold text-slate-200 text-sm">
+                                            {{ comment.user.get_full_name|default:comment.user.username }}
+                                        </span>
+                                        {% if comment.user.profile.role == 'teacher' %}
+                                            <span class="px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[10px] font-bold border border-indigo-500/30 uppercase tracking-wide">Instructor</span>
+                                        {% endif %}
+                                        <span class="text-slate-500 text-xs">• {{ comment.created_at|timesince }}</span>
+                                    </div>
+                                    
+                                    <div class="text-slate-300 text-sm leading-relaxed mb-3">
+                                        {{ comment.content|linebreaksbr }}
+                                    </div>
+
+                                    <div x-data="{ replyOpen: false }">
+                                        <button @click="replyOpen = !replyOpen" class="text-xs font-bold text-slate-500 hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                                            <i class="fas fa-reply"></i> Responder
+                                        </button>
+
+                                        <div x-show="replyOpen" x-collapse style="display: none;" class="mt-4 pl-4 border-l-2 border-slate-700">
+                                            <form action="{% url 'academy:add_comment' lesson.id %}" method="post">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                                                <textarea name="content" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white text-sm focus:ring-1 focus:ring-indigo-500 transition-all resize-none" placeholder="Escribe tu respuesta..."></textarea>
+                                                <div class="flex justify-end mt-2 gap-2">
+                                                    <button type="button" @click="replyOpen = false" class="text-slate-400 text-xs hover:text-white px-3 py-1.5">Cancelar</button>
+                                                    <button type="submit" class="bg-slate-700 hover:bg-white hover:text-slate-900 text-slate-200 px-4 py-1.5 rounded-md text-xs font-bold transition-colors">
+                                                        Responder
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if comment.replies.all %}
+                            <div class="mt-4 pl-14 space-y-4 relative">
+                                <div class="absolute left-5 top-0 bottom-6 w-px bg-slate-800"></div>
+                                
+                                {% for reply in comment.replies.all %}
+                                <div class="flex gap-4 relative">
+                                    <div class="absolute -left-9 top-4 w-6 h-px bg-slate-800"></div>
+                                    <div class="shrink-0 pt-1">
+                                        {% if reply.user.profile.avatar %}
+                                            <img src="{{ reply.user.profile.avatar.url }}" class="w-8 h-8 rounded-full border border-slate-700 object-cover">
+                                        {% else %}
+                                            <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 text-xs">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div>
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="font-bold text-slate-300 text-xs">
+                                                {{ reply.user.get_full_name|default:reply.user.username }}
+                                            </span>
+                                            {% if reply.user.profile.role == 'teacher' %}
+                                                <span class="text-indigo-400 text-[10px] font-bold uppercase"><i class="fas fa-check-circle"></i> Instructor</span>
+                                            {% endif %}
+                                            <span class="text-slate-600 text-[10px]">• {{ reply.created_at|timesince }}</span>
+                                        </div>
+                                        <div class="text-slate-400 text-sm leading-relaxed">
+                                            {{ reply.content|linebreaksbr }}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            
+                            <div class="h-px bg-slate-800/50 w-full mt-6 mb-6"></div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-10">
+                            <i class="far fa-comments text-4xl text-slate-700 mb-3"></i>
+                            <p class="text-slate-500">Aún no hay preguntas. ¡Sé el primero en participar!</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+            {% endif %}
+        </main>
+
+        <aside class="fixed inset-y-0 right-0 w-96 bg-slate-900 border-l border-slate-800 transform transition-transform duration-300 ease-in-out z-20 flex flex-col pt-16 lg:pt-0 lg:static lg:h-auto shadow-2xl"
+               :class="sidebarOpen ? 'translate-x-0' : 'translate-x-full'">
+            
+            <div class="p-5 border-b border-slate-800 bg-slate-900 sticky top-0 z-10">
+                <h3 class="font-bold text-white text-lg">Contenido del Curso</h3>
+                <div class="flex items-center gap-3 mt-3">
+                    <div class="flex-grow h-1.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+                        <div class="h-full bg-indigo-500 rounded-full transition-all duration-1000" style="width: {{ progress_percentage }}%"></div>
+                    </div>
+                    <span class="text-xs text-indigo-400 font-bold">{{ progress_percentage }}%</span>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto">
+                <div class="divide-y divide-slate-800/50">
+                    {% for module in modules %}
+                        <div x-data="{ open: {% if module == lesson.module %}true{% else %}false{% endif %} }">
+                            <button @click="open = !open" class="w-full px-5 py-4 flex items-center justify-between text-left bg-slate-800/30 hover:bg-slate-800 transition-colors group">
+                                <span class="font-bold text-slate-300 text-sm group-hover:text-white transition-colors">{{ module.title }}</span>
+                                <i class="fas fa-chevron-down text-xs text-slate-500 transition-transform duration-300" :class="{ 'rotate-180': open }"></i>
+                            </button>
+                            
+                            <div x-show="open" x-collapse>
+                                <ul class="py-2 bg-slate-900/50">
+                                    {% for l in module.lessons.all %}
+                                        <li>
+                                            <a href="{% url 'academy:lesson_detail' l.id %}" 
+                                               class="flex items-start gap-3 px-5 py-3 text-sm transition-all border-l-2 hover:bg-white/5
+                                               {% if l.id == lesson.id %} border-indigo-500 bg-indigo-500/10 text-white
+                                               {% else %} border-transparent text-slate-400 hover:text-slate-200
+                                               {% endif %}">
+                                                
+                                                <div class="mt-0.5 shrink-0">
+                                                    {% if l.id == lesson.id %}
+                                                        <i class="{{ l.icon_class }} text-indigo-500 text-base animate-pulse"></i>
+                                                    {% elif l.is_completed %}
+                                                        <i class="fas fa-check-circle text-emerald-500 text-base"></i>
+                                                    {% else %}
+                                                        <i class="{{ l.icon_class }} text-slate-600 text-base group-hover:text-slate-400"></i>
+                                                    {% endif %}
+                                                </div>
+                                                
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="leading-tight truncate {% if l.id == lesson.id %}font-bold{% endif %}">{{ l.title }}</p>
+                                                    <div class="flex items-center gap-2 mt-1">
+                                                        <span class="text-[10px] text-slate-500">{{ l.duration }} min</span>
+                                                        {% if l.lesson_type != 'article' %}
+                                                            <span class="text-[9px] border border-slate-700 rounded px-1 text-slate-600 uppercase">{{ l.get_lesson_type_display }}</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                    
+                                    {% for q in module.quizzes.all %}
+                                        <li>
+                                            <a href="{% url 'academy:quiz_detail' q.id %}" class="flex items-center gap-3 px-5 py-3 text-sm text-amber-200/80 hover:bg-amber-500/10 border-l-2 border-transparent hover:border-amber-500/30 transition-colors">
+                                                <i class="fas fa-star text-amber-500/70 text-xs"></i>
+                                                <span class="font-medium">Examen: {{ q.title }}</span>
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </aside>
+
+        <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-black/80 z-10 lg:hidden backdrop-blur-sm" 
+             x-transition:enter="transition-opacity ease-linear duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-linear duration-300"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             style="display: none;"></div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,470 @@
+{% extends 'academy/base.html' %}
+
+{% block content %}
+<div class="bg-[#0B1120] min-h-screen font-sans text-slate-100 relative overflow-hidden selection:bg-indigo-500 selection:text-white">
+
+    <div class="absolute top-0 left-0 w-[800px] h-[800px] bg-indigo-600/10 rounded-full blur-[120px] animate-blob pointer-events-none mix-blend-screen"></div>
+    <div class="absolute bottom-0 right-0 w-[800px] h-[800px] bg-purple-600/10 rounded-full blur-[120px] animate-blob animation-delay-2000 pointer-events-none mix-blend-screen"></div>
+
+    {% if hero_slides %}
+    <div class="relative w-full pt-10 pb-12" 
+         x-data="{ 
+            active: 0,
+            total: {{ hero_slides.count }},
+            startX: 0,
+            isDragging: false,
+            
+            next() { this.active = (this.active + 1) % this.total },
+            prev() { this.active = (this.active - 1 + this.total) % this.total },
+            goTo(index) { this.active = index },
+            
+            startSwipe(x) {
+                this.startX = x;
+                this.isDragging = true;
+                this.stopAuto();
+            },
+            endSwipe(x) {
+                if (!this.isDragging) return;
+                this.isDragging = false;
+                if (this.startX - x > 50) this.next();
+                if (x - this.startX > 50) this.prev();
+                this.startAuto();
+            },
+
+            timer: null,
+            startAuto() { this.timer = setInterval(() => this.next(), 6000) },
+            stopAuto() { clearInterval(this.timer) }
+         }"
+         x-init="startAuto()"
+         @mouseenter="stopAuto()"
+         @mouseleave="stopAuto()">
+         
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative group">
+            
+            <div class="overflow-hidden rounded-3xl shadow-2xl border border-slate-700/50 relative z-10 bg-slate-900/50 backdrop-blur-sm cursor-grab active:cursor-grabbing"
+                 @touchstart="startSwipe($event.changedTouches[0].screenX)"
+                 @touchend="endSwipe($event.changedTouches[0].screenX)"
+                 @mousedown="startSwipe($event.screenX)"
+                 @mouseup="endSwipe($event.screenX)"
+                 @mouseleave="isDragging = false">
+                 
+                <div class="flex transition-transform duration-700 ease-in-out h-[500px] md:h-[550px]"
+                     :style="`transform: translateX(-${active * 100}%)`">
+                    
+                    {% for slide in hero_slides %}
+                        {% if slide.style == 'promo' %}
+                        <div class="w-full flex-shrink-0 relative flex items-center overflow-hidden bg-slate-950 select-none">
+                            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-yellow-900/20 via-slate-950 to-slate-950"></div>
+                            {% if slide.image %}
+                                <div class="absolute right-0 top-0 h-full w-1/2 opacity-20 mix-blend-luminosity">
+                                    <img src="{{ slide.image.url }}" class="h-full w-full object-cover mask-gradient-to-l pointer-events-none">
+                                </div>
+                            {% endif %}
+                            <div class="relative z-10 w-full max-w-7xl mx-auto px-8 md:px-16 grid grid-cols-1 md:grid-cols-2 items-center">
+                                <div>
+                                    {% if slide.tag_text %}
+                                    <span class="inline-block px-3 py-1 bg-yellow-500/10 text-yellow-400 text-xs font-bold uppercase tracking-widest rounded-full mb-6 border border-yellow-500/30">
+                                        <i class="fas fa-bolt mr-1"></i> {{ slide.tag_text }}
+                                    </span>
+                                    {% endif %}
+                                    <h2 class="text-4xl md:text-6xl font-black text-white mb-6 leading-[1.1]">{{ slide.title|safe }}</h2>
+                                    <p class="text-slate-300 text-lg mb-8 max-w-md font-light border-l-2 border-yellow-500/50 pl-4">{{ slide.description }}</p>
+                                    <a href="{{ slide.btn1_url }}" class="inline-flex items-center px-8 py-4 bg-yellow-500 text-slate-900 font-bold rounded-xl hover:bg-yellow-400 transition-all hover:scale-105 pointer-events-auto">
+                                        {{ slide.btn1_text }} <i class="fas fa-arrow-right ml-2"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% elif slide.style == 'business' %}
+                        <div class="w-full flex-shrink-0 relative flex items-center overflow-hidden bg-slate-900 select-none">
+                            <div class="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/90 to-blue-900/20"></div>
+                            <div class="relative z-10 w-full max-w-7xl mx-auto px-8 md:px-16 flex items-center gap-12">
+                                <div class="md:w-1/2">
+                                    {% if slide.tag_text %}
+                                    <div class="flex items-center gap-2 mb-6">
+                                        <span class="w-8 h-[2px] bg-blue-500"></span>
+                                        <span class="text-blue-400 font-bold text-sm tracking-widest uppercase">{{ slide.tag_text }}</span>
+                                    </div>
+                                    {% endif %}
+                                    <h2 class="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">{{ slide.title|safe }}</h2>
+                                    <p class="text-blue-100/70 text-lg mb-8">{{ slide.description }}</p>
+                                    <a href="{{ slide.btn1_url }}" class="inline-flex items-center px-8 py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-all hover:-translate-y-1 pointer-events-auto">
+                                        {{ slide.btn1_text }} <i class="fas fa-building ml-2"></i>
+                                    </a>
+                                </div>
+                                <div class="hidden md:flex md:w-1/2 justify-center relative h-full items-center">
+                                    {% if slide.image %}
+                                        <div class="relative w-full h-[350px] rounded-2xl overflow-hidden shadow-2xl transform rotate-3 border border-slate-700">
+                                            <img src="{{ slide.image.url }}" class="w-full h-full object-cover pointer-events-none">
+                                            <div class="absolute inset-0 bg-blue-600/10 mix-blend-overlay"></div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        {% elif slide.style == 'new' %}
+                        <div class="w-full flex-shrink-0 relative flex items-center justify-center overflow-hidden bg-slate-900 select-none">
+                            <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-fuchsia-900/40 via-slate-900 to-slate-900"></div>
+                            <div class="relative z-10 text-center max-w-4xl px-4">
+                                {% if slide.tag_text %}
+                                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-fuchsia-500/50 bg-fuchsia-500/10 backdrop-blur-md mb-8">
+                                    <span class="text-fuchsia-300 text-xs font-bold tracking-widest uppercase">{{ slide.tag_text }}</span>
+                                </div>
+                                {% endif %}
+                                <h2 class="text-5xl md:text-7xl font-black text-white mb-8 tracking-tighter">{{ slide.title|safe }}</h2>
+                                <p class="text-slate-300 text-xl mb-10 max-w-2xl mx-auto font-light">{{ slide.description }}</p>
+                                <div class="flex flex-col sm:flex-row justify-center gap-5">
+                                    <a href="{{ slide.btn1_url }}" class="px-8 py-4 bg-fuchsia-600 text-white font-bold rounded-xl hover:bg-fuchsia-500 transition hover:scale-105 pointer-events-auto">
+                                        {{ slide.btn1_text }}
+                                    </a>
+                                    {% if slide.btn2_text %}
+                                    <a href="{{ slide.btn2_url }}" class="px-8 py-4 bg-slate-800/50 backdrop-blur text-white font-bold rounded-xl hover:bg-slate-700 border border-slate-600 transition flex items-center justify-center gap-2 pointer-events-auto">
+                                        <i class="fas fa-play-circle"></i> {{ slide.btn2_text }}
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button @click="prev()" class="absolute left-4 lg:-left-12 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center text-slate-500 hover:text-white transition-colors z-20 group/nav bg-slate-900/50 rounded-full border border-white/10 hover:border-white/30 hidden lg:flex">
+                <i class="fas fa-chevron-left text-2xl"></i>
+            </button>
+            <button @click="next()" class="absolute right-4 lg:-right-12 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center text-slate-500 hover:text-white transition-colors z-20 group/nav bg-slate-900/50 rounded-full border border-white/10 hover:border-white/30 hidden lg:flex">
+                <i class="fas fa-chevron-right text-2xl"></i>
+            </button>
+
+            <div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 flex gap-3 z-20">
+                {% for i in slide_range %}
+                <button @click="goTo({{ i }})" class="h-1.5 rounded-full transition-all duration-300" :class="active === {{ i }} ? 'bg-indigo-500 w-8' : 'bg-slate-700 w-2 hover:bg-slate-600'"></button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if announcements %}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for card in announcements %}
+            <div class="relative overflow-hidden rounded-3xl p-8 min-h-[280px] flex flex-col justify-center shadow-xl transition-transform hover:-translate-y-1 duration-300 group
+                {% if card.style == 'primary' %} bg-[#0056D2] {% elif card.style == 'dark' %} bg-[#1f1f1f] {% else %} bg-gradient-to-r from-indigo-600 to-purple-600 {% endif %}">
+                
+                <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+                <div class="absolute bottom-0 left-0 w-40 h-40 bg-white/5 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none"></div>
+
+                {% if card.image %}
+                <div class="absolute right-0 bottom-0 h-full w-1/2 md:w-2/5 z-0 pointer-events-none">
+                    <img src="{{ card.image.url }}" alt="" class="w-full h-full object-cover object-bottom mask-gradient-b opacity-90 group-hover:scale-105 transition-transform duration-700">
+                </div>
+                {% endif %}
+
+                <div class="relative z-10 max-w-[65%]">
+                    {% if card.style == 'primary' %}
+                    <div class="bg-white/20 inline-block px-2 py-0.5 rounded text-[10px] font-bold text-white mb-4 uppercase tracking-wider backdrop-blur-sm">
+                        LMS PLUS
+                    </div>
+                    {% endif %}
+
+                    <h3 class="text-2xl md:text-3xl font-bold text-white mb-4 leading-tight">
+                        {{ card.title }}
+                    </h3>
+                    
+                    {% if card.description %}
+                    <p class="text-white/80 text-sm mb-8 leading-relaxed font-medium">
+                        {{ card.description }}
+                    </p>
+                    {% endif %}
+
+                    <a href="{{ card.btn_url }}" class="inline-flex items-center gap-2 font-bold text-sm px-6 py-3 rounded-lg transition-all
+                        {% if card.style == 'primary' %} 
+                            bg-white text-[#0056D2] hover:bg-slate-100 
+                        {% else %} 
+                            bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-500/30
+                        {% endif %}">
+                        {{ card.btn_text }} <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if certifications %}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-b border-slate-800/50">
+        <div class="flex flex-col lg:flex-row gap-8 items-center">
+            
+            <div class="lg:w-1/3">
+                <h2 class="text-3xl font-bold text-white mb-4 leading-tight">
+                    Certifícate con los <br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">líderes de la industria.</span>
+                </h2>
+                <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                    Nuestros programas están avalados por empresas top. Obtén una credencial que impulse tu currículum.
+                </p>
+                <a href="#" class="text-indigo-400 font-bold text-sm hover:text-white transition-colors flex items-center gap-2 group">
+                    Ver todas las rutas <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                </a>
+            </div>
+
+            <div class="lg:w-2/3 w-full relative" 
+                 x-data="{
+                    isDown: false,
+                    startX: 0,
+                    scrollLeft: 0,
+                    startDrag(e) {
+                        this.isDown = true;
+                        this.startX = e.pageX - $refs.container.offsetLeft;
+                        this.scrollLeft = $refs.container.scrollLeft;
+                    },
+                    stopDrag() { this.isDown = false; },
+                    moveDrag(e) {
+                        if (!this.isDown) return;
+                        e.preventDefault();
+                        const x = e.pageX - $refs.container.offsetLeft;
+                        const walk = (x - this.startX) * 1.5;
+                        $refs.container.scrollLeft = this.scrollLeft - walk;
+                    }
+                 }">
+                
+                <div x-ref="container" 
+                     class="w-full overflow-x-auto hide-scroll-x pb-8 pt-4 px-2 cursor-grab active:cursor-grabbing"
+                     :class="{ 'scroll-smooth snap-x snap-mandatory': !isDown, 'scroll-auto': isDown }"
+                     @mousedown="startDrag($event)"
+                     @mouseleave="stopDrag()"
+                     @mouseup="stopDrag()"
+                     @mousemove="moveDrag($event)">
+                     
+                    <div class="flex gap-5 w-max pointer-events-none" :class="{ 'pointer-events-auto': !isDown }">
+                        {% for cert in certifications %}
+                        <a href="{{ cert.url }}" draggable="false" ondragstart="return false;" class="block w-72 group relative snap-center select-none">
+                            
+                            <div class="absolute inset-0 rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity duration-500
+                                {% if cert.style == 'blue' %} bg-gradient-to-r from-blue-500 to-cyan-500
+                                {% elif cert.style == 'green' %} bg-gradient-to-r from-emerald-500 to-lime-500
+                                {% elif cert.style == 'indigo' %} bg-gradient-to-r from-indigo-500 to-purple-500
+                                {% else %} bg-gradient-to-r from-slate-500 to-gray-500 {% endif %}">
+                            </div>
+
+                            <div class="relative bg-slate-800 rounded-2xl border border-slate-700 p-1 h-full hover:-translate-y-2 transition-transform duration-300">
+                                <div class="bg-slate-900 rounded-xl p-5 h-full flex flex-col">
+                                    <div class="flex justify-between items-start mb-4">
+                                        <div class="w-10 h-10 rounded-lg flex items-center justify-center border transition-colors
+                                            {% if cert.style == 'blue' %} bg-blue-500/10 text-blue-400 border-blue-500/20 group-hover:border-blue-500/50
+                                            {% elif cert.style == 'green' %} bg-emerald-500/10 text-emerald-400 border-emerald-500/20 group-hover:border-emerald-500/50
+                                            {% elif cert.style == 'indigo' %} bg-indigo-500/10 text-indigo-400 border-indigo-500/20 group-hover:border-indigo-500/50
+                                            {% else %} bg-slate-700 text-slate-300 border-slate-600 {% endif %}">
+                                            <i class="{{ cert.icon_class }}"></i>
+                                        </div>
+                                        <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{{ cert.provider }}</span>
+                                    </div>
+                                    <h3 class="text-white font-bold mb-1 transition-colors
+                                        {% if cert.style == 'blue' %} group-hover:text-blue-400
+                                        {% elif cert.style == 'green' %} group-hover:text-emerald-400
+                                        {% elif cert.style == 'indigo' %} group-hover:text-indigo-400
+                                        {% endif %}">
+                                        {{ cert.title }}
+                                    </h3>
+                                    <p class="text-xs text-slate-500 mb-4">{{ cert.subtitle }}</p>
+                                    <div class="mt-auto flex items-center gap-1 text-yellow-500 text-xs font-bold">
+                                        <i class="fas fa-star"></i> {{ cert.rating }}
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="sticky top-16 z-30 border-y border-white/5 bg-slate-900/80 backdrop-blur-xl transition-all shadow-lg"
+         x-data="{
+            isDown: false,
+            startX: 0,
+            scrollLeft: 0,
+            startDrag(e) {
+                this.isDown = true;
+                this.startX = e.pageX - $refs.catContainer.offsetLeft;
+                this.scrollLeft = $refs.catContainer.scrollLeft;
+            },
+            stopDrag() { this.isDown = false; },
+            moveDrag(e) {
+                if (!this.isDown) return;
+                e.preventDefault();
+                const x = e.pageX - $refs.catContainer.offsetLeft;
+                const walk = (x - this.startX) * 1.5;
+                $refs.catContainer.scrollLeft = this.scrollLeft - walk;
+            }
+         }">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div x-ref="catContainer"
+                 class="flex items-center gap-3 py-4 overflow-x-auto hide-scroll-x mask-gradient-x cursor-grab active:cursor-grabbing"
+                 :class="{ 'scroll-smooth snap-x': !isDown, 'scroll-auto': isDown }"
+                 @mousedown="startDrag($event)"
+                 @mouseleave="stopDrag()"
+                 @mouseup="stopDrag()"
+                 @mousemove="moveDrag($event)">
+                 
+                <a href="{% url 'academy:course_list' %}" 
+                   draggable="false" ondragstart="return false;"
+                   class="whitespace-nowrap px-5 py-2 rounded-full text-sm font-bold transition-all border snap-start select-none
+                   {% if not request.GET.category %}
+                       bg-white text-slate-900 border-white shadow-[0_0_15px_rgba(255,255,255,0.3)]
+                   {% else %}
+                       bg-slate-800 text-slate-400 border-slate-700 hover:border-slate-500 hover:text-white
+                   {% endif %}">
+                    Destacados
+                </a>
+                
+                {% for cat in categories %}
+                    <a href="?category={{ cat.slug }}" 
+                       draggable="false" ondragstart="return false;"
+                       class="whitespace-nowrap px-5 py-2 rounded-full text-sm font-bold transition-all border flex items-center gap-2 group snap-start select-none
+                       {% if request.GET.category == cat.slug %}
+                           bg-indigo-600 text-white border-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.4)]
+                       {% else %}
+                           bg-slate-800 text-slate-400 border-slate-700 hover:border-indigo-500/50 hover:text-white hover:bg-slate-800
+                       {% endif %}">
+                        {% if cat.icon %}
+                            <i class="{{ cat.icon }} opacity-70 group-hover:text-indigo-400 transition-colors"></i>
+                        {% endif %} 
+                        {{ cat.name }}
+                    </a>
+                {% endfor %}
+                
+                <a href="{% url 'academy:course_catalog' %}" 
+                   draggable="false" ondragstart="return false;"
+                   class="whitespace-nowrap px-5 py-2 rounded-full text-sm font-bold text-indigo-400 hover:text-white transition-colors ml-auto border border-transparent hover:bg-slate-800 snap-start select-none">
+                    Ver todo el catálogo <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        
+        <div class="flex justify-between items-end mb-8">
+            <h2 class="text-2xl font-bold text-white">Explora el catálogo</h2>
+            <div class="text-slate-400 text-sm hidden sm:block">Mostrando {{ courses.count }} resultados</div>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {% for course in courses %}
+                <div class="group relative bg-slate-800/40 backdrop-blur-sm rounded-3xl overflow-hidden border border-slate-700/50 hover:border-indigo-500/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(99,102,241,0.15)] hover:-translate-y-2 flex flex-col h-full">
+                    
+                    <div class="relative aspect-[16/10] overflow-hidden">
+                        <a href="{% url 'academy:course_detail' course.slug %}" class="block w-full h-full">
+                            {% if course.thumbnail %}
+                                <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-out">
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center bg-slate-800"><i class="fas fa-graduation-cap text-5xl text-slate-600"></i></div>
+                            {% endif %}
+                        </a>
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-80"></div>
+                        
+                        <div class="absolute top-4 left-4 flex flex-col gap-2">
+                            {% if course.is_upcoming %}
+                                <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider backdrop-blur-md bg-indigo-600 text-white border border-white/10 shadow-lg flex items-center gap-1.5 animate-pulse">
+                                    <i class="fas fa-rocket"></i> Próximamente
+                                </span>
+                            {% endif %}
+
+                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider backdrop-blur-md bg-black/60 text-white border border-white/10 shadow-lg flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full 
+                                    {% if course.level == 'beginner' %}bg-emerald-400
+                                    {% elif course.level == 'intermediate' %}bg-yellow-400
+                                    {% else %}bg-red-500{% endif %}"></span>
+                                {{ course.get_level_display }}
+                            </span>
+                        </div>
+
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                            <div class="w-14 h-14 bg-indigo-600/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg transform scale-50 group-hover:scale-100 transition-transform duration-300">
+                                <i class="fas fa-play text-white ml-1 text-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-6 flex flex-col flex-grow relative">
+                        <div class="mb-2">
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-indigo-400">
+                                {{ course.category.name|default:"General" }}
+                            </span>
+                        </div>
+
+                        <h3 class="text-lg font-bold text-white mb-2 leading-tight group-hover:text-indigo-400 transition-colors line-clamp-2">
+                            <a href="{% url 'academy:course_detail' course.slug %}">{{ course.title }}</a>
+                        </h3>
+                        
+                        <p class="text-slate-400 text-sm mb-6 line-clamp-2 leading-relaxed">
+                            {{ course.short_description|default:course.description|striptags|safe }}
+                        </p>
+                        
+                        <div class="mt-auto pt-4 border-t border-slate-700/50 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                {% if course.instructor.profile.avatar %}
+                                    <img src="{{ course.instructor.profile.avatar.url }}" class="w-6 h-6 rounded-full border border-slate-600 object-cover">
+                                {% else %}
+                                    <div class="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-[10px] text-slate-400"><i class="fas fa-user"></i></div>
+                                {% endif %}
+                                <span class="text-xs text-slate-400 truncate max-w-[100px]">{{ course.instructor.get_full_name|default:course.instructor.username }}</span>
+                            </div>
+
+                            <div class="flex flex-col items-end">
+                                {% if course.old_price and course.old_price > course.price %}
+                                    <span class="text-[10px] text-slate-500 line-through">S/ {{ course.old_price }}</span>
+                                {% endif %}
+                                <span class="text-sm font-black text-white {% if course.price == 0 %}text-emerald-400{% endif %}">
+                                    {% if course.price > 0 %}S/ {{ course.price }}{% else %}Gratis{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="h-0.5 w-0 group-hover:w-full bg-indigo-500 transition-all duration-700 ease-in-out"></div>
+                </div>
+            {% empty %}
+                <div class="col-span-full py-24 text-center">
+                    <div class="inline-block p-6 rounded-full bg-slate-800 border border-slate-700 mb-6">
+                        <i class="fas fa-ghost text-5xl text-slate-500"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">No encontramos resultados</h3>
+                    <p class="text-slate-400">Intenta con otros términos o explora las categorías.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .hide-scroll-x::-webkit-scrollbar { display: none; }
+    .hide-scroll-x { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    /* Máscara para la imagen del banner */
+    .mask-gradient-b {
+        -webkit-mask-image: linear-gradient(to top, black 50%, transparent 100%);
+        mask-image: linear-gradient(to top, black 50%, transparent 100%);
+    }
+    
+    /* Máscara para el slider principal */
+    .mask-gradient-to-l { 
+        -webkit-mask-image: linear-gradient(to left, black 0%, transparent 100%); 
+        mask-image: linear-gradient(to left, black 0%, transparent 100%); 
+    }
+    
+    /* Máscara para la barra de categorías */
+    .mask-gradient-x { 
+        -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent); 
+    }
+</style>
+{% endblock %}

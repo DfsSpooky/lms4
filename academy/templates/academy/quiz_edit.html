@@ -1,0 +1,363 @@
+{% extends 'academy/base.html' %}
+
+{% block title %}Editar Examen: {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#0B1120] py-12 px-4 sm:px-6 lg:px-8" x-data="quizEditor()">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-3">
+                <a href="{% url 'academy:course_content' quiz.module.course.slug %}" class="text-indigo-400 hover:text-white transition-colors">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1 class="text-2xl font-bold text-white">Editar Examen</h1>
+            </div>
+            <a href="{% url 'academy:take_quiz' quiz.id %}" target="_blank" class="px-4 py-2 bg-slate-800 text-indigo-400 rounded-lg hover:bg-slate-700 transition-colors">
+                <i class="fas fa-eye mr-2"></i> Vista Previa
+            </a>
+        </div>
+
+        <!-- Quiz Details Form -->
+        <div class="bg-slate-800/50 rounded-2xl p-6 border border-slate-700 mb-8">
+            <h2 class="text-lg font-bold text-white mb-4">Detalles Generales</h2>
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-slate-400 mb-1">Título</label>
+                        {{ form.title }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-1">Nota Aprobatoria</label>
+                        {{ form.pass_mark }}
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Descripción</label>
+                    {{ form.description }}
+                </div>
+                <div class="flex justify-end">
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition-colors">
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Questions List -->
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold text-white">Preguntas ({{ questions.count }})</h2>
+                <button @click="openModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold transition-colors flex items-center gap-2">
+                    <i class="fas fa-plus"></i> Nueva Pregunta
+                </button>
+            </div>
+
+            {% for question in questions %}
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-4 hover:border-slate-500 transition-colors">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider
+                                {% if question.question_type == 'single_choice' %}bg-blue-500/10 text-blue-400 border border-blue-500/20
+                                {% elif question.question_type == 'multiple_choice' %}bg-purple-500/10 text-purple-400 border border-purple-500/20
+                                {% elif question.question_type == 'true_false' %}bg-amber-500/10 text-amber-400 border border-amber-500/20
+                                {% else %}bg-pink-500/10 text-pink-400 border border-pink-500/20{% endif %}">
+                                {{ question.get_question_type_display }}
+                            </span>
+                            <span class="text-xs text-slate-500 font-mono">{{ question.points }} pts</span>
+                        </div>
+                        <h3 class="text-white font-medium text-lg">{{ question.text }}</h3>
+
+                        <!-- Answers Preview -->
+                        <div class="mt-3 space-y-1 pl-4 border-l-2 border-slate-700">
+                            {% for answer in question.answers.all %}
+                                <div class="flex items-center gap-2 text-sm {% if answer.is_correct %}text-emerald-400{% else %}text-slate-400{% endif %}">
+                                    <i class="fas {% if answer.is_correct %}fa-check-circle{% else %}fa-circle{% endif %} text-[10px]"></i>
+                                    {{ answer.text }}
+                                </div>
+                            {% empty %}
+                                {% if question.question_type == 'short_answer' %}
+                                    <p class="text-slate-500 text-sm italic">Respuesta abierta (calificación manual)</p>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 ml-4">
+                        <button @click="editQuestion({{ question.id }})" class="p-2 text-slate-400 hover:text-white bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <a href="{% url 'academy:delete_question' question.id %}" onclick="return confirm('¿Eliminar esta pregunta?')" class="p-2 text-slate-400 hover:text-red-400 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors">
+                            <i class="fas fa-trash-alt"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-12 border-2 border-dashed border-slate-700 rounded-xl">
+                <p class="text-slate-500">No hay preguntas aún.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Question Modal -->
+    <div x-show="showModal" class="fixed inset-0 z-50 flex items-center justify-center px-4" style="display: none;">
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="closeModal()"></div>
+
+        <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl relative z-10 border border-slate-700 max-h-[90vh] flex flex-col">
+            <div class="p-6 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white" x-text="isEditing ? 'Editar Pregunta' : 'Nueva Pregunta'"></h3>
+                <button @click="closeModal()" class="text-slate-400 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="p-6 overflow-y-auto custom-scrollbar">
+                <div class="space-y-4">
+                    <!-- Type Selector -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-1">Tipo de Pregunta</label>
+                        <select x-model="question.question_type" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500">
+                            <option value="single_choice">Opción Múltiple (Una respuesta)</option>
+                            <option value="multiple_choice">Opción Múltiple (Varias respuestas)</option>
+                            <option value="true_false">Verdadero / Falso</option>
+                            <option value="short_answer">Respuesta Corta</option>
+                            <option value="matching">Relacionar Columnas</option>
+                            <option value="ordering">Ordenamiento / Secuencia</option>
+                        </select>
+                    </div>
+
+                    <!-- Question Text -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-1">Pregunta</label>
+                        <input type="text" x-model="question.text" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500" placeholder="Escribe la pregunta aquí...">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-1">Puntos</label>
+                            <input type="number" x-model="question.points" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500" step="0.5">
+                        </div>
+                    </div>
+
+                    <!-- Answers Section -->
+                    <div x-show="question.question_type !== 'short_answer'" class="mt-6 pt-6 border-t border-slate-700">
+                        <div class="flex items-center justify-between mb-4">
+                            <label class="block text-sm font-medium text-slate-400" x-text="getAnswersLabel()"></label>
+                            <button @click="addAnswer()" class="text-xs text-indigo-400 font-bold hover:text-indigo-300">+ Agregar Elemento</button>
+                        </div>
+
+                        <div class="space-y-3">
+                            <template x-for="(answer, index) in question.answers" :key="index">
+                                <div class="flex items-center gap-3">
+                                    <!-- Checkbox/Radio for standard types -->
+                                    <div x-show="['single_choice', 'multiple_choice', 'true_false'].includes(question.question_type)">
+                                        <button @click="toggleCorrect(index)"
+                                                class="w-6 h-6 rounded-full border flex items-center justify-center transition-colors"
+                                                :class="answer.is_correct ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-600 text-transparent hover:border-slate-400'">
+                                            <i class="fas fa-check text-xs"></i>
+                                        </button>
+                                    </div>
+
+                                    <!-- Order Indicator -->
+                                    <div x-show="question.question_type === 'ordering'" class="w-6 h-6 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center text-xs font-mono">
+                                        <span x-text="index + 1"></span>
+                                    </div>
+
+                                    <!-- Inputs -->
+                                    <div class="flex-1 flex gap-2">
+                                        <input type="text" x-model="answer.text"
+                                               class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-indigo-500"
+                                               :placeholder="getAnswerPlaceholder()">
+
+                                        <!-- Matching Pair Input -->
+                                        <div x-show="question.question_type === 'matching'" class="flex-1 flex items-center gap-2">
+                                            <i class="fas fa-arrow-right text-slate-600"></i>
+                                            <input type="text" x-model="answer.match_text"
+                                                   class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-indigo-500"
+                                                   placeholder="Par correspondiente">
+                                        </div>
+                                    </div>
+
+                                    <button @click="removeAnswer(index)" class="text-slate-600 hover:text-red-400 px-2">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+                        <p x-show="['single_choice', 'multiple_choice', 'true_false'].includes(question.question_type)" class="text-xs text-slate-500 mt-2">Haz clic en el círculo para marcar la(s) respuesta(s) correcta(s).</p>
+                        <p x-show="question.question_type === 'ordering'" class="text-xs text-slate-500 mt-2">Define el orden correcto de arriba hacia abajo.</p>
+                        <p x-show="question.question_type === 'matching'" class="text-xs text-slate-500 mt-2">Define los pares correctos (Izquierda -> Derecha).</p>
+                    </div>
+
+                    <div>
+                         <label class="block text-sm font-medium text-slate-400 mb-1">Explicación (Feedback)</label>
+                         <textarea x-model="question.explanation" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500" placeholder="Aparecerá después de responder..."></textarea>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="p-6 border-t border-slate-700 flex justify-end gap-3">
+                <button @click="closeModal()" class="px-4 py-2 text-slate-300 hover:text-white">Cancelar</button>
+                <button @click="saveQuestion()" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold shadow-lg">Guardar Pregunta</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function quizEditor() {
+        return {
+            showModal: false,
+            isEditing: false,
+            question: {
+                id: null,
+                text: '',
+                question_type: 'single_choice',
+                points: 1,
+                explanation: '',
+                answers: []
+            },
+
+            init() {
+                // Initialize stuff if needed
+            },
+
+            openModal() {
+                this.resetForm();
+                this.showModal = true;
+                // Add default answers
+                this.addAnswer();
+                this.addAnswer();
+            },
+
+            closeModal() {
+                this.showModal = false;
+            },
+
+            resetForm() {
+                this.isEditing = false;
+                this.question = {
+                    id: null,
+                    text: '',
+                    question_type: 'single_choice',
+                    points: 1,
+                    explanation: '',
+                    answers: []
+                };
+            },
+
+            addAnswer() {
+                this.question.answers.push({ id: null, text: '', match_text: '', is_correct: false });
+            },
+
+            getAnswersLabel() {
+                const map = {
+                    'ordering': 'Secuencia Correcta',
+                    'matching': 'Pares de Relación',
+                    'default': 'Opciones de Respuesta'
+                };
+                return map[this.question.question_type] || map['default'];
+            },
+
+            getAnswerPlaceholder() {
+                if (this.question.question_type === 'matching') return 'Elemento A (Izquierda)';
+                if (this.question.question_type === 'ordering') return 'Elemento de la secuencia';
+                return 'Texto de la opción';
+            },
+
+            removeAnswer(index) {
+                this.question.answers.splice(index, 1);
+            },
+
+            toggleCorrect(index) {
+                if (this.question.question_type === 'single_choice' || this.question.question_type === 'true_false') {
+                    // Uncheck all others
+                    this.question.answers.forEach((a, i) => {
+                        a.is_correct = (i === index);
+                    });
+                } else {
+                    // Toggle
+                    this.question.answers[index].is_correct = !this.question.answers[index].is_correct;
+                }
+            },
+
+            async editQuestion(id) {
+                // In a real app, we would fetch the question data via API.
+                // Since we rendered the list via Django template, we don't have the JS object ready.
+                // We can either:
+                // 1. Fetch via API
+                // 2. Embed data in the template (JSON script tag)
+                // Let's implement a simple fetch or hack it by putting data in data attributes?
+                // Better approach: Since we don't have a GET API for single question detailed, let's create one or rely on the list view context.
+                // For now, I will assume the user has to re-enter data or I'll parse it from DOM? No, that's bad.
+                // I will add data attributes to the edit button with the JSON of the question.
+
+                // WAIT! I don't have that data easily in the loop with complex relationships.
+                // Let's rely on an implicit "fetch" or just pass the data into a JS object on render.
+
+                // Let's try to find the data from a global object.
+                const qData = window.quizQuestions.find(q => q.id === id);
+                if (qData) {
+                    this.question = JSON.parse(JSON.stringify(qData)); // Deep copy
+                    this.isEditing = true;
+                    this.showModal = true;
+                }
+            },
+
+            async saveQuestion() {
+                if (!this.question.text) return alert('Escribe la pregunta');
+
+                try {
+                    const response = await fetch(`{% url 'academy:add_question' quiz.id %}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify(this.question)
+                    });
+
+                    const result = await response.json();
+                    if (result.status === 'ok') {
+                        location.reload(); // Simple reload to reflect changes
+                    } else {
+                        alert('Error al guardar');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert('Error de conexión');
+                }
+            }
+        }
+    }
+</script>
+
+<!-- Serialize questions to JS for editing -->
+<script>
+    window.quizQuestions = [
+        {% for q in questions %}
+        {
+            id: {{ q.id }},
+            text: "{{ q.text|escapejs }}",
+            question_type: "{{ q.question_type }}",
+            points: {{ q.points }},
+            explanation: "{{ q.explanation|escapejs }}",
+            answers: [
+                {% for a in q.answers.all %}
+                {
+                    id: {{ a.id }},
+                    text: "{{ a.text|escapejs }}",
+                    match_text: "{{ a.match_text|escapejs }}",
+                    is_correct: {% if a.is_correct %}true{% else %}false{% endif %}
+                },
+                {% endfor %}
+            ]
+        },
+        {% endfor %}
+    ];
+</script>
+{% endblock %}

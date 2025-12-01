@@ -1,0 +1,26 @@
+server {
+    listen      %ip%:80;
+    server_name %domain_idn% %alias_idn%;
+    root        %docroot%;
+    index       index.php index.html index.htm;
+    access_log  /var/log/apache2/domains/%domain%.log combined;
+    error_log   /var/log/apache2/domains/%domain%.error.log error;
+
+    location /static/ {
+        alias %docroot%/staticfiles/;
+    }
+    location /media/ {
+        alias %docroot%/media/;
+    }
+    location / {
+        proxy_pass http://unix:%docroot%/lms.sock;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    location ~ /\.ht    {deny all;}
+    location ~ /\.svn   {deny all;}
+    location ~ /\.git   {deny all;}
+    include %home%/%user%/conf/web/%domain%/nginx.conf_*;
+}

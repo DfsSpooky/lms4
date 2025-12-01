@@ -1,0 +1,186 @@
+{% extends 'academy/base.html' %}
+
+{% block title %}
+    {% if form.instance.pk %}Editar Banner{% else %}Nuevo Banner{% endif %} - Admin
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#0B1120] py-12 px-4 sm:px-6 lg:px-8" x-data="{
+    message: '{{ form.message.value|default:''|escapejs }}',
+    subMessage: '{{ form.sub_message.value|default:''|escapejs }}',
+    btnText: '{{ form.btn_text.value|default:''|escapejs }}',
+    style: '{{ form.style.value|default:'cyber' }}'
+}">
+    <div class="max-w-4xl mx-auto">
+        
+        <div class="flex items-center justify-between mb-8">
+            <a href="{% url 'academy:admin_dashboard' %}" class="text-slate-400 hover:text-white transition-colors flex items-center gap-2">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+            <h1 class="text-2xl font-bold text-white">Configurar Banner Global</h1>
+        </div>
+
+        <div class="mb-8 space-y-2">
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Vista Previa en Vivo</p>
+            <div class="rounded-xl overflow-hidden shadow-2xl border border-slate-700 bg-slate-900 relative">
+                <div class="h-12 bg-slate-900 border-b border-slate-800 flex items-center px-4 gap-4 opacity-50">
+                    <div class="w-20 h-4 bg-slate-700 rounded"></div>
+                    <div class="w-12 h-3 bg-slate-800 rounded"></div>
+                    <div class="w-12 h-3 bg-slate-800 rounded"></div>
+                </div>
+
+                <div class="relative w-full px-4 py-3 flex items-center justify-between gap-4 overflow-hidden transition-colors duration-500"
+                     :class="{
+                        'bg-gradient-to-r from-purple-900 via-fuchsia-900 to-indigo-900 text-white': style === 'cyber',
+                        'bg-slate-950 text-white border-b border-red-600/30': style === 'black_friday',
+                        'bg-gradient-to-r from-orange-600 to-red-600 text-white': style === 'warning',
+                        'bg-gradient-to-r from-blue-600 to-indigo-600 text-white': style === 'info'
+                     }">
+
+                    <div class="absolute inset-0 bg-white/5 skew-x-12 animate-pulse pointer-events-none"></div>
+
+                    <div class="relative z-10 flex flex-col sm:flex-row items-center gap-3 text-sm">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-white/20 border border-white/20" x-show="style === 'cyber' || style === 'warning'">
+                            <span x-text="style === 'warning' ? 'ALERTA' : 'NUEVO'"></span>
+                        </span>
+                        <p class="font-medium">
+                            <span class="font-bold" x-text="message || 'Mensaje Principal'"></span>
+                            <span class="opacity-60 mx-2" x-show="subMessage">|</span>
+                            <span class="opacity-90 font-light" x-text="subMessage"></span>
+                        </p>
+                    </div>
+
+                    <button class="relative z-10 whitespace-nowrap px-4 py-1 rounded-full text-xs font-bold flex items-center gap-2 transition-all"
+                            x-show="btnText"
+                            :class="{
+                                'bg-[#a3e635] text-slate-900': style === 'cyber',
+                                'bg-red-600 text-white': style === 'black_friday',
+                                'bg-white text-indigo-600': style === 'info' || style === 'warning'
+                            }">
+                        <span x-text="btnText"></span> <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <div class="h-32 bg-slate-900 p-4 space-y-3 opacity-30">
+                    <div class="w-1/2 h-8 bg-slate-700 rounded-lg"></div>
+                    <div class="w-full h-20 bg-slate-800 rounded-xl"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-slate-800/50 backdrop-blur-md rounded-3xl border border-slate-700 p-8 shadow-xl">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Mensaje Principal</label>
+                        {{ form.message }} </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Sub-mensaje (Opcional)</label>
+                        {{ form.sub_message }}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Texto del Botón</label>
+                        {{ form.btn_text }}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">URL del Enlace</label>
+                        {{ form.btn_url }}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-700">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Estilo Visual</label>
+                        {{ form.style }}
+                    </div>
+                    <div class="flex items-center h-full pt-6">
+                        <label class="flex items-center gap-3 cursor-pointer group p-3 bg-slate-900 rounded-xl border border-slate-700 w-full hover:border-emerald-500/50 transition-colors">
+                            {{ form.is_active }}
+                            <div>
+                                <span class="block text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">Activar Banner</span>
+                                <span class="text-xs text-slate-500">Visible para todos los usuarios</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="pt-6 flex justify-end">
+                    <button type="submit" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-indigo-500/25 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                        <i class="fas fa-save"></i> Guardar Configuración
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Sincronización simple para Live Preview
+    // Como Django renderiza el input, usamos event listeners
+    document.addEventListener('DOMContentLoaded', () => {
+        const inputs = {
+            'id_message': 'message',
+            'id_sub_message': 'subMessage',
+            'id_btn_text': 'btnText',
+            'id_style': 'style'
+        };
+
+        Object.keys(inputs).forEach(id => {
+            const el = document.getElementById(id);
+            if(el) {
+                el.addEventListener('input', (e) => {
+                    const alpineData = document.querySelector('[x-data]').__x.$data;
+                    alpineData[inputs[id]] = e.target.value;
+                });
+            }
+        });
+    });
+</script>
+
+<style>
+    /* Estilos Input Base */
+    input[type="text"], select {
+        width: 100%;
+        background-color: #0f172a;
+        border: 1px solid #334155;
+        border-radius: 0.75rem;
+        padding: 0.75rem 1rem;
+        color: white;
+    }
+    input:focus, select:focus {
+        border-color: #6366f1;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+    /* Checkbox personalizado */
+    input[type="checkbox"] {
+        appearance: none;
+        width: 1.5rem;
+        height: 1.5rem;
+        background-color: #1e293b;
+        border-radius: 0.375rem;
+        border: 1px solid #475569;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    input[type="checkbox"]:checked {
+        background-color: #10b981;
+        border-color: #10b981;
+    }
+    input[type="checkbox"]:checked::after {
+        content: '✔';
+        font-size: 0.875rem;
+        color: white;
+    }
+</style>
+{% endblock %}

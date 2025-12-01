@@ -1,0 +1,123 @@
+{% extends 'academy/base.html' %}
+
+{% block title %}Entregas: {{ lesson.title }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#0B1120] py-12 px-4 sm:px-6 lg:px-8 relative">
+    <div class="absolute top-0 left-0 w-full h-[300px] bg-gradient-to-b from-indigo-900/20 to-transparent pointer-events-none"></div>
+
+    <div class="max-w-6xl mx-auto relative z-10">
+
+        <div class="mb-8 flex items-center justify-between">
+            <div>
+                <a href="{% url 'academy:course_content' lesson.module.course.slug %}" class="text-indigo-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-bold mb-2">
+                    <i class="fas fa-arrow-left"></i> Volver al contenido
+                </a>
+                <h1 class="text-3xl font-black text-white tracking-tight">Entregas de Tarea</h1>
+                <p class="text-slate-400 mt-1">Lección: <span class="text-white font-bold">{{ lesson.title }}</span></p>
+            </div>
+
+            <div class="text-right hidden sm:block">
+                <p class="text-sm text-slate-400">Total inscritos</p>
+                <p class="text-2xl font-bold text-white">{{ total_enrolled }}</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                <p class="text-sm text-slate-400 mb-1">Entregadas</p>
+                <p class="text-2xl font-bold text-white">{{ submitted_count }}</p>
+            </div>
+            <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                <p class="text-sm text-slate-400 mb-1">Pendientes de Calificar</p>
+                <p class="text-2xl font-bold text-amber-400">{{ pending_grading_count }}</p>
+            </div>
+            <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                <p class="text-sm text-slate-400 mb-1">Calificadas</p>
+                <p class="text-2xl font-bold text-emerald-400">{{ graded_count }}</p>
+            </div>
+            <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                <p class="text-sm text-slate-400 mb-1">Promedio</p>
+                <p class="text-2xl font-bold text-indigo-400">{{ average_score|default:"-" }}</p>
+            </div>
+        </div>
+
+        <div class="bg-slate-800 rounded-2xl shadow-xl border border-slate-700 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-900/50 border-b border-slate-700 text-xs uppercase text-slate-400 font-bold tracking-wider">
+                            <th class="px-6 py-4">Estudiante</th>
+                            <th class="px-6 py-4">Fecha Entrega</th>
+                            <th class="px-6 py-4">Archivo / Texto</th>
+                            <th class="px-6 py-4">Estado</th>
+                            <th class="px-6 py-4 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700/50">
+                        {% for progress in submissions %}
+                        <tr class="hover:bg-slate-700/20 transition-colors group">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 text-xs">
+                                        {% if progress.user.profile.avatar %}
+                                            <img src="{{ progress.user.profile.avatar.url }}" class="w-full h-full rounded-full object-cover">
+                                        {% else %}
+                                            <i class="fas fa-user"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-white text-sm">{{ progress.user.get_full_name|default:progress.user.username }}</p>
+                                        <p class="text-xs text-slate-500">{{ progress.user.email }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-slate-400">
+                                {{ progress.updated_at|date:"d M Y, H:i" }}
+                            </td>
+                            <td class="px-6 py-4 text-sm">
+                                <div class="flex flex-col gap-1">
+                                    {% if progress.assignment_file %}
+                                        <a href="{{ progress.assignment_file.url }}" target="_blank" class="text-indigo-400 hover:text-white flex items-center gap-1 text-xs font-bold">
+                                            <i class="fas fa-paperclip"></i> Archivo
+                                        </a>
+                                    {% endif %}
+                                    {% if progress.assignment_text %}
+                                        <span class="text-slate-400 text-xs truncate max-w-[150px]" title="{{ progress.assignment_text }}">
+                                            <i class="fas fa-align-left mr-1"></i> Texto...
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                {% if progress.score is not None %}
+                                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold">
+                                        <i class="fas fa-check-circle"></i> {{ progress.score|floatformat:0 }} pts
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-bold">
+                                        <i class="fas fa-clock"></i> Pendiente
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <a href="{% url 'academy:grade_submission' progress.id %}" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg shadow-indigo-500/20 transition-all">
+                                    Calificar
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+                                <i class="fas fa-inbox text-4xl mb-3 opacity-50"></i>
+                                <p>No hay entregas registradas aún.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

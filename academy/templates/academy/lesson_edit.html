@@ -1,0 +1,109 @@
+{% extends 'academy/base.html' %}
+
+{% block title %}Editar Lección - {{ lesson.title }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#0B1120] py-12 px-4 sm:px-6 lg:px-8 relative" x-data="{ lessonType: '{{ lesson.lesson_type }}' }">
+    <div class="absolute top-0 left-0 w-full h-[300px] bg-gradient-to-b from-indigo-900/20 to-transparent pointer-events-none"></div>
+
+    <div class="max-w-3xl mx-auto relative z-10">
+
+        <div class="mb-8">
+            <a href="{% url 'academy:course_content' lesson.module.course.slug %}" class="text-indigo-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-bold mb-4">
+                <i class="fas fa-arrow-left"></i> Volver al contenido
+            </a>
+            <h1 class="text-3xl font-black text-white tracking-tight">Editar Lección</h1>
+            <p class="text-slate-400 mt-2">Lección: <span class="text-white">{{ lesson.title }}</span></p>
+        </div>
+
+        <div class="bg-slate-800 rounded-2xl shadow-xl border border-slate-700 p-8">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.media }}
+
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-300 mb-2 uppercase tracking-wide">Tipo de Contenido</label>
+                        {{ form.lesson_type }}
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-slate-400 mb-1.5">Título</label>
+                            {{ form.title }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-1.5">Orden</label>
+                            {{ form.order }}
+                        </div>
+                    </div>
+
+                    <div class="p-5 bg-slate-900/50 rounded-xl border border-slate-700 space-y-4">
+
+                        <div x-show="lessonType === 'video'">
+                            <label class="block text-sm font-medium text-indigo-400 mb-1.5"><i class="fab fa-youtube mr-1"></i> Video URL</label>
+                            {{ form.video_url }}
+                        </div>
+
+                        <div x-show="lessonType === 'assignment'">
+                            <label class="block text-sm font-medium text-indigo-400 mb-1.5"><i class="far fa-calendar-alt mr-1"></i> Fecha de Entrega</label>
+                            {{ form.due_date }}
+                        </div>
+
+                        <div x-show="lessonType === 'pdf' || lessonType === 'resource'" style="display: none;">
+                            <label class="block text-sm font-medium text-emerald-400 mb-1.5"><i class="fas fa-cloud-upload-alt mr-1"></i> Subir Archivo</label>
+                            {% if lesson.file %}
+                                <div class="text-xs text-slate-300 mb-2">
+                                    Archivo actual: <a href="{{ lesson.file.url }}" class="text-indigo-400 hover:underline" target="_blank">{{ lesson.file.name }}</a>
+                                </div>
+                            {% endif %}
+                            {{ form.file }}
+                            <p class="text-xs text-slate-500 mt-2" x-show="lessonType === 'pdf'">Sube el documento PDF para que los alumnos lo lean aquí.</p>
+                            <p class="text-xs text-slate-500 mt-2" x-show="lessonType === 'resource'">Archivos .zip, .xlsx, .docx para descargar.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-1.5">Duración estimada (min)</label>
+                            {{ form.duration }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-1.5">Descripción / Texto</label>
+                        <div class="rounded-xl overflow-hidden border border-slate-600">
+                            {{ form.content }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-end gap-3 pt-6 border-t border-slate-700">
+                    <a href="{% url 'academy:course_content' lesson.module.course.slug %}" class="px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors text-sm font-medium">Cancelar</a>
+                    <button type="submit" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold shadow-lg shadow-indigo-500/20 transition-all">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // AlpineJS reactivity for the select field
+    document.addEventListener('alpine:init', () => {
+        // Watch for changes in the django rendered select
+        const select = document.querySelector('select[name="lesson_type"]');
+        if(select) {
+            select.addEventListener('change', (e) => {
+                // We update the x-data state by dispatching a custom event or accessing the component scope if needed.
+                // But simpler: just use x-on:change on the select itself if possible.
+                // Since Django renders the widget, we can't easily add x-on:change to the widget attributes without changing the form class.
+                // So we will use a small script to sync.
+                const wrapper = select.closest('[x-data]');
+                if(wrapper) {
+                    wrapper.__x.$data.lessonType = e.target.value;
+                }
+            });
+            // Trigger initial state
+            select.dispatchEvent(new Event('change'));
+        }
+    });
+</script>
+{% endblock %}

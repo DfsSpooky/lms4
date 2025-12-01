@@ -1,0 +1,506 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-900">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ site_config.site_name|default:"LMS Academy" }}{% endblock %}</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#151F2E', 
+                            900: '#0F172A', 
+                        },
+                        primary: {
+                            500: '#6366f1', 
+                            600: '#4f46e5',
+                        }
+                    },
+                    animation: {
+                        'blob': 'blob 7s infinite',
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        [x-cloak] { display: none !important; }
+        
+        /* Custom Scrollbar Moderno */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans text-slate-300 antialiased selection:bg-indigo-500 selection:text-white bg-slate-900 overflow-x-hidden">
+
+    <nav class="fixed w-full z-50 top-0 transition-all duration-300 border-b border-white/5 bg-slate-900/80 backdrop-blur-md" 
+         x-data="{ mobileMenu: false, scrolled: false }"
+         @scroll.window="scrolled = (window.pageYOffset > 20)">
+        
+        <div class="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                
+                <div class="flex items-center">
+                    <a href="{% url 'academy:course_list' %}" class="flex-shrink-0 flex items-center gap-2 group">
+                        {% if site_config.logo %}
+                            <img src="{{ site_config.logo.url }}"
+                                 alt="{{ site_config.site_name }}"
+                                 style="width: {{ site_config.logo_width }}px; height: {{ site_config.logo_height }}px; object-fit: contain;"
+                                 class="transition-transform duration-300 group-hover:scale-105 rounded-lg">
+                        {% else %}
+                            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 group-hover:shadow-indigo-500/50 transition-all">
+                                <i class="fas fa-bolt text-sm"></i>
+                            </div>
+                        {% endif %}
+                        <span class="font-bold text-xl tracking-tight text-white group-hover:text-indigo-200 transition-colors">
+                            {{ site_config.site_name|default:"LMS Academy" }}
+                        </span>
+                    </a>
+                    
+                    <div class="hidden sm:ml-10 sm:flex sm:items-center sm:space-x-2">
+                        <a href="{% url 'academy:course_list' %}" 
+                           class="px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 
+                           {% if request.resolver_match.url_name == 'course_list' %}
+                               text-white bg-white/10
+                           {% else %}
+                               text-slate-400 hover:text-white hover:bg-white/5
+                           {% endif %}">
+                            Inicio
+                        </a>
+
+                        <a href="{% url 'academy:course_catalog' %}"
+                           class="group relative px-5 py-2 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2
+                           {% if request.resolver_match.url_name == 'course_catalog' %}
+                               bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.6)] ring-2 ring-indigo-400/50
+                           {% else %}
+                               bg-slate-800 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-600 hover:text-white hover:border-indigo-500 hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:-translate-y-0.5
+                           {% endif %}">
+                           
+                            <i class="fas fa-rocket transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110"></i>
+                            <span>Explorar Cursos</span>
+                            
+                            <span class="absolute -top-1 -right-1 flex h-3 w-3">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+                            </span>
+                        </a>
+
+                        {% if user.is_authenticated %}
+                            {% if user.enrollments.exists %}
+                            <a href="{% url 'academy:forum_list' %}"
+                               class="ml-2 px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2
+                               {% if request.resolver_match.url_name == 'forum_list' %}
+                                   bg-purple-600 text-white shadow-[0_0_15px_rgba(147,51,234,0.6)]
+                               {% else %}
+                                   bg-slate-800 text-purple-400 hover:bg-purple-600 hover:text-white hover:shadow-[0_0_15px_rgba(147,51,234,0.4)]
+                               {% endif %}">
+                                <i class="fas fa-comments"></i>
+                                Foro
+                            </a>
+                            {% endif %}
+
+                            <a href="{% url 'academy:dashboard' %}" 
+                               class="px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ml-2
+                               {% if request.resolver_match.url_name == 'dashboard' %}
+                                   text-white bg-white/10
+                               {% else %}
+                                   text-slate-400 hover:text-white hover:bg-white/5
+                               {% endif %}">
+                                Mis Cursos
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="hidden sm:flex sm:items-center sm:gap-4">
+                    {% if user.is_authenticated %}
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" @click.away="open = false" class="text-slate-400 hover:text-white transition-colors relative p-1 rounded-full hover:bg-slate-800">
+                                <span class="sr-only">Notificaciones</span>
+                                <i class="far fa-bell text-lg"></i>
+                                {% if unread_notifications_count > 0 %}
+                                    <span class="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-slate-900">
+                                        {{ unread_notifications_count }}
+                                    </span>
+                                {% endif %}
+                            </button>
+
+                            <div x-show="open"
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 translate-y-1"
+                                 x-transition:enter-end="opacity-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-150"
+                                 x-transition:leave-start="opacity-100 translate-y-0"
+                                 x-transition:leave-end="opacity-0 translate-y-1"
+                                 class="absolute right-0 mt-3 w-80 rounded-xl bg-slate-800 border border-slate-700 shadow-2xl py-2 z-50 overflow-hidden"
+                                 style="display: none;">
+
+                                <div class="px-4 py-2 border-b border-slate-700 flex justify-between items-center">
+                                    <h3 class="text-sm font-bold text-white">Notificaciones</h3>
+                                    {% if unread_notifications_count > 0 %}
+                                        <a href="{% url 'academy:mark_all_notifications_read' %}" class="text-xs text-indigo-400 hover:text-indigo-300">Marcar leídas</a>
+                                    {% endif %}
+                                </div>
+
+                                <div class="max-h-80 overflow-y-auto">
+                                    {% for notif in latest_notifications %}
+                                        <a href="{% url 'academy:mark_notification_read' notif.id %}" class="block px-4 py-3 hover:bg-slate-700/50 transition-colors border-l-2 {% if not notif.is_read %}border-indigo-500 bg-indigo-500/5{% else %}border-transparent{% endif %}">
+                                            <p class="text-sm text-slate-200 leading-snug">{{ notif.message }}</p>
+                                            <p class="text-xs text-slate-500 mt-1">{{ notif.created_at|timesince }}</p>
+                                        </a>
+                                    {% empty %}
+                                        <div class="px-4 py-6 text-center text-slate-500 text-sm">
+                                            <i class="far fa-bell-slash text-xl mb-2 block opacity-50"></i>
+                                            Sin notificaciones recientes
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="relative ml-3" x-data="{ open: false }">
+                            <button @click="open = !open" @click.away="open = false" 
+                                    class="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-indigo-500 transition-all">
+                                {% if user.profile.avatar %}
+                                    <img class="h-9 w-9 rounded-full object-cover border-2 border-slate-700 hover:border-indigo-500 transition-colors" src="{{ user.profile.avatar.url }}" alt="">
+                                {% else %}
+                                    <div class="h-9 w-9 rounded-full bg-slate-700 flex items-center justify-center border-2 border-slate-600 text-slate-400 hover:border-indigo-500 hover:text-white transition-colors">
+                                        <i class="fas fa-user text-sm"></i>
+                                    </div>
+                                {% endif %}
+                            </button>
+                            
+                            <div x-show="open" 
+                                 x-transition:enter="transition ease-out duration-100" 
+                                 x-transition:enter-start="transform opacity-0 scale-95" 
+                                 x-transition:enter-end="transform opacity-100 scale-100" 
+                                 x-transition:leave="transition ease-in duration-75" 
+                                 x-transition:leave-start="transform opacity-100 scale-100" 
+                                 x-transition:leave-end="transform opacity-0 scale-95" 
+                                 class="origin-top-right absolute right-0 mt-2 w-56 rounded-xl shadow-2xl py-1 bg-slate-800 border border-slate-700 ring-1 ring-black ring-opacity-5 focus:outline-none z-50" 
+                                 style="display: none;">
+                                
+                                <div class="px-4 py-3 border-b border-slate-700/50">
+                                    <p class="text-sm text-white font-medium truncate">{{ user.first_name|default:user.username }}</p>
+                                    <p class="text-xs text-slate-500 truncate">{{ user.email }}</p>
+                                </div>
+                                
+                                <div class="py-1">
+                                    <a href="{% url 'academy:profile_edit' %}" class="group flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors">
+                                        <i class="fas fa-user-circle w-5 text-slate-500 group-hover:text-indigo-400"></i> Mi Perfil
+                                    </a>
+                                    {% if user.profile.role == 'teacher' %}
+                                        <a href="{% url 'academy:teacher_dashboard' %}" class="group flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors">
+                                            <i class="fas fa-chalkboard-teacher w-5 text-slate-500 group-hover:text-indigo-400"></i> Panel Instructor
+                                        </a>
+                                    {% endif %}
+                                    {% if user.is_superuser %}
+                                    <a href="{% url 'academy:admin_dashboard' %}" class="group flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors">
+                                        <i class="fas fa-user-shield w-5 text-slate-500 group-hover:text-indigo-400"></i> Admin Panel
+                                    </a>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="border-t border-slate-700/50 py-1">
+                                    <form method="post" action="{% url 'logout' %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="group flex w-full items-center px-4 py-2 text-sm text-red-400 hover:bg-slate-700 hover:text-red-300 transition-colors">
+                                            <i class="fas fa-sign-out-alt w-5 text-slate-500 group-hover:text-red-400"></i> Cerrar Sesión
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="text-slate-300 hover:text-white font-medium text-sm transition-colors">Iniciar Sesión</a>
+                        <a href="{% url 'academy:signup' %}" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-full text-sm font-bold shadow-lg shadow-indigo-500/30 transition-all transform hover:-translate-y-0.5 hover:shadow-indigo-500/50">
+                            Únete Gratis
+                        </a>
+                    {% endif %}
+                </div>
+
+                <div class="-mr-2 flex items-center sm:hidden">
+                    <button @click="mobileMenu = !mobileMenu" class="inline-flex items-center justify-center p-2 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none">
+                        <i class="fas" :class="mobileMenu ? 'fa-times' : 'fa-bars'"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div x-show="mobileMenu" class="sm:hidden bg-slate-900 border-b border-slate-800 shadow-xl" style="display: none;">
+            <div class="px-4 pt-4 pb-6 space-y-2">
+                <a href="{% url 'academy:course_list' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">Inicio</a>
+                
+                <a href="{% url 'academy:course_catalog' %}" 
+                   class="block px-4 py-3 rounded-xl text-base font-bold text-white bg-gradient-to-r from-indigo-600 to-indigo-800 shadow-lg shadow-indigo-900/50 border border-indigo-500/30 flex items-center justify-between group">
+                    <span class="flex items-center gap-3">
+                        <i class="fas fa-rocket text-indigo-200 group-hover:text-white transition-colors"></i>
+                        Explorar Catálogo
+                    </span>
+                    <i class="fas fa-chevron-right text-sm opacity-50"></i>
+                </a>
+
+                {% if user.is_authenticated %}
+                    {% if user.enrollments.exists %}
+                    <a href="{% url 'academy:forum_list' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-purple-400 hover:text-white hover:bg-slate-800 transition-colors">
+                        <i class="fas fa-comments mr-2"></i> Foro
+                    </a>
+                    {% endif %}
+
+                    <a href="{% url 'academy:dashboard' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">Mis Cursos</a>
+                    <a href="{% url 'academy:profile_edit' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800">Mi Perfil</a>
+                    
+                    <div class="border-t border-slate-700 my-2 pt-2">
+                        {% if user.profile.role == 'teacher' %}
+                            <a href="{% url 'academy:teacher_dashboard' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800">Panel Instructor</a>
+                        {% endif %}
+                        {% if user.is_superuser %}
+                            <a href="{% url 'academy:admin_dashboard' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800">Admin Panel</a>
+                        {% endif %}
+                        <form method="post" action="{% url 'logout' %}" class="mt-2">
+                            {% csrf_token %}
+                            <button type="submit" class="w-full text-left block px-3 py-2 rounded-lg text-base font-medium text-red-400 hover:text-red-300 hover:bg-slate-800">Cerrar Sesión</button>
+                        </form>
+                    </div>
+                {% else %}
+                    <div class="border-t border-slate-700 my-2 pt-4 flex flex-col gap-3">
+                        <a href="{% url 'login' %}" class="block w-full text-center px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700">Iniciar Sesión</a>
+                        <a href="{% url 'academy:signup' %}" class="block w-full text-center px-3 py-2 rounded-lg text-base font-medium text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg">Registrarse</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    {% if top_banner %}
+    <div x-data="{ 
+            show: localStorage.getItem('banner_{{ top_banner.id }}') !== 'closed',
+            close() { 
+                this.show = false; 
+                localStorage.setItem('banner_{{ top_banner.id }}', 'closed');
+            } 
+         }" 
+         x-show="show"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 -translate-y-full"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         class="fixed top-16 left-0 right-0 z-40 shadow-lg border-b border-white/10 backdrop-blur-md"
+         style="padding-top: env(safe-area-inset-top);">
+        
+        <div class="relative w-full px-4 py-3 sm:px-6 lg:px-8 flex items-center justify-between gap-4 overflow-hidden
+        {% if top_banner.style == 'cyber' %}
+            bg-gradient-to-r from-purple-900 via-fuchsia-900 to-indigo-900 text-white
+        {% elif top_banner.style == 'black_friday' %}
+            bg-slate-950 text-white border-b border-red-600/30
+        {% elif top_banner.style == 'warning' %}
+            bg-gradient-to-r from-orange-600 to-red-600 text-white
+        {% else %}
+            bg-gradient-to-r from-blue-600 to-indigo-600 text-white
+        {% endif %}">
+        
+            <div class="absolute inset-0 bg-white/5 skew-x-12 animate-pulse pointer-events-none"></div>
+
+            <div class="relative z-10 flex flex-col sm:flex-row items-center justify-center w-full gap-3 sm:gap-6 text-center sm:text-left">
+                
+                <div class="flex flex-col sm:flex-row items-center gap-2">
+                    {% if top_banner.style == 'cyber' or top_banner.style == 'warning' %}
+                        <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-white/20 border border-white/20 animate-pulse">
+                            {% if top_banner.style == 'warning' %}Importante{% else %}Oferta{% endif %}
+                        </span>
+                    {% endif %}
+                    
+                    <p class="text-sm font-medium">
+                        <span class="font-bold md:text-base">{{ top_banner.message }}</span>
+                        {% if top_banner.sub_message %}
+                            <span class="hidden md:inline mx-2 opacity-60">|</span>
+                            <span class="opacity-90 text-xs md:text-sm font-light">{{ top_banner.sub_message }}</span>
+                        {% endif %}
+                    </p>
+                </div>
+
+                {% if top_banner.btn_text and top_banner.btn_url %}
+                <a href="{{ top_banner.btn_url }}" class="whitespace-nowrap px-5 py-1.5 rounded-full text-xs font-bold transition-all transform hover:scale-105 hover:shadow-lg flex items-center gap-2
+                        {% if top_banner.style == 'cyber' %}
+                            bg-[#a3e635] text-slate-900 hover:bg-[#bef264]
+                        {% elif top_banner.style == 'black_friday' %}
+                            bg-red-600 text-white hover:bg-red-500
+                        {% else %}
+                            bg-white text-indigo-600 hover:bg-slate-100
+                        {% endif %}">
+                    {{ top_banner.btn_text }} <i class="fas fa-arrow-right"></i>
+                </a>
+                {% endif %}
+            </div>
+
+            <button @click="close()" class="relative z-10 p-1 rounded-lg hover:bg-white/20 transition-colors shrink-0 text-white/70 hover:text-white">
+                <span class="sr-only">Cerrar</span>
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
+    </div>
+
+    <div x-data="{ show: localStorage.getItem('banner_{{ top_banner.id }}') !== 'closed' }" x-show="show" class="h-auto md:h-12 w-full transition-all duration-300"></div>
+    {% endif %}
+    {% if messages %}
+        <div class="fixed bottom-5 right-5 z-[100] space-y-2 pointer-events-none" x-data="{ show: true }" x-init="setTimeout(() => show = false, 5000)">
+            {% for message in messages %}
+                <div x-show="show" x-transition.duration.500ms class="pointer-events-auto flex items-center p-4 mb-4 text-sm text-white rounded-xl shadow-2xl border border-white/10 backdrop-blur-md
+                        {% if message.tags == 'error' %}bg-red-500/90{% elif message.tags == 'success' %}bg-emerald-500/90{% else %}bg-slate-800/90{% endif %}" role="alert">
+                    <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% elif message.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %} mr-3 text-lg"></i>
+                    <div class="font-medium">{{ message }}</div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <main class="flex-grow flex flex-col relative pt-16 z-0">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="mt-auto relative bg-[#020617] pt-20 pb-10 overflow-hidden border-t border-slate-800 z-10">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent"></div>
+        <div class="absolute -top-40 -left-40 w-96 h-96 bg-indigo-600/5 rounded-full blur-[100px] pointer-events-none"></div>
+        <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-cyan-600/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            
+            <div class="bg-gradient-to-r from-indigo-900/40 to-slate-900/40 border border-indigo-500/20 rounded-3xl p-8 md:p-12 mb-16 relative overflow-hidden group">
+                <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
+                <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -mr-16 -mt-16 transition-all group-hover:bg-indigo-500/20"></div>
+                
+                <div class="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8 text-center lg:text-left">
+                    <div class="lg:max-w-xl">
+                        <h3 class="text-2xl md:text-3xl font-black text-white mb-2 tracking-tight">
+                            Únete a la <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Revolución Educativa</span>
+                        </h3>
+                        <p class="text-slate-400">Recibe consejos de expertos, ofertas exclusivas y las últimas tendencias en tecnología directamente en tu bandeja.</p>
+                    </div>
+                    
+                    <div class="w-full lg:w-auto">
+                        <form class="flex flex-col sm:flex-row gap-3">
+                            <input type="email" placeholder="tu@email.com" class="w-full sm:w-80 px-5 py-3.5 rounded-xl bg-slate-950/50 border border-slate-700 text-white placeholder-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all outline-none">
+                            <button type="button" class="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition-all transform hover:-translate-y-0.5 whitespace-nowrap">
+                                Suscribirme
+                            </button>
+                        </form>
+                        <p class="text-[10px] text-slate-500 mt-3 text-center lg:text-right">Sin spam. Cancela cuando quieras.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 lg:gap-12 mb-16">
+                <div class="col-span-2 lg:col-span-2">
+                    <a href="/" class="inline-flex items-center gap-2 mb-6 group">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 group-hover:shadow-indigo-500/40 transition-all">
+                            <i class="fas fa-bolt text-lg"></i>
+                        </div>
+                        <span class="text-2xl font-black text-white tracking-tight">{{ site_config.site_name|default:"LMS Academy" }}</span>
+                    </a>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6 max-w-sm">
+                        Potenciamos tu carrera con educación de clase mundial. Nuestra misión es democratizar el acceso a las habilidades del futuro.
+                    </p>
+                    <div class="flex gap-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all group">
+                            <i class="fab fa-twitter text-lg group-hover:scale-110 transition-transform"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-blue-600 hover:text-white transition-all group">
+                            <i class="fab fa-linkedin-in text-lg group-hover:scale-110 transition-transform"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-pink-600 hover:text-white transition-all group">
+                            <i class="fab fa-instagram text-lg group-hover:scale-110 transition-transform"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-red-600 hover:text-white transition-all group">
+                            <i class="fab fa-youtube text-lg group-hover:scale-110 transition-transform"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6">Plataforma</h4>
+                    <ul class="space-y-4 text-sm text-slate-400">
+                        <li><a href="{% url 'academy:course_catalog' %}" class="hover:text-indigo-400 transition-colors flex items-center gap-2 group"><span class="w-1 h-1 rounded-full bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></span> Explorar</a></li>
+                        <li><a href="#" class="hover:text-indigo-400 transition-colors flex items-center gap-2 group"><span class="w-1 h-1 rounded-full bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></span> Mentores</a></li>
+                        <li><a href="#" class="hover:text-indigo-400 transition-colors flex items-center gap-2 group"><span class="w-1 h-1 rounded-full bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></span> Precios</a></li>
+                        <li><a href="#" class="hover:text-indigo-400 transition-colors flex items-center gap-2 group"><span class="w-1 h-1 rounded-full bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></span> Empresas</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6">Comunidad</h4>
+                    <ul class="space-y-4 text-sm text-slate-400">
+                        <li><a href="#" class="hover:text-indigo-400 transition-colors flex items-center gap-2 group"><span class="w-1 h-1 rounded-full bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></span> Blog</a></li>
+                        <li><a href="{% url 'academy:forum_list' %}" class="hover:text-indigo-400 transition-colors flex items-center gap-2 group"><span class="w-1 h-1 rounded-full bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></span> Foro</a></li>
+                        <li><a href="#" class="hover:text-indigo-400 transition-colors flex items-center gap-2 group"><span class="w-1 h-1 rounded-full bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></span> Eventos</a></li>
+                        <li><a href="#" class="hover:text-indigo-400 transition-colors flex items-center gap-2 group"><span class="w-1 h-1 rounded-full bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></span> Discord</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6">Legal</h4>
+                    <ul class="space-y-4 text-sm text-slate-400">
+                        <li><a href="#" class="hover:text-indigo-400 transition-colors">Privacidad</a></li>
+                        <li><a href="#" class="hover:text-indigo-400 transition-colors">Términos</a></li>
+                        <li><a href="#" class="hover:text-indigo-400 transition-colors">Cookies</a></li>
+                        <li><a href="#" class="hover:text-indigo-400 transition-colors">Contacto</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-sm text-slate-500">
+                    &copy; {% now "Y" %} {{ site_config.site_name|default:"LMS Academy" }} Inc. Todos los derechos reservados.
+                </p>
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-2 text-xs text-slate-500 bg-slate-900 px-3 py-1.5 rounded-full border border-slate-800">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>Sistemas Operativos: Normal</span>
+                    </div>
+                    <div class="flex gap-4 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+                        <i class="fab fa-cc-visa text-2xl text-white"></i>
+                        <i class="fab fa-cc-mastercard text-2xl text-white"></i>
+                        <i class="fab fa-cc-paypal text-2xl text-white"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

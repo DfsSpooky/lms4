@@ -1,0 +1,89 @@
+{% extends 'academy/base.html' %}
+
+{% block title %}Calificar: {{ progress.user.username }} - {{ progress.lesson.title }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#0B1120] py-12 px-4 sm:px-6 lg:px-8 relative">
+    <div class="absolute top-0 left-0 w-full h-[300px] bg-gradient-to-b from-indigo-900/20 to-transparent pointer-events-none"></div>
+
+    <div class="max-w-3xl mx-auto relative z-10">
+
+        <div class="mb-8">
+            <a href="{% url 'academy:lesson_submissions' progress.lesson.id %}" class="text-indigo-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-bold mb-4">
+                <i class="fas fa-arrow-left"></i> Volver a Entregas
+            </a>
+            <h1 class="text-3xl font-black text-white tracking-tight">Calificar Entrega</h1>
+            <p class="text-slate-400 mt-2">Estudiante: <span class="text-white font-bold">{{ progress.user.get_full_name|default:progress.user.username }}</span></p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <div class="space-y-6">
+                <!-- Información de la Tarea -->
+                <div class="bg-slate-800 rounded-2xl shadow-lg border border-slate-700 p-6">
+                    <h3 class="font-bold text-white mb-4 flex items-center gap-2">
+                        <i class="fas fa-file-alt text-indigo-500"></i> Contenido de la Entrega
+                    </h3>
+
+                    {% if progress.assignment_file %}
+                    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 mb-4">
+                        <p class="text-xs text-slate-500 mb-2 font-bold uppercase">Archivo Adjunto</p>
+                        <a href="{{ progress.assignment_file.url }}" target="_blank" class="flex items-center gap-3 text-indigo-400 hover:text-white transition-colors group">
+                            <div class="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                                <i class="fas fa-download"></i>
+                            </div>
+                            <span class="font-medium underline decoration-indigo-500/30">Descargar Archivo</span>
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    {% if progress.assignment_text %}
+                    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
+                        <p class="text-xs text-slate-500 mb-2 font-bold uppercase">Respuesta de Texto</p>
+                        <p class="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">{{ progress.assignment_text }}</p>
+                    </div>
+                    {% else %}
+                        {% if not progress.assignment_file %}
+                            <p class="text-slate-500 italic">No hay contenido de texto ni archivo.</p>
+                        {% endif %}
+                    {% endif %}
+
+                    <p class="text-xs text-slate-500 mt-4 text-right">Entregado: {{ progress.updated_at }}</p>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <!-- Formulario de Calificación -->
+                <div class="bg-slate-800 rounded-2xl shadow-lg border border-slate-700 p-6">
+                    <h3 class="font-bold text-white mb-4 flex items-center gap-2">
+                        <i class="fas fa-check-double text-emerald-500"></i> Evaluación
+                    </h3>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-300 mb-2">Nota (0-100)</label>
+                                {{ form.score }}
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-slate-300 mb-2">Feedback / Comentarios</label>
+                                {{ form.instructor_feedback }}
+                                <p class="text-xs text-slate-500 mt-1">El estudiante verá estos comentarios junto con su nota.</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 flex justify-end pt-4 border-t border-slate-700">
+                            <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2">
+                                <i class="fas fa-save"></i> Guardar Calificación
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

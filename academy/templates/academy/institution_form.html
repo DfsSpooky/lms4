@@ -1,0 +1,145 @@
+{% extends 'academy/base.html' %}
+
+{% block title %}
+    {% if form.instance.pk %}Editar Institución{% else %}Nueva Institución{% endif %} - Admin
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#0B1120] py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center relative overflow-hidden">
+
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-[128px] pointer-events-none"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-600/10 rounded-full blur-[128px] pointer-events-none"></div>
+
+    <div class="w-full max-w-lg relative z-10">
+
+        <div class="mb-8 text-center">
+            <a href="{% url 'academy:admin_dashboard' %}" class="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors text-sm font-bold mb-4 bg-slate-900/50 px-4 py-2 rounded-full border border-slate-800">
+                <i class="fas fa-arrow-left"></i> Cancelar y Volver
+            </a>
+        </div>
+
+        <div class="bg-slate-800/50 backdrop-blur-xl rounded-3xl border border-slate-700 shadow-2xl overflow-hidden relative">
+            <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+
+            <div class="p-8">
+                <h2 class="text-2xl font-black text-white mb-6 flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-xl bg-slate-700 flex items-center justify-center text-indigo-400 shadow-inner">
+                        <i class="fas fa-edit text-sm"></i>
+                    </span>
+                    {% if form.instance.pk %}Editar Institución{% else %}Crear Nueva Institución{% endif %}
+                </h2>
+
+                <form method="post" enctype="multipart/form-data" class="space-y-5">
+                    {% csrf_token %}
+
+                    {% for field in form %}
+                    <div class="group">
+                        <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide group-focus-within:text-indigo-400 transition-colors">
+                            {{ field.label }}
+                        </label>
+
+                        <div class="relative">
+                            {{ field }}
+
+                            {% if field.errors %}
+                                <div class="absolute right-3 top-3 text-red-500 animate-pulse">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        {% if field.help_text %}
+                            <p class="text-[10px] text-slate-500 mt-1.5 leading-relaxed">{{ field.help_text|safe }}</p>
+                        {% endif %}
+
+                        {% if field.errors %}
+                            <p class="text-xs text-red-400 mt-1 font-bold">{{ field.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <div class="pt-6 mt-4">
+                        <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-500/25 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                            <span>Guardar Cambios</span>
+                            <i class="fas fa-check-circle"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilos globales para inputs en estos formularios */
+    input[type="text"], input[type="url"], input[type="number"], select, textarea {
+        width: 100%;
+        background-color: #0f172a; /* slate-900 */
+        border: 1px solid #334155; /* slate-700 */
+        border-radius: 0.75rem; /* rounded-xl */
+        padding: 0.75rem 1rem;
+        color: white;
+        transition: all 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        outline: none;
+    }
+    /* Input File styling hack */
+    input[type="file"] {
+        padding: 0.5rem;
+        font-size: 0.875rem;
+    }
+    input[type="file"]::file-selector-button {
+        margin-right: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        border: none;
+        background-color: #334155;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    input[type="file"]::file-selector-button:hover {
+        background-color: #475569;
+    }
+
+    /* Checkbox toggle style */
+    input[type="checkbox"] {
+        appearance: none;
+        width: 3rem;
+        height: 1.5rem;
+        background-color: #334155;
+        border-radius: 9999px;
+        position: relative;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        border: none;
+        vertical-align: middle;
+    }
+    input[type="checkbox"]:checked {
+        background-color: #10b981; /* emerald-500 */
+    }
+    input[type="checkbox"]::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 1.25rem;
+        height: 1.25rem;
+        background-color: white;
+        border-radius: 50%;
+        transition: transform 0.3s;
+    }
+    input[type="checkbox"]:checked::after {
+        transform: translateX(1.5rem);
+    }
+    /* Label wrapper for checkbox to align text */
+    .checkbox-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+</style>
+{% endblock %}

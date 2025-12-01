@@ -1,0 +1,541 @@
+{% extends 'academy/base.html' %}
+
+{% block title %}{{ course.title }} - LMS Academy{% endblock %}
+
+{% block content %}
+<div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+    <div class="absolute top-0 right-0 -mr-20 -mt-20 w-[600px] h-[600px] bg-indigo-600/5 rounded-full blur-[100px] animate-pulse"></div>
+    <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-[500px] h-[500px] bg-cyan-600/5 rounded-full blur-[100px] animate-pulse"></div>
+    <div class="absolute inset-0 bg-[#0B1120] -z-10"></div>
+</div>
+
+<div class="relative z-10 min-h-screen text-slate-300 font-sans selection:bg-indigo-500 selection:text-white pb-24 lg:pb-0">
+
+    <div class="relative border-b border-slate-800 bg-slate-900/60 backdrop-blur-xl overflow-hidden">
+        
+        <div class="absolute inset-0 w-full h-full pointer-events-none z-0">
+            <div class="absolute inset-0 bg-gradient-to-r from-[#0B1120] via-[#0B1120]/90 to-[#0B1120]/30 z-10"></div>
+            
+            {% if course.thumbnail %}
+                <img src="{{ course.thumbnail.url }}" 
+                     class="w-full h-full object-cover opacity-70 transition-transform duration-700 hover:scale-105" 
+                     alt="{{ course.title }}">
+            {% else %}
+                <div class="w-full h-full flex items-center justify-center bg-slate-800 opacity-50">
+                    <i class="fas fa-graduation-cap text-9xl text-slate-700"></i>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 relative z-20">
+            <div class="lg:w-2/3">
+                
+                <div class="flex flex-wrap items-center gap-3 text-sm font-bold mb-6 animate-fade-in">
+                    {% if course.category %}
+                        <a href="{% url 'academy:course_catalog' %}?category={{ course.category.slug }}" class="text-indigo-400 hover:text-indigo-300 transition uppercase tracking-wider hover:underline decoration-indigo-500/30 underline-offset-4 shadow-black drop-shadow-md">
+                            {{ course.category.name }}
+                        </a>
+                        <i class="fas fa-chevron-right text-[10px] text-slate-500"></i>
+                    {% endif %}
+                    
+                    <span class="flex items-center gap-1.5 bg-slate-900/90 text-slate-300 px-3 py-1 rounded-full border border-slate-700 text-[10px] uppercase tracking-wide shadow-lg">
+                        <span class="w-1.5 h-1.5 rounded-full 
+                            {% if course.level == 'beginner' %}bg-emerald-400
+                            {% elif course.level == 'intermediate' %}bg-yellow-400
+                            {% else %}bg-red-500{% endif %}"></span>
+                        {{ course.get_level_display }}
+                    </span>
+                </div>
+
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-6 text-white leading-[1.1] drop-shadow-2xl animate-fade-in" 
+                    style="text-shadow: 0 4px 30px rgba(0,0,0,0.8);">
+                    {{ course.title }}
+                </h1>
+
+                <p class="text-lg md:text-xl text-slate-200 mb-8 max-w-2xl leading-relaxed font-light animate-fade-in drop-shadow-md">
+                    {{ course.short_description|default:course.description|striptags|safe|truncatechars:200 }}
+                </p>
+
+                <div class="flex flex-wrap items-center gap-6 md:gap-8 mb-8 text-sm font-medium text-slate-300 border-y border-slate-700/50 py-6 bg-slate-900/40 backdrop-blur-md rounded-xl px-6 animate-fade-in border border-white/5">
+                    <div class="flex items-center gap-2">
+                        <span class="text-yellow-400 font-bold text-2xl">{{ avg_rating|floatformat:1 }}</span>
+                        <div class="flex flex-col">
+                            <div class="flex text-yellow-400 text-xs gap-0.5">
+                                {% with ''|center:5 as range %}
+                                    {% for _ in range %}
+                                        <i class="{% if forloop.counter <= avg_rating %}fas{% else %}far{% endif %} fa-star"></i>
+                                    {% endfor %}
+                                {% endwith %}
+                            </div>
+                            <a href="#reviews" class="text-[10px] text-indigo-300 hover:text-white underline decoration-dotted uppercase font-bold tracking-wide transition-colors">Ver {{ reviews.count }} reseñas</a>
+                        </div>
+                    </div>
+                    
+                    <div class="w-px h-8 bg-slate-700 hidden sm:block"></div>
+
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-indigo-400 border border-slate-600 shadow-lg">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <div>
+                            <span class="block text-white font-bold">{{ course.enrollments.count }}</span>
+                            <span class="text-xs text-slate-400 uppercase tracking-wide">Alumnos</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-cyan-400 border border-slate-600 shadow-lg">
+                            <i class="far fa-clock"></i>
+                        </div>
+                        <div>
+                            <span class="block text-white font-bold">{{ course.total_duration }}</span>
+                            <span class="text-xs text-slate-400 uppercase tracking-wide">Contenido</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4 animate-fade-in p-4 bg-slate-900/80 rounded-2xl border border-slate-700/50 backdrop-blur-md w-fit hover:bg-slate-800 transition-colors cursor-pointer shadow-xl group" onclick="document.getElementById('instructor-bio').scrollIntoView({behavior: 'smooth'})">
+                    {% if course.instructor.profile.avatar %}
+                        <img class="h-12 w-12 rounded-full border-2 border-indigo-500/50 object-cover" src="{{ course.instructor.profile.avatar.url }}" alt="">
+                    {% else %}
+                        <div class="h-12 w-12 rounded-full bg-slate-700 flex items-center justify-center text-slate-400"><i class="fas fa-user"></i></div>
+                    {% endif %}
+                    <div>
+                        <p class="text-[10px] text-indigo-400 uppercase tracking-widest font-bold mb-0.5">Creado por</p>
+                        <p class="font-bold text-white text-base group-hover:text-indigo-300 transition-colors">
+                            {{ course.instructor.get_full_name|default:course.instructor.username }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            
+            <div class="lg:col-span-2 space-y-12">
+                
+                <div class="bg-slate-800/30 rounded-3xl border border-slate-700/50 p-8 backdrop-blur-sm shadow-xl">
+                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+                            <i class="fas fa-align-left text-sm"></i>
+                        </span>
+                        Lo que aprenderás
+                    </h2>
+                    <div class="prose prose-invert prose-lg max-w-none text-slate-400 leading-relaxed prose-headings:text-white prose-a:text-indigo-400 hover:prose-a:text-indigo-300 prose-strong:text-white">
+                        {{ course.description|safe }}
+                    </div>
+                </div>
+
+                <div id="curriculum">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-lg bg-cyan-500 flex items-center justify-center text-white shadow-lg shadow-cyan-500/30">
+                                <i class="fas fa-layer-group text-sm"></i>
+                            </span>
+                            Contenido del Curso
+                        </h2>
+                        <span class="text-xs font-bold text-slate-500 bg-slate-800 px-3 py-1 rounded-full border border-slate-700">{{ modules.count }} Módulos</span>
+                    </div>
+                    
+                    <div class="space-y-4" x-data="{ activeModule: 0 }">
+                        {% for module in modules %}
+                            <div class="rounded-2xl border border-slate-700/50 overflow-hidden bg-slate-800/20 backdrop-blur-sm transition-all duration-300 hover:border-slate-600">
+                                
+                                <button @click="activeModule === {{ forloop.counter0 }} ? activeModule = null : activeModule = {{ forloop.counter0 }}"
+                                        class="w-full flex items-center justify-between p-5 text-left focus:outline-none bg-slate-800/40 hover:bg-slate-800/60 transition-colors">
+                                    <div class="flex items-center gap-4">
+                                        <div class="flex flex-col items-center justify-center w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 group-hover:text-white transition-colors">
+                                            <span class="text-[10px] uppercase font-bold text-slate-600">MOD</span>
+                                            <span class="font-mono font-bold leading-none">{{ forloop.counter }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="font-bold text-white block text-lg">{{ module.title }}</span>
+                                            <span class="text-xs text-slate-500 font-medium uppercase tracking-wider flex items-center gap-2">
+                                                <span>{{ module.lessons.count }} lecciones</span>
+                                                <span class="w-1 h-1 rounded-full bg-slate-600"></span>
+                                                <span>{{ module.quizzes.count }} exámenes</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 transition-transform duration-300"
+                                         :class="{ 'rotate-180 bg-indigo-600 text-white': activeModule === {{ forloop.counter0 }} }">
+                                        <i class="fas fa-chevron-down text-xs"></i>
+                                    </div>
+                                </button>
+                                
+                                <div x-show="activeModule === {{ forloop.counter0 }}" x-collapse>
+                                    <ul class="divide-y divide-slate-700/30 bg-black/20">
+                                        {% for lesson in module.lessons.all %}
+                                            <li class="p-4 pl-[4.5rem] flex items-center justify-between hover:bg-white/5 transition-colors group/item">
+                                                <div class="flex items-center gap-4 min-w-0">
+                                                    <div class="text-slate-600 group-hover/item:text-indigo-400 transition-colors shrink-0">
+                                                        {% if is_enrolled %}
+                                                            <i class="fas fa-play-circle text-lg"></i>
+                                                        {% else %}
+                                                            <i class="fas fa-lock text-sm"></i>
+                                                        {% endif %}
+                                                    </div>
+                                                    <span class="text-sm text-slate-300 font-medium group-hover/item:text-white transition-colors truncate">{{ lesson.title }}</span>
+                                                </div>
+                                                <div class="flex items-center gap-3 shrink-0">
+                                                    {% if lesson.lesson_type != 'video' %}
+                                                        <span class="text-[10px] text-slate-500 border border-slate-700 px-2 py-0.5 rounded uppercase font-bold">{{ lesson.get_lesson_type_display }}</span>
+                                                    {% endif %}
+                                                    <span class="text-xs text-slate-600 font-mono">{{ lesson.duration }}m</span>
+                                                </div>
+                                            </li>
+                                        {% endfor %}
+                                        
+                                        {% for quiz in module.quizzes.all %}
+                                             <li class="p-4 pl-[4.5rem] flex items-center justify-between bg-indigo-900/10 hover:bg-indigo-900/20 transition-colors border-l-2 border-indigo-500/50">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="w-6 h-6 rounded bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                                                        <i class="fas fa-star text-xs"></i>
+                                                    </div>
+                                                    <span class="text-sm text-indigo-200 font-bold">Examen: {{ quiz.title }}</span>
+                                                </div>
+                                                <span class="text-[10px] text-indigo-300/70 uppercase tracking-wider font-bold">Obligatorio</span>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div id="instructor-bio" class="bg-slate-800/30 rounded-3xl border border-slate-700/50 p-8 backdrop-blur-sm">
+                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-pink-500 flex items-center justify-center text-white shadow-lg shadow-pink-500/30">
+                            <i class="fas fa-chalkboard-teacher text-sm"></i>
+                        </span>
+                        Conoce a tu Instructor
+                    </h2>
+                    
+                    <div class="flex flex-col md:flex-row gap-8 items-start">
+                        <div class="shrink-0 text-center md:text-left">
+                            {% if course.instructor.profile.avatar %}
+                                <img src="{{ course.instructor.profile.avatar.url }}" class="w-32 h-32 rounded-2xl object-cover border-4 border-slate-700 shadow-xl mx-auto md:mx-0">
+                            {% else %}
+                                <div class="w-32 h-32 rounded-2xl bg-slate-700 flex items-center justify-center text-6xl text-slate-500 border-4 border-slate-600 mx-auto md:mx-0">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="mt-4 flex justify-center md:justify-start gap-3">
+                                <a href="#" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-colors"><i class="fab fa-linkedin-in"></i></a>
+                                <a href="#" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-blue-500 hover:text-white transition-colors"><i class="fab fa-twitter"></i></a>
+                            </div>
+                        </div>
+                        
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold text-white mb-1">{{ course.instructor.get_full_name|default:course.instructor.username }}</h3>
+                            <p class="text-indigo-400 text-sm font-bold uppercase tracking-widest mb-4">{{ course.instructor.profile.role|default:"Profesor Experto" }}</p>
+                            
+                            <div class="prose prose-sm prose-invert text-slate-400 mb-6">
+                                <p>{{ course.instructor.profile.bio|default:"Este instructor prefiere enseñar con el ejemplo y aún no ha escrito su biografía." }}</p>
+                            </div>
+                            
+                            <div class="flex gap-6 text-sm font-bold text-slate-300">
+                                <div>
+                                    <span class="block text-xl text-white">{{ course.instructor.course_set.count }}</span>
+                                    <span class="text-xs text-slate-500 uppercase tracking-wide">Cursos</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="reviews">
+                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-yellow-500 flex items-center justify-center text-white shadow-lg shadow-yellow-500/30">
+                            <i class="fas fa-comment-alt text-sm"></i>
+                        </span>
+                        Opiniones de Alumnos
+                    </h2>
+
+                    {% if reviews %}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {% for review in reviews %}
+                            <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50 hover:border-slate-600 transition-colors">
+                                <div class="flex items-center gap-4 mb-4">
+                                    {% if review.user.profile.avatar %}
+                                        <img src="{{ review.user.profile.avatar.url }}" class="w-10 h-10 rounded-full object-cover border border-slate-600">
+                                    {% else %}
+                                        <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 font-bold">
+                                            {{ review.user.username|slice:":1" }}
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <p class="font-bold text-white text-sm">{{ review.user.get_full_name|default:review.user.username }}</p>
+                                        <div class="flex text-[10px] text-yellow-400 gap-0.5">
+                                            {% with ''|center:5 as range %}
+                                                {% for _ in range %}
+                                                    <i class="{% if forloop.counter <= review.rating %}fas{% else %}far{% endif %} fa-star"></i>
+                                                {% endfor %}
+                                            {% endwith %}
+                                            <span class="text-slate-500 ml-2">{{ review.created_at|timesince }} atrás</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="text-slate-400 text-sm italic">"{{ review.comment }}"</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-12 bg-slate-800/20 rounded-2xl border border-slate-700/50 border-dashed">
+                            <i class="far fa-comment-dots text-4xl text-slate-600 mb-3"></i>
+                            <p class="text-slate-500">Este curso es nuevo y aún no tiene reseñas. ¡Sé el primero!</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+            </div>
+
+            <div class="lg:col-span-1">
+                <div class="sticky top-24 z-30 space-y-6">
+                    
+                    <div class="bg-slate-800 rounded-3xl shadow-2xl border border-slate-700 overflow-hidden relative group hover:border-slate-600 transition-colors duration-300">
+                        
+                        <div class="aspect-video bg-slate-900 relative cursor-pointer overflow-hidden border-b border-slate-700" x-data="{ playing: false }">
+                            {% if course.preview_video_url %}
+                                <template x-if="!playing">
+                                     <div @click="playing = true" class="w-full h-full relative group cursor-pointer">
+                                        {% if course.thumbnail %}
+                                            <img src="{{ course.thumbnail.url }}" class="w-full h-full object-cover opacity-90 group-hover:opacity-75 transition-all duration-500 hover:scale-105" alt="">
+                                        {% else %}
+                                            <div class="w-full h-full flex items-center justify-center bg-slate-900"><i class="fas fa-graduation-cap text-6xl text-slate-700"></i></div>
+                                        {% endif %}
+                                        <div class="absolute inset-0 flex items-center justify-center">
+                                            <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 border border-white/30 shadow-2xl animate-pulse">
+                                                <i class="fas fa-play text-white text-xl ml-1 drop-shadow-lg"></i>
+                                            </div>
+                                        </div>
+                                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900 to-transparent p-6 pt-12">
+                                            <p class="text-white text-xs font-bold text-center uppercase tracking-widest text-shadow">Vista previa gratuita</p>
+                                        </div>
+                                     </div>
+                                </template>
+                                <template x-if="playing">
+                                    <iframe class="w-full h-full" src="https://www.youtube.com/embed/{{ course.preview_youtube_id }}?autoplay=1" title="Video Preview" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                </template>
+                            {% else %}
+                                 {% if course.thumbnail %}
+                                    <img src="{{ course.thumbnail.url }}" class="w-full h-full object-cover" alt="">
+                                {% else %}
+                                    <div class="w-full h-full flex items-center justify-center bg-slate-800"><i class="fas fa-graduation-cap text-6xl text-slate-600"></i></div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+
+                        <div class="p-6 relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-40 h-40 bg-indigo-500/10 rounded-full blur-[60px] pointer-events-none"></div>
+
+                            <div class="mb-6 relative z-10" 
+                                 x-data="{ 
+                                    pricingMode: 'full', 
+                                    hasMonthly: {{ course.allow_monthly_payment|yesno:'true,false' }} 
+                                 }">
+
+                                {% if course.price > 0 %}
+                                    
+                                    <div x-show="hasMonthly" class="flex bg-slate-900 p-1 rounded-xl mb-6 border border-slate-700 w-full relative">
+                                        <div class="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-indigo-600 rounded-lg transition-all duration-300 shadow-lg"
+                                             :class="pricingMode === 'full' ? 'left-1' : 'left-[calc(50%+4px)]'"></div>
+                                        
+                                        <button @click="pricingMode = 'full'" 
+                                                class="flex-1 py-2 text-xs font-bold uppercase tracking-wide relative z-10 transition-colors"
+                                                :class="pricingMode === 'full' ? 'text-white' : 'text-slate-400 hover:text-white'">
+                                            Un Solo Pago
+                                        </button>
+                                        <button @click="pricingMode = 'monthly'" 
+                                                class="flex-1 py-2 text-xs font-bold uppercase tracking-wide relative z-10 transition-colors"
+                                                :class="pricingMode === 'monthly' ? 'text-white' : 'text-slate-400 hover:text-white'">
+                                            En Cuotas
+                                        </button>
+                                    </div>
+
+                                    <div x-show="pricingMode === 'full'" x-transition:enter.duration.300ms>
+                                        <div class="flex items-end gap-2 mb-2">
+                                            <span class="text-5xl font-black text-white tracking-tighter leading-none">
+                                                <span class="text-2xl text-slate-400 font-bold align-top mr-0.5">S/</span>{{ course.price|floatformat:0 }}<span class="text-xl text-slate-400 font-bold align-top">.00</span>
+                                            </span>
+                                            {% if course.old_price and course.old_price > course.price %}
+                                                <span class="text-slate-500 line-through decoration-slate-600 text-lg mb-1">S/ {{ course.old_price|floatformat:0 }}</span>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        {% if course.old_price and course.old_price > course.price %}
+                                            <div class="inline-block bg-gradient-to-r from-rose-600 to-pink-600 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg border border-white/10 mb-4 animate-pulse">
+                                                🔥 ¡AHORRAS {{ course.discount_percent }}%!
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <template x-if="hasMonthly">
+                                        <div x-show="pricingMode === 'monthly'" style="display: none;" x-transition:enter.duration.300ms>
+                                            <div class="flex items-end gap-2 mb-2">
+                                                <span class="text-5xl font-black text-white tracking-tighter leading-none">
+                                                    <span class="text-2xl text-slate-400 font-bold align-top mr-0.5">S/</span>{{ course.monthly_price|floatformat:0 }}
+                                                </span>
+                                                <span class="text-slate-400 font-bold mb-1">/mes</span>
+                                            </div>
+                                            
+                                            <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-lg p-2 flex items-center gap-2 mb-4">
+                                                <div class="bg-indigo-500 text-white w-6 h-6 rounded flex items-center justify-center font-bold text-xs">
+                                                    {{ course.duration_months }}
+                                                </div>
+                                                <span class="text-xs text-indigo-200 font-medium">Pagos mensuales sin intereses.</span>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                {% else %}
+                                    <span class="text-5xl font-black text-emerald-400 tracking-tight">Gratis</span>
+                                    <p class="text-slate-400 text-xs mt-1 mb-6">Acceso libre por tiempo limitado</p>
+                                {% endif %}
+                            </div>
+
+                            <div class="space-y-4 relative z-10">
+                                {% if enrollment %}
+                                    {% if enrollment.status == 'approved' %}
+                                        
+                                        {% if course.is_upcoming %}
+                                            <div class="text-center">
+                                                <button disabled class="w-full bg-slate-700 text-slate-400 font-bold py-4 rounded-xl cursor-not-allowed mb-2 border border-slate-600 shadow-inner flex items-center justify-center gap-2">
+                                                    <i class="fas fa-lock"></i> Acceso Bloqueado
+                                                </button>
+                                                <div x-data="courseCountdown('{{ course.launch_date|date:'Y-m-d H:i:s' }}')" class="flex justify-center gap-2 text-xs font-mono text-slate-400 bg-slate-900/50 p-2 rounded-lg">
+                                                    <span x-text="days + 'd'"></span> : <span x-text="hours + 'h'"></span> : <span x-text="minutes + 'm'"></span>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            {% if course.course_type == 'seminar' and course.live_url %}
+                                                <a href="{{ course.live_url }}" target="_blank" class="flex items-center justify-center w-full bg-red-600 hover:bg-red-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-red-500/20 transition-all hover:-translate-y-1 gap-3 animate-pulse">
+                                                    <i class="fas fa-video text-xl"></i>
+                                                    <span>Unirse al Live</span>
+                                                </a>
+                                            {% else %}
+                                                <a href="{% url 'academy:dashboard' %}" class="flex items-center justify-center w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-500/20 transition-all hover:-translate-y-1 gap-3">
+                                                    <i class="fas fa-play-circle text-xl"></i>
+                                                    <span>Ir al Aula Virtual</span>
+                                                </a>
+                                            {% endif %}
+                                        {% endif %}
+
+                                    {% elif enrollment.status == 'review' %}
+                                        <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 text-center">
+                                            <div class="animate-spin inline-block w-5 h-5 border-2 border-current border-t-transparent text-blue-400 rounded-full mb-1"></div>
+                                            <p class="text-blue-400 font-bold text-sm">Validando tu pago...</p>
+                                        </div>
+                                    {% else %}
+                                        <a href="{% url 'academy:payment_gateway' enrollment.id %}" class="block w-full text-center bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-4 rounded-xl transition-all shadow-lg shadow-amber-500/20 animate-pulse">
+                                            Completar Pago Pendiente
+                                        </a>
+                                    {% endif %}
+                                {% else %}
+                                    <a href="{% url 'academy:enroll_step1' course.slug %}" 
+                                       class="block relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 p-4 text-center font-bold text-white shadow-[0_10px_40px_-10px_rgba(99,102,241,0.5)] transition-all hover:from-indigo-500 hover:to-violet-500 hover:-translate-y-1 group/buy">
+                                        <div class="absolute inset-0 bg-white/20 group-hover/buy:translate-x-full transition-transform duration-700 -skew-x-12 -translate-x-full"></div>
+                                        <span class="relative z-10 flex items-center justify-center gap-2 text-lg">
+                                            {% if course.is_upcoming %}¡Pre-inscribirme Ahora!{% else %}¡Inscribirme Ahora!{% endif %} 
+                                            <i class="fas fa-arrow-right group-hover/buy:translate-x-1 transition-transform"></i>
+                                        </span>
+                                    </a>
+                                    <p class="text-center text-[10px] text-slate-500 font-medium flex items-center justify-center gap-1.5 bg-slate-900/50 py-1.5 rounded-lg border border-slate-700/50">
+                                        <i class="fas fa-shield-alt text-emerald-500"></i> Garantía de 7 días o te devolvemos el dinero
+                                    </p>
+                                {% endif %}
+                            </div>
+
+                            <div class="mt-8 pt-6 border-t border-slate-700/50">
+                                <h4 class="font-bold text-white text-[10px] mb-4 uppercase tracking-widest text-slate-500">Este curso incluye:</h4>
+                                <ul class="space-y-3">
+                                    <li class="flex items-center gap-3 text-sm text-slate-300 group/item">
+                                        <div class="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-indigo-500 group-hover/item:bg-indigo-500 group-hover/item:text-white transition-colors">
+                                            <i class="fas fa-video text-xs"></i>
+                                        </div>
+                                        <span>Video bajo demanda en HD</span>
+                                    </li>
+                                    <li class="flex items-center gap-3 text-sm text-slate-300 group/item">
+                                        <div class="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-indigo-500 group-hover/item:bg-indigo-500 group-hover/item:text-white transition-colors">
+                                            <i class="fas fa-file-download text-xs"></i>
+                                        </div>
+                                        <span>Recursos descargables</span>
+                                    </li>
+                                    <li class="flex items-center gap-3 text-sm text-slate-300 group/item">
+                                        <div class="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-indigo-500 group-hover/item:bg-indigo-500 group-hover/item:text-white transition-colors">
+                                            <i class="fas fa-infinity text-xs"></i>
+                                        </div>
+                                        <span>Acceso de por vida</span>
+                                    </li>
+                                    <li class="flex items-center gap-3 text-sm text-slate-300 group/item">
+                                        <div class="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-indigo-500 group-hover/item:bg-indigo-500 group-hover/item:text-white transition-colors">
+                                            <i class="fas fa-mobile-alt text-xs"></i>
+                                        </div>
+                                        <span>Acceso en móviles y TV</span>
+                                    </li>
+                                    <li class="flex items-center gap-3 text-sm font-bold text-white group/item bg-gradient-to-r from-yellow-500/10 to-transparent p-2 rounded-lg -mx-2 border border-yellow-500/20">
+                                        <i class="fas fa-trophy text-yellow-500 w-5 text-center"></i>
+                                        <span>Certificado de finalización</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="fixed bottom-0 left-0 right-0 p-4 bg-[#0B1120]/95 backdrop-blur-xl border-t border-slate-800 z-50 lg:hidden shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+        <div class="flex items-center justify-between gap-4 max-w-7xl mx-auto">
+            <div>
+                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Precio Total</p>
+                <p class="text-2xl font-black text-white leading-none">{% if course.price > 0 %}S/ {{ course.price|floatformat:0 }}{% else %}Gratis{% endif %}</p>
+            </div>
+            <a href="{% url 'academy:enroll_step1' course.slug %}" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-xl text-center shadow-lg shadow-indigo-500/30 transition-colors">
+                Inscribirse
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function courseCountdown(dateString) {
+        return {
+            targetDate: new Date(dateString).getTime(),
+            days: '00', hours: '00', minutes: '00', seconds: '00',
+            interval: null,
+            init() {
+                this.update();
+                this.interval = setInterval(() => this.update(), 1000);
+            },
+            update() {
+                const now = new Date().getTime();
+                const distance = this.targetDate - now;
+
+                if (distance < 0) {
+                    clearInterval(this.interval);
+                    window.location.reload(); 
+                    return;
+                }
+
+                this.days = String(Math.floor(distance / (1000 * 60 * 60 * 24))).padStart(2, '0');
+                this.hours = String(Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
+                this.minutes = String(Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+                this.seconds = String(Math.floor((distance % (1000 * 60)) / 1000)).padStart(2, '0');
+            }
+        }
+    }
+</script>
+
+<style>
+    .animate-fade-in { animation: fadeIn 0.8s ease-out forwards; opacity: 0; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+{% endblock %}

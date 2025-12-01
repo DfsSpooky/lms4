@@ -1,0 +1,16 @@
+[Unit]
+Description=Gunicorn daemon para LMS Academy
+After=network.target
+
+[Service]
+User=aws
+Group=aws
+WorkingDirectory=/home/aws/web/aquienpasco.lat/public_html
+ExecStart=/home/aws/web/aquienpasco.lat/public_html/venv/bin/gunicorn \
+          --access-logfile - \
+          --workers 3 \
+          --bind unix:/home/aws/web/aquienpasco.lat/public_html/lms.sock \
+          lms_final.wsgi:application
+
+[Install]
+WantedBy=multi-user.target

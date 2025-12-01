@@ -1,0 +1,131 @@
+{% extends 'academy/base.html' %}
+
+{% block title %}Panel de Instructor - LMS Academy{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#0B1120] py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    
+    <div class="absolute top-0 left-0 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="absolute bottom-0 right-0 w-[600px] h-[600px] bg-purple-600/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto relative z-10">
+        
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+            <div>
+                <h1 class="text-4xl font-black text-white tracking-tight mb-2">
+                    Panel de <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Instructor</span>
+                </h1>
+                <p class="text-slate-400 text-lg">Gestiona tus cursos y eventos en vivo desde un solo lugar.</p>
+            </div>
+            
+            <a href="{% url 'academy:course_add' %}" 
+               class="group relative inline-flex items-center justify-center px-6 py-3 font-bold text-white transition-all duration-200 bg-indigo-600 rounded-xl hover:bg-indigo-500 shadow-lg shadow-indigo-500/30 hover:-translate-y-0.5">
+                <i class="fas fa-plus mr-2 group-hover:rotate-90 transition-transform"></i>
+                <span>Crear Contenido</span>
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for course in courses %}
+            <div class="group relative bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-3xl overflow-hidden hover:border-indigo-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1 flex flex-col h-full">
+                
+                <div class="relative h-48 overflow-hidden bg-slate-900">
+                    {% if course.thumbnail %}
+                        <img src="{{ course.thumbnail.url }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-90 group-hover:opacity-100">
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center text-slate-600 bg-slate-800">
+                            <i class="fas fa-image text-4xl"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-90"></div>
+
+                    <div class="absolute top-4 left-4">
+                        {% if course.course_type == 'seminar' %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500 text-white shadow-lg border border-red-400/20">
+                                <span class="relative flex h-2 w-2">
+                                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                  <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                                </span>
+                                En Vivo
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-600 text-white shadow-lg border border-blue-400/20">
+                                <i class="fas fa-film"></i> Curso
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="absolute bottom-4 left-4 right-4">
+                        <h3 class="text-xl font-bold text-white leading-tight line-clamp-2 mb-1 group-hover:text-indigo-400 transition-colors text-shadow-sm">
+                            {{ course.title }}
+                        </h3>
+                    </div>
+                </div>
+
+                <div class="p-6 flex-1 flex flex-col">
+                    <div class="space-y-4 mb-6">
+                        <div class="flex items-center justify-between text-sm">
+                            <a href="{% url 'academy:course_students' course.slug %}" class="flex items-center gap-2 text-slate-400 bg-slate-900/50 px-3 py-1.5 rounded-lg hover:bg-indigo-600 hover:text-white transition-colors group/stats">
+                                <i class="fas fa-users text-indigo-400 group-hover/stats:text-white"></i>
+                                <span class="font-bold text-white">{{ course.student_count }}</span>
+                                <span class="text-xs">Estudiantes</span>
+                            </a>
+                            <div class="flex items-center gap-1 text-amber-400 font-bold text-xs">
+                                <i class="fas fa-star"></i> 5.0
+                            </div>
+                        </div>
+
+                        {% if course.course_type == 'seminar' and course.start_date %}
+                        <div class="flex items-start gap-3 bg-red-500/10 p-3 rounded-xl border border-red-500/20">
+                            <div class="text-red-400 mt-0.5"><i class="far fa-calendar-alt"></i></div>
+                            <div>
+                                <p class="text-[10px] text-red-200 font-bold uppercase tracking-wide">Fecha del Evento</p>
+                                <p class="text-sm text-white font-bold">{{ course.start_date|date:"d M Y, h:i A" }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if course.course_type == 'course' %}
+                        <div class="flex items-center gap-2 text-xs text-slate-500">
+                            <i class="far fa-clock"></i>
+                            <span>Acceso ilimitado • A ritmo propio</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-auto pt-4 border-t border-slate-700/50 grid grid-cols-3 gap-2">
+                        <a href="{% url 'academy:course_detail' course.slug %}" target="_blank" class="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-slate-700/50 text-slate-400 hover:text-white transition-colors gap-1 group/btn" title="Ver como estudiante">
+                            <i class="fas fa-eye text-lg group-hover/btn:scale-110 transition-transform"></i>
+                            <span class="text-[9px] font-bold uppercase tracking-wide">Ver</span>
+                        </a>
+                        
+                        <a href="{% url 'academy:course_edit' course.slug %}" class="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-slate-700/50 text-slate-400 hover:text-indigo-400 transition-colors gap-1 group/btn" title="Editar Configuración">
+                            <i class="fas fa-cog text-lg group-hover/btn:rotate-90 transition-transform duration-500"></i>
+                            <span class="text-[9px] font-bold uppercase tracking-wide">Ajustes</span>
+                        </a>
+
+                        <a href="{% url 'academy:course_content' course.slug %}" class="flex flex-col items-center justify-center p-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors gap-1 shadow-lg shadow-indigo-500/20 group/btn">
+                            <i class="fas fa-layer-group text-lg group-hover/btn:-translate-y-0.5 transition-transform"></i>
+                            <span class="text-[9px] font-bold uppercase tracking-wide">Contenido</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full py-24 text-center">
+                <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-slate-800 border-2 border-slate-700 border-dashed mb-6 relative group cursor-pointer hover:border-indigo-500 transition-colors">
+                    <div class="absolute inset-0 bg-indigo-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <i class="fas fa-rocket text-4xl text-slate-600 group-hover:text-indigo-400 transition-colors relative z-10"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-2">¡Tu viaje comienza aquí!</h3>
+                <p class="text-slate-400 mb-8 max-w-md mx-auto leading-relaxed">Aún no tienes contenido publicado. Crea tu primer curso o seminario y empieza a impactar vidas.</p>
+                <a href="{% url 'academy:course_add' %}" class="inline-flex items-center gap-2 px-8 py-3 bg-white text-slate-900 font-bold rounded-xl hover:bg-indigo-50 transition-all transform hover:-translate-y-1 shadow-lg shadow-white/10">
+                    <i class="fas fa-plus"></i> Crear mi primer contenido
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

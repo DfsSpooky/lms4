@@ -1,0 +1,261 @@
+{% extends 'academy/base.html' %}
+
+{% block title %}Examen: {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#0B1120] flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    
+    <div class="absolute top-0 left-0 w-full h-2 bg-slate-800">
+        <div class="h-full bg-indigo-500 animate-pulse" style="width: 60%"></div> </div>
+    <div class="absolute -top-40 -right-40 w-96 h-96 bg-indigo-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+    <div class="max-w-3xl w-full relative z-10">
+        
+        <div class="text-center mb-10">
+            <span class="text-indigo-400 font-bold tracking-widest text-xs uppercase mb-2 block">Evaluación Final</span>
+            <h1 class="text-3xl md:text-4xl font-black text-white mb-4">{{ quiz.title }}</h1>
+            <div class="inline-flex items-center gap-4 text-sm text-slate-400 bg-slate-800/50 px-4 py-2 rounded-full border border-slate-700">
+                <span><i class="fas fa-layer-group text-indigo-500 mr-2"></i> {{ quiz.module.title }}</span>
+                <span class="w-1 h-1 bg-slate-600 rounded-full"></span>
+                <span><i class="fas fa-check-circle text-emerald-500 mr-2"></i> Aprobar con {{ quiz.pass_mark }}%</span>
+            </div>
+        </div>
+
+        {% if locked %}
+            <div class="bg-slate-800 rounded-3xl border border-slate-700 p-10 text-center shadow-2xl max-w-lg mx-auto">
+                <div class="w-24 h-24 bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-lock text-4xl text-slate-500"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white mb-4">Examen Bloqueado</h2>
+                <p class="text-slate-400 mb-8">{{ lock_message }}</p>
+                <a href="{% url 'academy:course_detail' quiz.module.course.slug %}" class="block w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition-colors">
+                    Volver al Contenido
+                </a>
+            </div>
+
+        {% elif submission %}
+            <div class="bg-slate-800 rounded-3xl border border-slate-700 p-8 text-center shadow-2xl max-w-lg mx-auto">
+                <div class="w-24 h-24 mx-auto rounded-full flex items-center justify-center mb-6 text-4xl font-black shadow-lg
+                    {% if submission.passed %}bg-emerald-500/20 text-emerald-400 ring-4 ring-emerald-500/10{% else %}bg-red-500/20 text-red-400 ring-4 ring-red-500/10{% endif %}">
+                    {{ submission.score|floatformat:0 }}%
+                </div>
+                <h2 class="text-2xl font-bold text-white mb-2">
+                    {% if submission.passed %}¡Objetivo Logrado!{% else %}Inténtalo de nuevo{% endif %}
+                </h2>
+                <p class="text-slate-400 mb-8">Completado el {{ submission.submitted_at|date:"d M Y" }}</p>
+                <a href="{% url 'academy:course_detail' quiz.module.course.slug %}" class="block w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl transition-colors">
+                    Volver al Curso
+                </a>
+
+                {% if not submission.passed %}
+                <a href="?retake=1" class="block w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition-colors shadow-lg shadow-indigo-500/20 mt-3">
+                    <i class="fas fa-redo-alt mr-2"></i> Reintentar Examen
+                </a>
+                {% endif %}
+            </div>
+
+        {% else %}
+            <div x-data="quizTaker()">
+
+                {% if remaining_seconds %}
+                <div class="sticky top-4 z-50 mb-6 flex justify-center">
+                    <div x-data="{
+                            time: {{ remaining_seconds }},
+                            timer: null,
+                            formatTime(seconds) {
+                                const m = Math.floor(seconds / 60);
+                                const s = seconds % 60;
+                                return `${m}:${s < 10 ? '0' : ''}${s}`;
+                            },
+                            startTimer() {
+                                this.timer = setInterval(() => {
+                                    this.time--;
+                                    if (this.time <= 0) {
+                                        clearInterval(this.timer);
+                                        this.submitQuiz(true);
+                                    }
+                                }, 1000);
+                            }
+                        }"
+                        x-init="startTimer()"
+                        class="bg-slate-800/90 backdrop-blur border border-slate-700 text-white px-6 py-3 rounded-full shadow-xl flex items-center gap-3 font-mono font-bold text-xl"
+                        :class="time < 60 ? 'text-red-400 border-red-500/50 animate-pulse' : ''">
+                        <i class="far fa-clock"></i>
+                        <span x-text="formatTime(time)"></span>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="space-y-8">
+                    {% for question in questions %}
+                    <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700 overflow-hidden shadow-xl hover:border-indigo-500/30 transition-all duration-300 group">
+                        <div class="bg-slate-900/50 px-6 py-4 border-b border-slate-700 flex items-start gap-4">
+                            <span class="flex-shrink-0 w-8 h-8 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center text-sm shadow-lg">
+                                {{ forloop.counter }}
+                            </span>
+                            <div class="flex-1">
+                                <h3 class="text-lg font-medium text-slate-200 pt-0.5">{{ question.text }}</h3>
+                                {% if question.question_type == 'multiple_choice' %}
+                                    <span class="text-xs text-indigo-400 mt-1 block">Selecciona todas las que apliquen</span>
+                                {% endif %}
+                            </div>
+                            <span class="text-xs font-mono text-slate-500">{{ question.points }} pts</span>
+                        </div>
+
+                        <div class="p-6 space-y-3">
+                            {% if question.question_type == 'short_answer' %}
+                                <textarea x-model="answers['{{ question.id }}']" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-white placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 transition-all" rows="3" placeholder="Escribe tu respuesta..."></textarea>
+                            
+                            {% elif question.question_type == 'matching' %}
+                                <div x-data="{ options: window.quizData[{{ question.id }}].answers.map(a => a.match_text).sort(() => Math.random() - 0.5) }" class="space-y-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm font-bold text-slate-500 mb-2">
+                                        <div>Columna A</div>
+                                        <div>Columna B (Seleccionar)</div>
+                                    </div>
+                                    {% for answer in question.answers.all %}
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center p-4 bg-slate-900/50 rounded-xl border border-slate-700">
+                                        <div class="text-white font-medium">{{ answer.text }}</div>
+                                        <div>
+                                            <select x-model="answers['{{ question.id }}']['{{ answer.id }}']" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-indigo-500">
+                                                <option value="">-- Seleccionar --</option>
+                                                <template x-for="opt in options">
+                                                    <option :value="opt" x-text="opt"></option>
+                                                </template>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+
+                            {% elif question.question_type == 'ordering' %}
+                                <div x-data="{
+                                    items: window.quizData[{{ question.id }}].answers.sort(() => Math.random() - 0.5),
+                                    move(fromIndex, toIndex) {
+                                        if (toIndex < 0 || toIndex >= this.items.length) return;
+                                        const element = this.items.splice(fromIndex, 1)[0];
+                                        this.items.splice(toIndex, 0, element);
+                                        this.updateAnswer();
+                                    },
+                                    updateAnswer() {
+                                        this.answers['{{ question.id }}'] = this.items.map(i => i.id);
+                                    },
+                                    init() { this.updateAnswer(); }
+                                }" class="space-y-2">
+                                    <p class="text-sm text-slate-400 mb-4">Utiliza las flechas para ordenar los elementos correctamente.</p>
+                                    <template x-for="(item, idx) in items" :key="item.id">
+                                        <div class="flex items-center gap-4 p-4 bg-slate-900/50 rounded-xl border border-slate-700">
+                                            <div class="flex flex-col gap-1">
+                                                <button @click="move(idx, idx - 1)" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors" :disabled="idx === 0" :class="idx === 0 ? 'opacity-25 cursor-not-allowed' : ''">
+                                                    <i class="fas fa-chevron-up text-xs"></i>
+                                                </button>
+                                                <button @click="move(idx, idx + 1)" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors" :disabled="idx === items.length - 1" :class="idx === items.length - 1 ? 'opacity-25 cursor-not-allowed' : ''">
+                                                    <i class="fas fa-chevron-down text-xs"></i>
+                                                </button>
+                                            </div>
+                                            <div class="flex-1 text-white font-medium" x-text="item.text"></div>
+                                            <div class="text-slate-500 font-mono text-xs" x-text="idx + 1"></div>
+                                        </div>
+                                    </template>
+                                </div>
+
+                            {% else %}
+                                {% for answer in question.answers.all %}
+                                <label class="relative flex items-center p-4 rounded-xl border border-slate-700 cursor-pointer bg-slate-800/30 hover:bg-indigo-600/10 hover:border-indigo-500 transition-all group/option"
+                                       :class="isSelected('{{ question.id }}', '{{ answer.id }}', '{{ question.question_type }}') ? 'border-indigo-500 bg-indigo-500/10' : ''">
+
+                                    {% if question.question_type == 'multiple_choice' %}
+                                        <input type="checkbox" :value="'{{ answer.id }}'" x-model="answers['{{ question.id }}']" class="peer sr-only">
+                                        <div class="w-5 h-5 rounded border-2 border-slate-500 peer-checked:border-indigo-500 peer-checked:bg-indigo-500 transition-all mr-4 flex items-center justify-center">
+                                            <i class="fas fa-check text-white text-[10px] opacity-0 peer-checked:opacity-100"></i>
+                                        </div>
+                                    {% else %}
+                                        <input type="radio" value="{{ answer.id }}" x-model="answers['{{ question.id }}']" class="peer sr-only">
+                                        <div class="w-5 h-5 rounded-full border-2 border-slate-500 peer-checked:border-indigo-500 peer-checked:bg-indigo-500 transition-all mr-4 flex items-center justify-center">
+                                            <div class="w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+                                        </div>
+                                    {% endif %}
+
+                                    <span class="text-slate-300 font-medium peer-checked:text-white transition-colors">{{ answer.text }}</span>
+                                </label>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-12 bg-slate-800/50 rounded-2xl border border-slate-700 border-dashed">
+                        <i class="fas fa-ghost text-4xl text-slate-600 mb-4"></i>
+                        <p class="text-slate-400">Este examen aún no tiene preguntas.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% if questions %}
+                <div class="sticky bottom-6 z-20 mt-8">
+                    <button @click="submitQuiz()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black text-lg py-4 rounded-xl shadow-xl shadow-indigo-600/20 transform hover:-translate-y-1 transition-all flex items-center justify-center gap-2">
+                        <span>Enviar Respuestas</span>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+
+            <script>
+                // Serialize Quiz Data for complex types
+                window.quizData = {
+                    {% for q in questions %}
+                    {{ q.id }}: {
+                        type: '{{ q.question_type }}',
+                        answers: [
+                            {% for a in q.answers.all %}
+                            { id: {{ a.id }}, text: "{{ a.text|escapejs }}", match_text: "{{ a.match_text|escapejs }}" },
+                            {% endfor %}
+                        ]
+                    },
+                    {% endfor %}
+                };
+
+                function quizTaker() {
+                    return {
+                        answers: {
+                            {% for question in questions %}
+                                '{{ question.id }}': {% if question.question_type == 'multiple_choice' %}[]
+                                    {% elif question.question_type == 'matching' %}{}{% elif question.question_type == 'ordering' %}[]{% else %}''{% endif %},
+                            {% endfor %}
+                        },
+                        isSelected(qId, aId, type) {
+                            if (type === 'multiple_choice') {
+                                return this.answers[qId].includes(aId);
+                            }
+                            return this.answers[qId] == aId;
+                        },
+                        async submitQuiz(auto=false) {
+                            if (!auto && !confirm('¿Estás seguro de enviar tus respuestas?')) return;
+
+                            try {
+                                const response = await fetch(`/api/progress/quiz/{{ quiz.id }}/submit/`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRFToken': '{{ csrf_token }}'
+                                    },
+                                    body: JSON.stringify({ answers: this.answers })
+                                });
+
+                                const result = await response.json();
+                                if (result.passed !== undefined) {
+                                    window.location.reload();
+                                } else {
+                                    alert('Error al enviar el examen');
+                                }
+                            } catch (e) {
+                                console.error(e);
+                                alert('Error de conexión');
+                            }
+                        }
+                    }
+                }
+            </script>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

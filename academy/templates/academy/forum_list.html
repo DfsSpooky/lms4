@@ -1,0 +1,108 @@
+{% extends 'academy/base.html' %}
+
+{% block title %}Foro - LMS Academy{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-950 text-slate-300 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Header Compacto -->
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h1 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i class="fas fa-comments text-indigo-500"></i> Foro de la Comunidad
+                </h1>
+                <p class="text-xs text-slate-500 mt-1">Discusiones generales y preguntas sobre cursos.</p>
+            </div>
+            <a href="{% url 'academy:create_topic' %}" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2 px-4 rounded shadow-md transition-colors flex items-center gap-2">
+                <i class="fas fa-plus"></i> Nuevo Tema
+            </a>
+        </div>
+
+        <!-- Layout estilo vBulletin (Tabla) -->
+        <div class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden shadow-sm">
+
+            <!-- Table Header -->
+            <div class="grid grid-cols-12 bg-slate-800/50 border-b border-slate-800 text-xs font-bold text-slate-400 py-2 px-4 uppercase tracking-wider">
+                <div class="col-span-7 md:col-span-8">Tema / Autor</div>
+                <div class="col-span-2 text-center hidden md:block">Estadísticas</div>
+                <div class="col-span-5 md:col-span-2 text-right">Última Actividad</div>
+            </div>
+
+            <!-- Topics Loop -->
+            <div class="divide-y divide-slate-800/50">
+                {% for topic in topics %}
+                    <div class="grid grid-cols-12 items-center hover:bg-slate-800/30 transition-colors py-2 px-4 group text-sm">
+
+                        <!-- Icon & Title -->
+                        <div class="col-span-7 md:col-span-8 flex items-start gap-3">
+                            <!-- Status Icon -->
+                            <div class="shrink-0 mt-1">
+                                <i class="fas fa-comment-dots text-slate-600 group-hover:text-indigo-500 transition-colors text-lg"></i>
+                            </div>
+
+                            <div class="min-w-0">
+                                <h3 class="font-bold text-slate-200 group-hover:text-indigo-400 transition-colors leading-tight">
+                                    <a href="{% url 'academy:forum_topic_detail' topic.id %}" class="hover:underline">{{ topic.title }}</a>
+                                </h3>
+                                <div class="text-xs text-slate-500 mt-0.5 flex flex-wrap gap-2 items-center">
+                                    <span>
+                                        Iniciado por <a href="{% url 'academy:public_profile' topic.user.username %}" class="text-slate-400 hover:text-white font-medium">{{ topic.user.username }}</a>
+                                    </span>
+                                    <span class="text-slate-700">•</span>
+                                    <span>{{ topic.created_at|date:"d M Y, H:i" }}</span>
+                                    {% if topic.course %}
+                                        <span class="bg-slate-800 border border-slate-700 text-slate-400 px-1.5 rounded text-[10px] ml-1">{{ topic.course.title|truncatechars:20 }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stats (Hidden on Mobile) -->
+                        <div class="col-span-2 text-center hidden md:flex flex-col justify-center text-xs text-slate-500">
+                            <div><span class="text-slate-300 font-bold">{{ topic.replies.count }}</span> resp.</div>
+                            <div><span class="text-slate-300 font-bold">{{ topic.views }}</span> vistas</div>
+                        </div>
+
+                        <!-- Last Post Info -->
+                        <div class="col-span-5 md:col-span-2 text-right text-xs">
+                            {% with last_reply=topic.replies.last %}
+                                {% if last_reply %}
+                                    <div class="truncate text-slate-400">
+                                        Por <a href="{% url 'academy:public_profile' last_reply.user.username %}" class="text-indigo-400 hover:underline">{{ last_reply.user.username }}</a>
+                                    </div>
+                                    <div class="text-slate-600">{{ last_reply.created_at|timesince }} atrás</div>
+                                {% else %}
+                                    <div class="text-slate-600 italic">Sin respuestas</div>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+
+                    </div>
+                {% empty %}
+                    <div class="py-12 text-center">
+                        <i class="fas fa-inbox text-4xl text-slate-700 mb-3"></i>
+                        <p class="text-slate-500">No hay temas en este foro aún.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+            <div class="mt-4 flex justify-end gap-1 text-xs font-medium">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded border border-slate-700 hover:bg-slate-700">Anterior</a>
+                {% endif %}
+                <span class="px-3 py-1.5 bg-slate-800 text-slate-500 rounded border border-slate-700">
+                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                </span>
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded border border-slate-700 hover:bg-slate-700">Siguiente</a>
+                {% endif %}
+            </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

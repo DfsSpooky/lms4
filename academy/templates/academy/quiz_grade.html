@@ -1,0 +1,161 @@
+{% extends 'academy/base.html' %}
+
+{% block title %}Calificar: {{ submission.user.username }} - {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#0B1120] py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8">
+            <a href="{% url 'academy:quiz_submissions' quiz.id %}" class="inline-flex items-center text-sm text-slate-400 hover:text-white mb-4 transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i> Volver a Resultados
+            </a>
+
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl">
+                <div class="flex items-center gap-4">
+                    <img src="{{ submission.user.profile.avatar.url }}" alt="" class="w-16 h-16 rounded-full border-2 border-indigo-500 shadow-lg">
+                    <div>
+                        <h1 class="text-2xl font-bold text-white">{{ submission.user.get_full_name|default:submission.user.username }}</h1>
+                        <p class="text-slate-400 text-sm">Examen: <span class="text-indigo-400 font-medium">{{ quiz.title }}</span></p>
+                    </div>
+                </div>
+
+                <div class="text-right">
+                    <div class="text-sm text-slate-400 uppercase tracking-wider font-bold mb-1">Nota Actual</div>
+                    <div class="text-4xl font-black {% if submission.passed %}text-emerald-400{% else %}text-red-400{% endif %}">
+                        {{ submission.score|floatformat:1 }}%
+                    </div>
+                    <div class="text-xs text-slate-500 mt-1">
+                        {% if submission.passed %}Aprobado{% else %}Reprobado{% endif %} (Min: {{ quiz.pass_mark }}%)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form method="post" action="{% url 'academy:quiz_grade_submission' submission.id %}">
+            {% csrf_token %}
+
+            <!-- Feedback General -->
+            <div class="bg-slate-800 rounded-2xl border border-slate-700 p-6 mb-8 shadow-lg">
+                <label class="block text-sm font-bold text-white mb-2 uppercase tracking-wide">
+                    <i class="fas fa-comment-dots text-indigo-500 mr-2"></i> Feedback General para el Estudiante
+                </label>
+                <textarea name="feedback" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-white placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 transition-all resize-none" placeholder="Escribe un comentario general sobre el desempeño...">{{ submission.teacher_feedback }}</textarea>
+            </div>
+
+            <!-- Questions & Answers -->
+            <div class="space-y-6 mb-10">
+                {% for student_answer in answers %}
+                <div class="bg-slate-800 rounded-2xl border {% if student_answer.is_correct %}border-emerald-500/30 bg-emerald-500/5{% elif student_answer.is_correct == False %}border-red-500/30 bg-red-500/5{% else %}border-amber-500/30 bg-amber-500/5{% endif %} overflow-hidden transition-all hover:border-slate-500">
+
+                    <!-- Question Header -->
+                    <div class="px-6 py-4 bg-slate-900/50 border-b border-slate-700/50 flex justify-between items-start">
+                        <div class="flex gap-4">
+                            <span class="flex-shrink-0 w-8 h-8 rounded-lg bg-slate-700 text-slate-300 font-bold flex items-center justify-center text-sm">
+                                {{ forloop.counter }}
+                            </span>
+                            <div>
+                                <h3 class="text-lg font-medium text-slate-200">{{ student_answer.question.text }}</h3>
+                                <div class="mt-1 flex gap-2">
+                                    <span class="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-400">{{ student_answer.question.get_question_type_display }}</span>
+                                    <span class="text-xs px-2 py-0.5 rounded bg-indigo-900/50 text-indigo-300 border border-indigo-500/20">Max: {{ student_answer.question.points }} pts</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Manual Grading Inputs -->
+                        <div class="flex flex-col items-end gap-2">
+                            <div class="flex items-center gap-2 bg-slate-900 p-1.5 rounded-lg border border-slate-700">
+                                <label class="text-xs text-slate-500 font-bold uppercase mr-1">Puntos:</label>
+                                <input type="number" step="0.5" name="points_{{ student_answer.id }}" value="{{ student_answer.points_awarded }}" class="w-16 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white text-right font-mono focus:border-indigo-500 text-sm">
+                            </div>
+                            {% if student_answer.question.question_type == 'short_answer' %}
+                                <div class="flex gap-1">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="correct_{{ student_answer.id }}" value="true" class="peer sr-only" {% if student_answer.is_correct %}checked{% endif %}>
+                                        <span class="block w-8 h-8 rounded bg-slate-700 text-slate-500 peer-checked:bg-emerald-500 peer-checked:text-white flex items-center justify-center hover:bg-slate-600 transition-colors" title="Marcar Correcto">
+                                            <i class="fas fa-check"></i>
+                                        </span>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="correct_{{ student_answer.id }}" value="false" class="peer sr-only" {% if student_answer.is_correct == False %}checked{% endif %}>
+                                        <span class="block w-8 h-8 rounded bg-slate-700 text-slate-500 peer-checked:bg-red-500 peer-checked:text-white flex items-center justify-center hover:bg-slate-600 transition-colors" title="Marcar Incorrecto">
+                                            <i class="fas fa-times"></i>
+                                        </span>
+                                    </label>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Student Answer Content -->
+                    <div class="p-6">
+                        <div class="mb-4">
+                            <span class="block text-xs text-slate-500 font-bold uppercase mb-2">Respuesta del Estudiante:</span>
+
+                            {% if student_answer.question.question_type == 'short_answer' %}
+                                <div class="p-4 bg-slate-900 rounded-xl border border-slate-700 text-slate-200 font-mono text-sm whitespace-pre-wrap">
+                                    {{ student_answer.text_answer|default:"(Sin respuesta)" }}
+                                </div>
+                            {% elif student_answer.question.question_type == 'multiple_choice' %}
+                                <div class="space-y-2">
+                                    {% for selected in student_answer.selected_answers.all %}
+                                        <div class="flex items-center gap-2 text-slate-300">
+                                            <i class="fas fa-check-square text-indigo-400"></i>
+                                            <span>{{ selected.text }}</span>
+                                        </div>
+                                    {% empty %}
+                                        <span class="text-slate-500 italic">(Ninguna seleccionada)</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="flex items-center gap-2 text-slate-300">
+                                    {% for selected in student_answer.selected_answers.all %}
+                                        <i class="fas fa-dot-circle text-indigo-400"></i>
+                                        <span class="font-medium">{{ selected.text }}</span>
+                                    {% empty %}
+                                        <span class="text-slate-500 italic">(Sin selección)</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Correct Answer (Reference for Teacher) -->
+                        <div class="bg-indigo-900/20 rounded-lg p-3 border border-indigo-500/20">
+                            <span class="block text-xs text-indigo-400 font-bold uppercase mb-1">Solución Correcta:</span>
+                            {% if student_answer.question.question_type == 'short_answer' %}
+                                <p class="text-sm text-slate-400 italic">Revisión manual requerida. (Ver explicación si existe)</p>
+                            {% else %}
+                                <ul class="space-y-1">
+                                    {% for ans in student_answer.question.answers.all %}
+                                        {% if ans.is_correct %}
+                                            <li class="flex items-center gap-2 text-sm text-emerald-400">
+                                                <i class="fas fa-check text-xs"></i> {{ ans.text }}
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+
+                            {% if student_answer.question.explanation %}
+                                <div class="mt-2 pt-2 border-t border-indigo-500/20">
+                                    <span class="text-xs text-indigo-300 font-bold">Explicación:</span>
+                                    <p class="text-sm text-slate-400">{{ student_answer.question.explanation }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Sticky Footer Actions -->
+            <div class="sticky bottom-6 z-20 flex justify-end">
+                <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-8 rounded-xl shadow-xl shadow-emerald-600/20 transform hover:-translate-y-1 transition-all flex items-center gap-2">
+                    <i class="fas fa-save"></i> Guardar Calificaciones
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

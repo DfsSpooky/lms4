@@ -1,0 +1,309 @@
+{% extends 'academy/base.html' %}
+
+{% block title %}Contenido: {{ course.title }} - LMS Academy{% endblock %}
+
+{% block content %}
+{{ lesson_form.media }}
+
+<div class="min-h-screen bg-[#0B1120] py-12 px-4 sm:px-6 lg:px-8 relative" 
+     x-data="{ 
+        moduleModalOpen: false, 
+        lessonModalOpen: false, 
+        currentModuleId: null,
+        currentModuleName: ''
+     }">
+
+    <div class="absolute top-0 left-0 w-full h-[300px] bg-gradient-to-b from-indigo-900/20 to-transparent pointer-events-none"></div>
+
+    <div class="max-w-5xl mx-auto relative z-10">
+        
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+            <div>
+                <div class="flex items-center gap-3 text-sm text-indigo-400 font-bold uppercase tracking-wider mb-2">
+                    <a href="{% url 'academy:teacher_dashboard' %}" class="hover:text-white transition-colors"><i class="fas fa-arrow-left mr-1"></i> Panel</a>
+                    <span class="text-slate-600">/</span>
+                    <span>Gestionar Contenido</span>
+                </div>
+                <h1 class="text-3xl md:text-4xl font-black text-white tracking-tight">{{ course.title }}</h1>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <a href="{% url 'academy:course_detail' course.slug %}" target="_blank" class="px-4 py-2.5 rounded-xl border border-slate-700 text-slate-300 font-medium hover:bg-slate-800 hover:text-white transition-all flex items-center gap-2">
+                    <i class="fas fa-eye"></i> <span class="hidden sm:inline">Ver Curso</span>
+                </a>
+                <button @click="moduleModalOpen = true" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-indigo-500/25 transition-all hover:-translate-y-0.5 flex items-center gap-2">
+                    <i class="fas fa-folder-plus"></i> Nuevo Módulo
+                </button>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            {% for module in modules %}
+            <div class="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl overflow-hidden transition-all duration-300 hover:border-slate-600" x-data="{ expanded: true }">
+                
+                <div class="px-6 py-4 bg-slate-800/80 border-b border-slate-700/50 flex items-center justify-between select-none cursor-pointer" @click="expanded = !expanded">
+                    <div class="flex items-center gap-4">
+                        <div class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center text-slate-400 transition-transform duration-300" :class="expanded ? 'rotate-180' : ''">
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white flex items-center gap-3">
+                                {{ module.title }}
+                                <span class="px-2 py-0.5 rounded text-[10px] bg-slate-700 text-slate-300 font-mono border border-slate-600">Orden: {{ module.order }}</span>
+                            </h3>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-2" @click.stop>
+                        <button @click="currentModuleId = {{ module.id }}; currentModuleName = '{{ module.title|escapejs }}'; lessonModalOpen = true" 
+                                class="text-xs font-bold text-indigo-400 hover:text-white hover:bg-indigo-600 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2">
+                            <i class="fas fa-plus"></i> Lección
+                        </button>
+                        <div class="h-4 w-px bg-slate-600 mx-1"></div>
+                        <a href="{% url 'academy:delete_module' module.id %}" onclick="return confirm('¿Eliminar módulo y todas sus lecciones?');" 
+                           class="text-slate-500 hover:text-red-400 p-2 rounded-lg hover:bg-slate-700/50 transition-colors">
+                            <i class="fas fa-trash-alt"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div x-show="expanded" x-collapse>
+                    {% if module.lessons.all or module.quizzes.all %}
+                        <div class="divide-y divide-slate-700/30">
+                            <!-- LESSONS -->
+                            {% for lesson in module.lessons.all %}
+                            <div class="px-6 py-4 flex items-center justify-between hover:bg-slate-700/10 transition-colors group">
+                                <div class="flex items-center gap-4">
+                                    <div class="flex flex-col items-center justify-center w-8 text-slate-600 font-mono text-xs">
+                                        <i class="fas fa-grip-vertical opacity-0 group-hover:opacity-50 cursor-move mb-1"></i>
+                                        <span>{{ lesson.order }}</span>
+                                    </div>
+                                    
+                                    <div class="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                                        <i class="{{ lesson.icon_class }} text-sm"></i>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-medium text-slate-200 group-hover:text-white transition-colors">{{ lesson.title }}</h4>
+                                        <div class="flex items-center gap-3 text-xs text-slate-500 mt-0.5">
+                                            <span class="flex items-center gap-1"><i class="far fa-clock"></i> {{ lesson.duration }} min</span>
+                                            
+                                            {% if lesson.lesson_type == 'video' %}
+                                                <span class="text-emerald-500 flex items-center gap-1"><i class="fas fa-video"></i> Video</span>
+                                            {% elif lesson.lesson_type == 'pdf' %}
+                                                <span class="text-red-400 flex items-center gap-1"><i class="fas fa-file-pdf"></i> PDF</span>
+                                            {% elif lesson.lesson_type == 'resource' %}
+                                                <span class="text-blue-400 flex items-center gap-1"><i class="fas fa-download"></i> Recurso</span>
+                                            {% else %}
+                                                <span class="text-amber-500 flex items-center gap-1"><i class="fas fa-book-open"></i> Lectura</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+                                    {% if lesson.lesson_type == 'assignment' %}
+                                        <a href="{% url 'academy:lesson_submissions' lesson.id %}" class="p-2 text-slate-500 hover:text-emerald-400 transition-colors" title="Ver Entregas">
+                                            <i class="fas fa-clipboard-check"></i>
+                                        </a>
+                                    {% endif %}
+                                    <a href="{% url 'academy:edit_lesson' lesson.id %}" class="p-2 text-slate-500 hover:text-indigo-400 transition-colors" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'academy:delete_lesson' lesson.id %}" onclick="return confirm('¿Eliminar esta lección?');" class="p-2 text-slate-500 hover:text-red-400 transition-colors" title="Eliminar">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+
+                            <!-- QUIZZES -->
+                            {% for quiz in module.quizzes.all %}
+                            <div class="px-6 py-4 flex items-center justify-between hover:bg-slate-700/10 transition-colors group border-l-4 border-l-purple-500/50 bg-purple-500/5">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-8"></div> <!-- Spacer for alignment -->
+
+                                    <div class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400 group-hover:bg-purple-500 group-hover:text-white transition-colors">
+                                        <i class="fas fa-puzzle-piece text-sm"></i>
+                                    </div>
+
+                                    <div>
+                                        <h4 class="font-medium text-slate-200 group-hover:text-white transition-colors">{{ quiz.title }}</h4>
+                                        <div class="flex items-center gap-3 text-xs text-slate-500 mt-0.5">
+                                            <span class="text-purple-400 flex items-center gap-1"><i class="fas fa-check-double"></i> Examen</span>
+                                            <span>{{ quiz.questions.count }} preguntas</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+                                    <a href="{% url 'academy:quiz_submissions' quiz.id %}" class="p-2 text-slate-500 hover:text-emerald-400 transition-colors" title="Ver Resultados">
+                                        <i class="fas fa-chart-bar"></i>
+                                    </a>
+                                    <a href="{% url 'academy:edit_quiz' quiz.id %}" class="p-2 text-slate-500 hover:text-indigo-400 transition-colors" title="Editar Examen">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'academy:delete_quiz' quiz.id %}" onclick="return confirm('¿Eliminar este examen?');" class="p-2 text-slate-500 hover:text-red-400 transition-colors" title="Eliminar">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="px-6 py-8 text-center border-t border-slate-700/30 border-dashed">
+                            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-800 text-slate-500 mb-3">
+                                <i class="fas fa-box-open text-xl"></i>
+                            </div>
+                            <p class="text-slate-400 text-sm">Este módulo está vacío.</p>
+                            <button @click="currentModuleId = {{ module.id }}; currentModuleName = '{{ module.title|escapejs }}'; lessonModalOpen = true" class="mt-2 text-indigo-400 hover:text-indigo-300 text-sm font-bold">
+                                + Agregar primera lección
+                            </button>
+                        </div>
+                    {% endif %}
+
+                    <!-- Quick Add Buttons at bottom of module -->
+                    <div class="px-6 py-3 bg-slate-800/50 border-t border-slate-700/50 flex gap-4 justify-end">
+                         <form action="{% url 'academy:add_quiz' %}" method="post" class="inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="module_id" value="{{ module.id }}">
+                            <button type="submit" class="text-xs font-bold text-purple-400 hover:text-purple-300 flex items-center gap-1 py-1 px-2 rounded hover:bg-purple-500/10 transition-colors">
+                                <i class="fas fa-puzzle-piece"></i> Agregar Examen
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-20 bg-slate-800/30 rounded-3xl border-2 border-dashed border-slate-700">
+                <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl border border-slate-700">
+                    <i class="fas fa-layer-group text-3xl text-indigo-500"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2">Comienza a crear tu curso</h3>
+                <p class="text-slate-400 mb-8 max-w-md mx-auto">Organiza tu contenido en módulos para facilitar el aprendizaje.</p>
+                <button @click="moduleModalOpen = true" class="bg-white text-slate-900 px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-indigo-50 transition-all hover:scale-105">
+                    Crear Primer Módulo
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <div x-show="moduleModalOpen" class="fixed inset-0 z-50 flex items-center justify-center px-4" style="display: none;">
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" @click="moduleModalOpen = false"></div>
+        
+        <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md relative z-10 border border-slate-700 transform transition-all scale-100 p-6">
+            <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                <i class="fas fa-folder text-indigo-500"></i> Nuevo Módulo
+            </h3>
+            
+            <form method="post" action="{% url 'academy:add_module' course.slug %}">
+                {% csrf_token %}
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-1.5">Título del Módulo</label>
+                        {{ module_form.title }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-1.5">Orden</label>
+                        {{ module_form.order }}
+                    </div>
+                </div>
+                
+                <div class="mt-8 flex justify-end gap-3">
+                    <button type="button" @click="moduleModalOpen = false" class="px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors text-sm font-medium">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold shadow-lg shadow-indigo-500/20 transition-all">Guardar Módulo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div x-show="lessonModalOpen" class="fixed inset-0 z-50 flex items-center justify-center px-4" style="display: none;">
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" @click="lessonModalOpen = false"></div>
+        
+        <div class="bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl relative z-10 border border-slate-700 transform transition-all scale-100 max-h-[90vh] flex flex-col"
+             x-data="{ lessonType: 'video' }"> 
+            
+            <div class="p-6 border-b border-slate-700 shrink-0">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i class="fas fa-plus-circle text-emerald-500"></i> Nueva Lección
+                </h3>
+                <p class="text-sm text-slate-400 mt-1">Agregando a: <span class="text-white font-medium" x-text="currentModuleName"></span></p>
+            </div>
+            
+            <div class="p-6 overflow-y-auto custom-scrollbar">
+                <form method="post" action="{% url 'academy:add_lesson' %}" id="lessonForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="module_id" :value="currentModuleId">
+                    
+                    <div class="space-y-6">
+                        
+                        <div>
+                            <label class="block text-sm font-bold text-slate-300 mb-2 uppercase tracking-wide">Tipo de Contenido</label>
+                            {{ lesson_form.lesson_type }}
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-slate-400 mb-1.5">Título</label>
+                                {{ lesson_form.title }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-1.5">Orden</label>
+                                {{ lesson_form.order }}
+                            </div>
+                        </div>
+
+                        <div class="p-5 bg-slate-900/50 rounded-xl border border-slate-700 space-y-4">
+                            
+                            <div x-show="lessonType === 'video'">
+                                <label class="block text-sm font-medium text-indigo-400 mb-1.5"><i class="fab fa-youtube mr-1"></i> Video URL</label>
+                                {{ lesson_form.video_url }}
+                            </div>
+
+                            <div x-show="lessonType === 'assignment'">
+                                <label class="block text-sm font-medium text-indigo-400 mb-1.5"><i class="far fa-calendar-alt mr-1"></i> Fecha de Entrega</label>
+                                {{ lesson_form.due_date }}
+                            </div>
+
+                            <div x-show="lessonType === 'pdf' || lessonType === 'resource'" style="display: none;">
+                                <label class="block text-sm font-medium text-emerald-400 mb-1.5"><i class="fas fa-cloud-upload-alt mr-1"></i> Subir Archivo</label>
+                                {{ lesson_form.file }}
+                                <p class="text-xs text-slate-500 mt-2" x-show="lessonType === 'pdf'">Sube el documento PDF para que los alumnos lo lean aquí.</p>
+                                <p class="text-xs text-slate-500 mt-2" x-show="lessonType === 'resource'">Archivos .zip, .xlsx, .docx para descargar.</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-1.5">Duración estimada (min)</label>
+                                {{ lesson_form.duration }}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-1.5" x-text="lessonType === 'assignment' ? 'Instrucciones de la Tarea' : 'Descripción / Texto'"></label>
+                            <div class="rounded-xl overflow-hidden border border-slate-600">
+                                {{ lesson_form.content }}
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="p-6 border-t border-slate-700 bg-slate-800/50 rounded-b-2xl shrink-0 flex justify-end gap-3">
+                <button type="button" @click="lessonModalOpen = false" class="px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors text-sm font-medium">Cancelar</button>
+                <button type="submit" form="lessonForm" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold shadow-lg shadow-emerald-500/20 transition-all">Guardar Lección</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    /* Scrollbar personalizado para el modal */
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
+</style>
+{% endblock %}
