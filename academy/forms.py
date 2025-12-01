@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Profile, Enrollment, Course, LessonComment, LessonProgress, Installment, Installment
+from .models import Profile, Enrollment, Course, LessonComment, LessonProgress, Installment
 from .forms_content import *
 from tinymce.widgets import TinyMCE
 
@@ -177,12 +177,15 @@ class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
         fields = [
-            'title', 'category', 'course_type', 'level', 
+            'title', 'category', 'course_type', 'level', 'institution',
             'price', 'old_price', 'allow_monthly_payment', 'monthly_price', 'duration_months',
             'start_date', 'end_date', 'live_url', 'launch_date',
             'preview_video_url', 'description', 'short_description', 'thumbnail'
         ]
         widgets = {
+            'institution': forms.Select(attrs={
+                'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all cursor-pointer'
+            }),
             'title': forms.TextInput(attrs={
                 'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-slate-500 transition-all font-bold text-lg',
                 'placeholder': 'Ej: Master en Python 2025'
