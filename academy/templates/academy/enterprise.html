@@ -1,78 +1,215 @@
 {% extends 'academy/base.html' %}
+{% load static %}
+
+{% block title %}Soluciones Empresariales - LMS Academy{% endblock %}
 
 {% block content %}
-<div class="bg-gray-900 text-white py-20">
-    <div class="container mx-auto px-4 text-center">
-        <h1 class="text-4xl md:text-6xl font-bold mb-6">Soluciones para Empresas</h1>
-        <p class="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto mb-10">
-            Impulse el crecimiento de su organización con nuestros servicios de gestión de seminarios,
-            capacitación corporativa y eventos exclusivos.
-        </p>
-        <a href="#contact" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full text-lg transition duration-300">
-            Contáctenos
-        </a>
-    </div>
-</div>
+<div class="min-h-screen bg-[#0B1120] font-sans text-slate-300 relative overflow-hidden selection:bg-indigo-500 selection:text-white">
 
-<div class="py-16 bg-white text-gray-800">
-    <div class="container mx-auto px-4">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="text-center p-6 border rounded-lg shadow-lg hover:shadow-xl transition">
-                <div class="text-5xl text-blue-600 mb-4"><i class="fas fa-calendar-check"></i></div>
-                <h3 class="text-2xl font-bold mb-4">Gestión de Eventos</h3>
-                <p class="text-gray-600">Nos encargamos de toda la logística digital de sus seminarios y conferencias, desde el registro hasta la certificación.</p>
-            </div>
-            <div class="text-center p-6 border rounded-lg shadow-lg hover:shadow-xl transition">
-                <div class="text-5xl text-green-600 mb-4"><i class="fas fa-ticket-alt"></i></div>
-                <h3 class="text-2xl font-bold mb-4">Control de Accesos</h3>
-                <p class="text-gray-600">Sistema avanzado de boletería y control de asistencia mediante códigos QR y seguimiento en tiempo real.</p>
-            </div>
-            <div class="text-center p-6 border rounded-lg shadow-lg hover:shadow-xl transition">
-                <div class="text-5xl text-purple-600 mb-4"><i class="fas fa-chart-line"></i></div>
-                <h3 class="text-2xl font-bold mb-4">Marketing Educativo</h3>
-                <p class="text-gray-600">Promocionamos sus cursos y eventos en nuestra plataforma para alcanzar a miles de estudiantes potenciales.</p>
+    <div class="absolute top-0 left-0 w-full h-[800px] bg-gradient-to-b from-indigo-900/20 to-transparent pointer-events-none"></div>
+    <div class="absolute top-20 right-0 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[120px] animate-pulse pointer-events-none"></div>
+    <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-cyan-600/5 rounded-full blur-[120px] pointer-events-none"></div>
+
+    <div class="relative z-10 pt-24 pb-16 lg:pt-32 lg:pb-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-bold uppercase tracking-widest mb-8 animate-fade-in-up">
+                <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+                LMS Enterprise
+            </span>
+
+            <h1 class="text-5xl md:text-7xl font-black text-white tracking-tight mb-8 leading-tight animate-fade-in-up" style="animation-delay: 0.1s;">
+                Potencia el talento de <br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400">tu organización.</span>
+            </h1>
+            
+            <p class="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed font-light animate-fade-in-up" style="animation-delay: 0.2s;">
+                Capacitación corporativa, gestión de seminarios y control de accesos en una sola plataforma. Desarrolla las habilidades que tu empresa necesita para el futuro.
+            </p>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up" style="animation-delay: 0.3s;">
+                <a href="#contact-form" class="w-full sm:w-auto px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/25 hover:-translate-y-1 flex items-center justify-center gap-2">
+                    Solicitar Demo
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                <a href="#features" class="w-full sm:w-auto px-8 py-4 bg-slate-800/50 hover:bg-slate-800 text-white rounded-xl font-bold border border-slate-700 hover:border-slate-600 transition-all backdrop-blur-sm">
+                    Ver Soluciones
+                </a>
             </div>
         </div>
     </div>
-</div>
 
-<div id="contact" class="py-16 bg-gray-100">
-    <div class="container mx-auto px-4 max-w-4xl">
-        <h2 class="text-3xl font-bold text-center mb-8">Solicite Información</h2>
-        <div class="bg-white p-8 rounded-lg shadow-md">
-            <form method="post" action="{% url 'academy:enterprise_services' %}">
-                {% csrf_token %}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <label class="block text-gray-700 font-bold mb-2">Empresa</label>
-                        <input type="text" name="company_name" class="w-full border rounded px-3 py-2 focus:outline-none focus:border-blue-500" required>
-                    </div>
-                    <div>
-                        <label class="block text-gray-700 font-bold mb-2">Nombre de Contacto</label>
-                        <input type="text" name="contact_name" class="w-full border rounded px-3 py-2 focus:outline-none focus:border-blue-500" required>
-                    </div>
+    <div class="border-y border-white/5 bg-white/5 backdrop-blur-sm py-10 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-8">Instituciones que confían en nosotros</p>
+            <div class="flex flex-wrap justify-center gap-8 md:gap-16 opacity-60 hover:opacity-100 transition-all duration-500">
+                <div class="flex items-center gap-3 group">
+                    <div class="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center text-white text-xl font-serif font-bold border border-slate-600 group-hover:border-indigo-500 group-hover:text-indigo-400 transition-colors">P</div>
+                    <span class="text-xl font-bold text-white group-hover:text-indigo-200 transition-colors">PUCP</span>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <label class="block text-gray-700 font-bold mb-2">Correo Electrónico</label>
-                        <input type="email" name="email" class="w-full border rounded px-3 py-2 focus:outline-none focus:border-blue-500" required>
-                    </div>
-                    <div>
-                        <label class="block text-gray-700 font-bold mb-2">Teléfono</label>
-                        <input type="text" name="phone" class="w-full border rounded px-3 py-2 focus:outline-none focus:border-blue-500">
-                    </div>
+                
+                <div class="flex items-center gap-3 group">
+                    <div class="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center text-white text-xl font-serif font-bold border border-slate-600 group-hover:border-indigo-500 group-hover:text-indigo-400 transition-colors">M</div>
+                    <span class="text-xl font-bold text-white group-hover:text-indigo-200 transition-colors">UNMSM</span>
                 </div>
-                <div class="mb-6">
-                    <label class="block text-gray-700 font-bold mb-2">¿Cómo podemos ayudarle?</label>
-                    <textarea name="message" rows="4" class="w-full border rounded px-3 py-2 focus:outline-none focus:border-blue-500" required></textarea>
+
+                <div class="flex items-center gap-3 group">
+                    <div class="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center text-white text-xl font-bold border border-slate-600 group-hover:border-indigo-500 group-hover:text-indigo-400 transition-colors">U</div>
+                    <span class="text-xl font-bold text-white group-hover:text-indigo-200 transition-colors">U. de Lima</span>
                 </div>
-                <div class="text-center">
-                    <button type="submit" class="bg-blue-600 text-white font-bold py-3 px-8 rounded hover:bg-blue-700 transition">
-                        Enviar Solicitud
-                    </button>
+
+                <div class="flex items-center gap-3 group">
+                    <div class="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center text-white text-xl font-black border border-slate-600 group-hover:border-indigo-500 group-hover:text-indigo-400 transition-colors text-red-500">U</div>
+                    <span class="text-xl font-bold text-white group-hover:text-indigo-200 transition-colors">UPC</span>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
+
+    <div id="features" class="py-24 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Todo lo que necesitas para escalar</h2>
+                <p class="text-slate-400">Herramientas diseñadas para departamentos de RRHH y líderes de equipo.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="group bg-slate-800/40 backdrop-blur-md border border-slate-700/50 p-8 rounded-3xl hover:bg-slate-800 transition-all duration-300 hover:-translate-y-2 hover:border-indigo-500/30">
+                    <div class="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-400 mb-6 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                        <i class="fas fa-calendar-check text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Gestión de Eventos</h3>
+                    <p class="text-slate-400 leading-relaxed text-sm">
+                        Olvídate del caos logístico. Administra seminarios, webinars y conferencias con registro automático y recordatorios inteligentes.
+                    </p>
+                </div>
+
+                <div class="group bg-slate-800/40 backdrop-blur-md border border-slate-700/50 p-8 rounded-3xl hover:bg-slate-800 transition-all duration-300 hover:-translate-y-2 hover:border-cyan-500/30">
+                    <div class="w-14 h-14 bg-cyan-500/10 rounded-2xl flex items-center justify-center text-cyan-400 mb-6 group-hover:bg-cyan-500 group-hover:text-white transition-colors">
+                        <i class="fas fa-ticket-alt text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Control de Accesos QR</h3>
+                    <p class="text-slate-400 leading-relaxed text-sm">
+                        Emisión de tickets digitales únicos. Escanea códigos QR en la entrada para un control de asistencia rápido y seguro en tiempo real.
+                    </p>
+                </div>
+
+                <div class="group bg-slate-800/40 backdrop-blur-md border border-slate-700/50 p-8 rounded-3xl hover:bg-slate-800 transition-all duration-300 hover:-translate-y-2 hover:border-purple-500/30">
+                    <div class="w-14 h-14 bg-purple-500/10 rounded-2xl flex items-center justify-center text-purple-400 mb-6 group-hover:bg-purple-500 group-hover:text-white transition-colors">
+                        <i class="fas fa-chart-pie text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Analítica de Progreso</h3>
+                    <p class="text-slate-400 leading-relaxed text-sm">
+                        Mide el ROI de la capacitación. Paneles detallados sobre el progreso de los empleados, tasas de finalización y certificaciones obtenidas.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="contact-form" class="py-20 relative z-10">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col lg:flex-row">
+                
+                <div class="lg:w-2/5 bg-gradient-to-br from-indigo-900 to-slate-900 p-10 text-white relative overflow-hidden">
+                    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                    <div class="relative z-10">
+                        <h3 class="text-2xl font-bold mb-6">Hablemos de negocios</h3>
+                        <p class="text-indigo-200 mb-8 leading-relaxed">
+                            Nuestros expertos están listos para diseñar un plan a la medida de tus necesidades. Recibe una respuesta en menos de 24 horas.
+                        </p>
+
+                        <div class="space-y-6">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-300">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <span>empresas@lmsacademy.com</span>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-300">
+                                    <i class="fas fa-phone"></i>
+                                </div>
+                                <span>+51 987 654 321</span>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-300">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <span>Pasco, Perú</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:w-3/5 p-10 bg-slate-800">
+                    <form method="post" action="{% url 'academy:enterprise_services' %}" class="space-y-6">
+                        {% csrf_token %}
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="group">
+                                <label class="block text-xs font-bold text-slate-400 uppercase mb-2 group-focus-within:text-indigo-400 transition-colors">Nombre de la Empresa</label>
+                                <input type="text" name="company_name" required 
+                                       class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none"
+                                       placeholder="Ej: Tech Solutions Inc.">
+                            </div>
+                            <div class="group">
+                                <label class="block text-xs font-bold text-slate-400 uppercase mb-2 group-focus-within:text-indigo-400 transition-colors">Persona de Contacto</label>
+                                <input type="text" name="contact_name" required 
+                                       class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none"
+                                       placeholder="Ej: Ana García">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="group">
+                                <label class="block text-xs font-bold text-slate-400 uppercase mb-2 group-focus-within:text-indigo-400 transition-colors">Correo Corporativo</label>
+                                <input type="email" name="email" required 
+                                       class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none"
+                                       placeholder="nombre@empresa.com">
+                            </div>
+                            <div class="group">
+                                <label class="block text-xs font-bold text-slate-400 uppercase mb-2 group-focus-within:text-indigo-400 transition-colors">Teléfono</label>
+                                <input type="text" name="phone" 
+                                       class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none"
+                                       placeholder="+51 ...">
+                            </div>
+                        </div>
+
+                        <div class="group">
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2 group-focus-within:text-indigo-400 transition-colors">¿Cómo podemos ayudarte?</label>
+                            <textarea name="message" rows="4" required 
+                                      class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none resize-none"
+                                      placeholder="Cuéntanos sobre tus necesidades de capacitación o eventos..."></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full bg-white hover:bg-slate-200 text-slate-900 font-bold py-4 rounded-xl shadow-lg transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                            <span>Enviar Solicitud</span>
+                            <i class="fas fa-paper-plane text-indigo-600"></i>
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 </div>
+
+<style>
+    /* Animación de entrada */
+    .animate-fade-in-up {
+        animation: fadeInUp 0.8s ease-out forwards;
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
 {% endblock %}

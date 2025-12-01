@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-    <div class="absolute top-0 right-0 -mr-20 -mt-20 w-[600px] h-[600px] bg-indigo-600/5 rounded-full blur-[100px] animate-pulse"></div>
+    <div class="absolute top-0 right-0 -mr-20 -mt-20 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px] animate-pulse"></div>
     <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-[500px] h-[500px] bg-cyan-600/5 rounded-full blur-[100px] animate-pulse"></div>
     <div class="absolute inset-0 bg-[#0B1120] -z-10"></div>
 </div>
@@ -15,15 +15,10 @@
         
         <div class="absolute inset-0 w-full h-full pointer-events-none z-0">
             <div class="absolute inset-0 bg-gradient-to-r from-[#0B1120] via-[#0B1120]/90 to-[#0B1120]/30 z-10"></div>
-            
             {% if course.thumbnail %}
-                <img src="{{ course.thumbnail.url }}" 
-                     class="w-full h-full object-cover opacity-70 transition-transform duration-700 hover:scale-105" 
-                     alt="{{ course.title }}">
+                <img src="{{ course.thumbnail.url }}" class="w-full h-full object-cover opacity-60 transition-transform duration-700 hover:scale-105" alt="{{ course.title }}">
             {% else %}
-                <div class="w-full h-full flex items-center justify-center bg-slate-800 opacity-50">
-                    <i class="fas fa-graduation-cap text-9xl text-slate-700"></i>
-                </div>
+                <div class="w-full h-full flex items-center justify-center bg-slate-800 opacity-50"><i class="fas fa-graduation-cap text-9xl text-slate-700"></i></div>
             {% endif %}
         </div>
 
@@ -38,11 +33,11 @@
                         <i class="fas fa-chevron-right text-[10px] text-slate-500"></i>
                     {% endif %}
                     
-                    <span class="flex items-center gap-1.5 bg-slate-900/90 text-slate-300 px-3 py-1 rounded-full border border-slate-700 text-[10px] uppercase tracking-wide shadow-lg">
+                    <span class="flex items-center gap-1.5 bg-slate-900/90 text-slate-300 px-3 py-1 rounded-full border border-slate-700 text-[10px] uppercase tracking-wide shadow-lg backdrop-blur-md">
                         <span class="w-1.5 h-1.5 rounded-full 
                             {% if course.level == 'beginner' %}bg-emerald-400
                             {% elif course.level == 'intermediate' %}bg-yellow-400
-                            {% else %}bg-red-500{% endif %}"></span>
+                            {% else %}bg-red-500{% endif %} animate-pulse"></span>
                         {{ course.get_level_display }}
                     </span>
                 </div>
@@ -62,9 +57,7 @@
                         <div class="flex flex-col">
                             <div class="flex text-yellow-400 text-xs gap-0.5">
                                 {% with ''|center:5 as range %}
-                                    {% for _ in range %}
-                                        <i class="{% if forloop.counter <= avg_rating %}fas{% else %}far{% endif %} fa-star"></i>
-                                    {% endfor %}
+                                    {% for _ in range %}<i class="{% if forloop.counter <= avg_rating %}fas{% else %}far{% endif %} fa-star"></i>{% endfor %}
                                 {% endwith %}
                             </div>
                             <a href="#reviews" class="text-[10px] text-indigo-300 hover:text-white underline decoration-dotted uppercase font-bold tracking-wide transition-colors">Ver {{ reviews.count }} reseñas</a>
@@ -404,11 +397,38 @@
                                         
                                         {% if course.is_upcoming %}
                                             <div class="text-center">
-                                                <button disabled class="w-full bg-slate-700 text-slate-400 font-bold py-4 rounded-xl cursor-not-allowed mb-2 border border-slate-600 shadow-inner flex items-center justify-center gap-2">
-                                                    <i class="fas fa-lock"></i> Acceso Bloqueado
+                                                <button disabled class="w-full bg-slate-700 text-slate-400 font-bold py-4 rounded-xl cursor-not-allowed mb-4 border border-slate-600 shadow-inner flex items-center justify-center gap-2">
+                                                    <i class="fas fa-lock"></i> Contenido Bloqueado
                                                 </button>
-                                                <div x-data="courseCountdown('{{ course.launch_date|date:'Y-m-d H:i:s' }}')" class="flex justify-center gap-2 text-xs font-mono text-slate-400 bg-slate-900/50 p-2 rounded-lg">
-                                                    <span x-text="days + 'd'"></span> : <span x-text="hours + 'h'"></span> : <span x-text="minutes + 'm'"></span>
+                                                
+                                                <div x-data="courseCountdown('{{ course.launch_date|date:'c' }}')" class="p-4 bg-slate-900/90 rounded-2xl border border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.15)] relative overflow-hidden group">
+                                                    <div class="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/10 animate-pulse"></div>
+                                                    
+                                                    <p class="text-[10px] font-bold text-indigo-300 uppercase tracking-[0.2em] mb-3 relative z-10 flex items-center justify-center gap-2">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping"></span> Estreno en:
+                                                    </p>
+                                                    
+                                                    <div class="flex justify-center gap-2 relative z-10">
+                                                        <div class="bg-slate-950 rounded-lg p-2 min-w-[45px] border border-slate-800 flex flex-col items-center">
+                                                            <span class="text-xl font-mono font-black text-white leading-none" x-text="days">00</span>
+                                                            <span class="text-[8px] text-slate-500 font-bold uppercase mt-1">Días</span>
+                                                        </div>
+                                                        <span class="text-slate-600 font-bold self-center -mt-3 text-lg">:</span>
+                                                        <div class="bg-slate-950 rounded-lg p-2 min-w-[45px] border border-slate-800 flex flex-col items-center">
+                                                            <span class="text-xl font-mono font-black text-white leading-none" x-text="hours">00</span>
+                                                            <span class="text-[8px] text-slate-500 font-bold uppercase mt-1">Hrs</span>
+                                                        </div>
+                                                        <span class="text-slate-600 font-bold self-center -mt-3 text-lg">:</span>
+                                                        <div class="bg-slate-950 rounded-lg p-2 min-w-[45px] border border-slate-800 flex flex-col items-center">
+                                                            <span class="text-xl font-mono font-black text-white leading-none" x-text="minutes">00</span>
+                                                            <span class="text-[8px] text-slate-500 font-bold uppercase mt-1">Min</span>
+                                                        </div>
+                                                        <span class="text-slate-600 font-bold self-center -mt-3 text-lg">:</span>
+                                                        <div class="bg-slate-950 rounded-lg p-2 min-w-[45px] border border-slate-800 flex flex-col items-center shadow-[0_0_10px_rgba(99,102,241,0.2)]">
+                                                            <span class="text-xl font-mono font-black text-indigo-400 leading-none" x-text="seconds">00</span>
+                                                            <span class="text-[8px] text-slate-500 font-bold uppercase mt-1">Seg</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         {% else %}
@@ -436,6 +456,7 @@
                                         </a>
                                     {% endif %}
                                 {% else %}
+                                    
                                     <a href="{% url 'academy:enroll_step1' course.slug %}" 
                                        class="block relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 p-4 text-center font-bold text-white shadow-[0_10px_40px_-10px_rgba(99,102,241,0.5)] transition-all hover:from-indigo-500 hover:to-violet-500 hover:-translate-y-1 group/buy">
                                         <div class="absolute inset-0 bg-white/20 group-hover/buy:translate-x-full transition-transform duration-700 -skew-x-12 -translate-x-full"></div>
@@ -444,7 +465,37 @@
                                             <i class="fas fa-arrow-right group-hover/buy:translate-x-1 transition-transform"></i>
                                         </span>
                                     </a>
-                                    <p class="text-center text-[10px] text-slate-500 font-medium flex items-center justify-center gap-1.5 bg-slate-900/50 py-1.5 rounded-lg border border-slate-700/50">
+                                    
+                                    {% if course.is_upcoming %}
+                                        <div x-data="courseCountdown('{{ course.launch_date|date:'c' }}')" class="mt-6">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Oferta de Lanzamiento expira en:</span>
+                                                <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                                            </div>
+                                            
+                                            <div class="grid grid-cols-4 gap-2 text-center">
+                                                <div class="bg-slate-900 border border-slate-700 rounded-lg p-2">
+                                                    <span class="block text-white font-mono font-bold text-lg" x-text="days">00</span>
+                                                    <span class="text-[9px] text-slate-500 uppercase">Días</span>
+                                                </div>
+                                                <div class="bg-slate-900 border border-slate-700 rounded-lg p-2">
+                                                    <span class="block text-white font-mono font-bold text-lg" x-text="hours">00</span>
+                                                    <span class="text-[9px] text-slate-500 uppercase">Hrs</span>
+                                                </div>
+                                                <div class="bg-slate-900 border border-slate-700 rounded-lg p-2">
+                                                    <span class="block text-white font-mono font-bold text-lg" x-text="minutes">00</span>
+                                                    <span class="text-[9px] text-slate-500 uppercase">Min</span>
+                                                </div>
+                                                <div class="bg-slate-900 border border-slate-700 rounded-lg p-2 relative overflow-hidden">
+                                                    <div class="absolute inset-0 bg-indigo-500/10 animate-pulse"></div>
+                                                    <span class="block text-indigo-400 font-mono font-bold text-lg relative z-10" x-text="seconds">00</span>
+                                                    <span class="text-[9px] text-slate-500 uppercase relative z-10">Seg</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+
+                                    <p class="text-center text-[10px] text-slate-500 font-medium flex items-center justify-center gap-1.5 mt-4">
                                         <i class="fas fa-shield-alt text-emerald-500"></i> Garantía de 7 días o te devolvemos el dinero
                                     </p>
                                 {% endif %}
@@ -499,8 +550,10 @@
                            <button disabled class="w-full bg-slate-700 text-slate-400 font-bold py-3 rounded-xl cursor-not-allowed mb-2 border border-slate-600 shadow-inner flex items-center justify-center gap-2">
                                 <i class="fas fa-lock"></i> Acceso Bloqueado
                            </button>
-                           <div x-data="courseCountdown('{{ course.launch_date|date:'Y-m-d H:i:s' }}')" class="flex justify-center gap-2 text-xs font-mono text-slate-400 bg-slate-900/50 p-2 rounded-lg">
-                                <span x-text="days + 'd'"></span> : <span x-text="hours + 'h'"></span> : <span x-text="minutes + 'm'"></span>
+                           <div x-data="courseCountdown('{{ course.launch_date|date:'c' }}')" class="flex justify-center gap-2 text-xs font-mono text-slate-400 bg-slate-900/50 p-2 rounded-lg">
+                                <span class="text-white font-bold"><span x-text="days"></span>d</span> : 
+                                <span class="text-white font-bold"><span x-text="hours"></span>h</span> : 
+                                <span class="text-white font-bold"><span x-text="minutes"></span>m</span>
                            </div>
                       </div>
                  {% else %}
@@ -534,12 +587,6 @@
                         {% if course.is_upcoming %}Pre-inscribirme{% else %}Inscribirme{% endif %}
                     </a>
                 </div>
-
-                {% if course.is_upcoming %}
-                     <div x-data="courseCountdown('{{ course.launch_date|date:'Y-m-d H:i:s' }}')" class="flex justify-center gap-2 text-xs font-mono text-slate-400 bg-slate-900/50 p-1 rounded-lg">
-                          Lanzamiento en: <span x-text="days + 'd'"></span> : <span x-text="hours + 'h'"></span> : <span x-text="minutes + 'm'"></span>
-                     </div>
-                {% endif %}
             </div>
         {% endif %}
     </div>

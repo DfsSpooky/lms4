@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Profile, Enrollment, Course, LessonComment, LessonProgress, Installment
+from .models import Profile, Enrollment, Course, LessonComment, LessonProgress, Installment, Installment
 from .forms_content import *
 from tinymce.widgets import TinyMCE
 
@@ -120,8 +120,9 @@ class InstallmentVoucherForm(forms.ModelForm):
         }
 
 class CourseForm(forms.ModelForm):
-    # Definimos los campos aquí para hacerlos NO requeridos a nivel de HTML,
-    # y así poder validarlos manualmente en el método clean()
+    # --- CAMPOS PERSONALIZADOS CON WIDGETS CORREGIDOS ---
+    
+    # Precios
     duration_months = forms.IntegerField(
         required=False, 
         initial=1,
@@ -136,6 +137,41 @@ class CourseForm(forms.ModelForm):
             'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-emerald-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-mono font-bold',
             'placeholder': 'Ej: 50.00'
         })
+    )
+
+    # Fechas (CORRECCIÓN CRÍTICA: input_formats y format en el widget)
+    launch_date = forms.DateTimeField(
+        required=False,
+        input_formats=['%Y-%m-%dT%H:%M'],
+        widget=forms.DateTimeInput(
+            attrs={
+                'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500',
+                'type': 'datetime-local'
+            },
+            format='%Y-%m-%dT%H:%M' # Forzar formato con 'T' para que el navegador lo lea
+        )
+    )
+    start_date = forms.DateTimeField(
+        required=False,
+        input_formats=['%Y-%m-%dT%H:%M'],
+        widget=forms.DateTimeInput(
+            attrs={
+                'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500',
+                'type': 'datetime-local'
+            },
+            format='%Y-%m-%dT%H:%M'
+        )
+    )
+    end_date = forms.DateTimeField(
+        required=False,
+        input_formats=['%Y-%m-%dT%H:%M'],
+        widget=forms.DateTimeInput(
+            attrs={
+                'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500',
+                'type': 'datetime-local'
+            },
+            format='%Y-%m-%dT%H:%M'
+        )
     )
 
     class Meta:
@@ -192,19 +228,6 @@ class CourseForm(forms.ModelForm):
                 'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all cursor-pointer',
                 'x-model': 'courseType'
             }),
-            'start_date': forms.DateTimeInput(attrs={
-                'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500',
-                'type': 'datetime-local'
-            }),
-            'end_date': forms.DateTimeInput(attrs={
-                'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500',
-                'type': 'datetime-local'
-            }),
-            'launch_date': forms.DateTimeInput(attrs={
-                'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500',
-                'type': 'datetime-local',
-                'placeholder': 'Dejar vacío para lanzamiento inmediato'
-            }),
         }
 
     def clean(self):
@@ -238,7 +261,6 @@ class CourseForm(forms.ModelForm):
 
         else:
             # Si se DESACTIVA el pago mensual, guardamos valores seguros (0 y 1)
-            # Esto evita que la base de datos lance error de integridad (NOT NULL)
             cleaned_data['monthly_price'] = 0
             cleaned_data['duration_months'] = 1
 
