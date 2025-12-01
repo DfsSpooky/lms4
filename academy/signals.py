@@ -1,7 +1,39 @@
 from django.db.models.signals import post_save
+from django.contrib.auth.signals import user_logged_in
 from django.dispatch import receiver
-from .models import LessonComment, LessonProgress, Notification, ForumReply, Enrollment
+from .models import LessonComment, LessonProgress, Notification, ForumReply, Enrollment, UserSession
+from django.contrib.sessions.models import Session
 from django.urls import reverse
+
+@receiver(user_logged_in)
+def manage_user_sessions(sender, user, request, **kwargs):
+    """
+    Limits the number of active sessions per user.
+    """
+    if not request.session.session_key:
+        request.session.create()
+
+    session_key = request.session.session_key
+
+    # Store the new session
+    UserSession.objects.get_or_create(user=user, session_key=session_key)
+
+    # Enforce limit (e.g., max 2 sessions)
+    MAX_SESSIONS = 2
+    user_sessions = UserSession.objects.filter(user=user).order_by('created_at')
+
+    if user_sessions.count() > MAX_SESSIONS:
+        # Get sessions to delete (oldest ones)
+        sessions_to_delete = user_sessions[:user_sessions.count() - MAX_SESSIONS]
+
+        for us in sessions_to_delete:
+            # Delete from Django sessions table to invalidate
+            try:
+                Session.objects.filter(session_key=us.session_key).delete()
+            except:
+                pass
+            # Delete our tracking record
+            us.delete()
 
 @receiver(post_save, sender=Enrollment)
 def create_installments_on_enrollment(sender, instance, created, **kwargs):
