@@ -123,6 +123,26 @@
                             </span>
                         </a>
 
+                        <a href="{% url 'academy:event_list' %}"
+                           class="px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200
+                           {% if request.resolver_match.url_name == 'event_list' %}
+                               text-white bg-white/10
+                           {% else %}
+                               text-slate-400 hover:text-white hover:bg-white/5
+                           {% endif %}">
+                            Eventos
+                        </a>
+
+                        <a href="{% url 'academy:enterprise_services' %}"
+                           class="px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200
+                           {% if request.resolver_match.url_name == 'enterprise_services' %}
+                               text-white bg-white/10
+                           {% else %}
+                               text-slate-400 hover:text-white hover:bg-white/5
+                           {% endif %}">
+                            Empresas
+                        </a>
+
                         {% if user.is_authenticated %}
                             {% if user.enrollments.exists %}
                             <a href="{% url 'academy:forum_list' %}"
@@ -277,6 +297,9 @@
                     </span>
                     <i class="fas fa-chevron-right text-sm opacity-50"></i>
                 </a>
+
+                <a href="{% url 'academy:event_list' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">Eventos</a>
+                <a href="{% url 'academy:enterprise_services' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">Empresas</a>
 
                 {% if user.is_authenticated %}
                     {% if user.enrollments.exists %}

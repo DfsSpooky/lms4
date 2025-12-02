@@ -12,7 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-pon-tu-clave-aqui' 
 
 # IMPORTANTE: False para producción en Hestia
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['aquienpasco.lat', 'www.aquienpasco.lat', '51.222.156.179', 'localhost', '127.0.0.1']
 CSRF_TRUSTED_ORIGINS = ['https://aquienpasco.lat', 'https://www.aquienpasco.lat']
