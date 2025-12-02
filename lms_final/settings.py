@@ -25,10 +25,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     # Third party apps
     'rest_framework',
     'corsheaders',
     'tinymce',
+    # Allauth
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
     # My apps
     'academy',
 ]
@@ -41,6 +47,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -103,7 +110,33 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_ALL_ORIGINS = True
 LOGIN_REDIRECT_URL = 'academy:dashboard'
-LOGOUT_REDIRECT_URL = 'login'
+LOGOUT_REDIRECT_URL = 'academy:login'
+
+# Asegúrate también de que LOGIN_URL tenga el mismo formato si lo agregaste:
+LOGIN_URL = 'academy:login'
+
+# --- AUTHENTICATION ---
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+SITE_ID = 1
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'OAUTH_PKCE_ENABLED': True,
+    }
+}
+ACCOUNT_ADAPTER = 'academy.adapters.MyAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'academy.adapters.MySocialAccountAdapter'
+ACCOUNT_EMAIL_VERIFICATION = 'none'
 
 # --- EMAIL CONFIGURATION (Producción) ---
 # Si no tienes SMTP configurado aún, mantén la consola para evitar errores 500,
@@ -140,3 +173,5 @@ TINYMCE_DEFAULT_CONFIG = {
     'menubar': True,
     'statusbar': True,
 }
+
+SOCIALACCOUNT_LOGIN_ON_GET = True
