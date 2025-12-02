@@ -19,7 +19,13 @@ class TeacherDashboardView(LoginRequiredMixin, TeacherRequiredMixin, generic.Lis
     template_name = 'academy/teacher_dashboard.html'
     context_object_name = 'courses'
     def get_queryset(self):
-        return Course.objects.filter(instructor=self.request.user).annotate(
+        status_filter = self.request.GET.get('status')
+        queryset = Course.objects.filter(instructor=self.request.user)
+
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+
+        return queryset.annotate(
             student_count=Count('enrollments', filter=Q(enrollments__status='approved'))
         )
 
@@ -312,3 +318,48 @@ def grade_submission(request, progress_id):
         'form': form,
         'progress': progress
     })
+
+@login_required
+def reorder_content(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            items = data.get('items', [])
+            item_type = data.get('type')
+
+            if item_type == 'module':
+                for item in items:
+                    Module.objects.filter(
+                        id=item['id'],
+                        course__instructor=request.user
+                    ).update(order=item['order'])
+            elif item_type == 'lesson':
+                for item in items:
+                    Lesson.objects.filter(
+                        id=item['id'],
+                        module__course__instructor=request.user
+                    ).update(
+                        order=item['order'],
+                        module_id=item['module_id']
+                    )
+
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error'}, status=400)
+
+@login_required
+def course_preview(request, slug):
+    # Allow instructor to preview their own course regardless of status
+    course = get_object_or_404(Course, slug=slug, instructor=request.user)
+
+    # Simular contexto de detalle de curso pero para el instructor
+    context = {
+        'course': course,
+        'modules': course.modules.prefetch_related('lessons', 'quizzes').all(),
+        'is_enrolled': True, # Simular que está inscrito
+        'reviews': course.reviews.all().order_by('-created_at'),
+        'avg_rating': course.average_rating,
+        'preview_mode': True
+    }
+    return render(request, 'academy/course_detail.html', context)

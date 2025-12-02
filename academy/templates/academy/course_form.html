@@ -28,8 +28,13 @@
             </div>
             
             <div class="flex items-center gap-3">
+                {% if object %}
+                <a href="{% url 'academy:course_content' object.slug %}" class="px-6 py-3 rounded-xl border border-indigo-500 text-indigo-400 font-bold hover:bg-indigo-600 hover:text-white transition-all flex items-center gap-2">
+                    <i class="fas fa-layer-group"></i> Gestionar Contenido
+                </a>
+                {% endif %}
                 <button type="submit" form="courseForm" class="group relative inline-flex items-center justify-center px-8 py-3 font-bold text-white transition-all duration-200 bg-indigo-600 font-lg rounded-xl hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600 hover:shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5">
-                    <span class="mr-2">Guardar Cambios</span>
+                    <span class="mr-2">{% if object %}Guardar Cambios{% else %}Crear y Continuar{% endif %}</span>
                     <i class="fas fa-save group-hover:scale-110 transition-transform"></i>
                 </button>
             </div>
@@ -208,15 +213,22 @@
 
                 <div class="bg-slate-800/50 backdrop-blur-md border border-slate-700/50 rounded-3xl p-6 shadow-xl space-y-6">
                     <h3 class="text-white font-bold text-lg border-b border-slate-700/50 pb-3 flex items-center gap-2">
-                        <i class="fas fa-tag text-emerald-400"></i> Clasificación y Precios
+                        <i class="fas fa-tag text-emerald-400"></i> Clasificación, Estado y Precios
                     </h3>
                     
                     <div class="space-y-4">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase">Estado del Curso</label>
+                                {{ form.status }}
+                            </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase">Categoría</label>
                                 {{ form.category }}
                             </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase">Nivel</label>
                                 {{ form.level }}

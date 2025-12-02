@@ -85,6 +85,11 @@ class Course(models.Model):
         ('course', 'Curso Grabado'),
         ('seminar', 'Seminario en Vivo'),
     ]
+    STATUS_CHOICES = [
+        ('draft', 'Borrador'),
+        ('published', 'Publicado'),
+        ('archived', 'Archivado'),
+    ]
 
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, blank=True)
@@ -137,6 +142,8 @@ class Course(models.Model):
         related_name='courses',
         verbose_name="Institución que Respalda"
     )
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft', verbose_name="Estado")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
