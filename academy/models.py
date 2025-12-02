@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.text import slugify
+from .validators import validate_file_extension
 
 # --- USUARIO EXTENDIDO ---
 class Profile(models.Model):
@@ -216,7 +217,7 @@ class Lesson(models.Model):
     lesson_type = models.CharField(max_length=20, choices=LESSON_TYPES, default='video', verbose_name="Tipo de Lección")
     video_url = models.URLField(blank=True, null=True, verbose_name="URL del Video")
     content = models.TextField(blank=True, verbose_name="Contenido / Descripción")
-    file = models.FileField(upload_to='lessons/files/', blank=True, null=True, verbose_name="Archivo Adjunto")
+    file = models.FileField(upload_to='lessons/files/', blank=True, null=True, verbose_name="Archivo Adjunto", validators=[validate_file_extension])
     due_date = models.DateTimeField(blank=True, null=True, verbose_name="Fecha de Entrega")
     duration = models.PositiveIntegerField(default=0, help_text="Duration in minutes")
     order = models.PositiveIntegerField(default=0)
@@ -449,7 +450,7 @@ class LessonProgress(models.Model):
     is_completed = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
     assignment_text = models.TextField(blank=True, verbose_name="Texto de la Tarea")
-    assignment_file = models.FileField(upload_to='assignments/', blank=True, null=True, verbose_name="Archivo de la Tarea")
+    assignment_file = models.FileField(upload_to='assignments/', blank=True, null=True, verbose_name="Archivo de la Tarea", validators=[validate_file_extension])
     score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name="Nota")
     instructor_feedback = models.TextField(blank=True, verbose_name="Feedback del Instructor")
 
