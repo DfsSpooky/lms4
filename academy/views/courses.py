@@ -14,7 +14,7 @@ class CourseListView(generic.ListView):
     context_object_name = 'courses'
 
     def get_queryset(self):
-        queryset = Course.objects.select_related(
+        queryset = Course.objects.filter(status='published').select_related(
             'category',
             'instructor__profile'
         ).prefetch_related(
@@ -63,6 +63,18 @@ class CourseDetailView(generic.DetailView):
     model = Course
     template_name = 'academy/course_detail.html'
     context_object_name = 'course'
+
+    def get_object(self):
+        # Restrict access to non-published courses for regular users
+        obj = super().get_object()
+        if obj.status != 'published':
+            # Allow owner or superuser
+            if self.request.user.is_authenticated and (self.request.user.is_superuser or self.request.user == obj.instructor):
+                return obj
+            # Otherwise 404 (or could be 403, but 404 hides existence)
+            from django.http import Http404
+            raise Http404("Course not found")
+        return obj
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
