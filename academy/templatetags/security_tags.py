@@ -1,4 +1,5 @@
 import bleach
+from bleach.css_sanitizer import CSSSanitizer
 from django import template
 from django.utils.safestring import mark_safe
 
@@ -30,11 +31,14 @@ def sanitize_html(value):
         'color', 'font-weight', 'background-color', 'text-align', 'font-size', 'padding', 'margin'
     ]
 
+    # CORRECCIÓN: Configuración para Bleach 6.0+
+    css_sanitizer = CSSSanitizer(allowed_css_properties=allowed_styles)
+
     cleaned_text = bleach.clean(
         value,
         tags=allowed_tags,
         attributes=allowed_attributes,
-        styles=allowed_styles,
+        css_sanitizer=css_sanitizer,  # Se usa css_sanitizer en lugar de styles
         strip=True
     )
 

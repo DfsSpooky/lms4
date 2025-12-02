@@ -24,3 +24,4 @@ typing_extensions==4.15.0
 urllib3==2.5.0
 webencodings==0.5.1
 python-dotenv==1.0.1
+tinycss2==1.4.0
