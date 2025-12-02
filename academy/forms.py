@@ -64,6 +64,11 @@ class UserUpdateForm(forms.ModelForm):
         fields = ['username', 'first_name', 'last_name', 'email']
 
 class ProfileUpdateForm(forms.ModelForm):
+    # Hacer explícitamente obligatorios los campos para la edición de perfil (ej. al completar registro Google)
+    dni = forms.CharField(max_length=8, min_length=8, required=True, label='DNI', help_text="8 dígitos")
+    phone_number = forms.CharField(max_length=20, required=True, label='Celular')
+    address = forms.CharField(max_length=255, required=True, label='Dirección')
+
     class Meta:
         model = Profile
         fields = ['avatar', 'bio', 'dni', 'address', 'academic_profile', 'gender', 'phone_number']

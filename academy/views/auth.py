@@ -72,6 +72,11 @@ class SignUpView(generic.CreateView):
 
 @login_required
 def profile_edit(request):
+    # Validar si el perfil está incompleto para mostrar advertencia
+    profile = request.user.profile
+    if not profile.dni or not profile.phone_number:
+        messages.warning(request, "Por favor completa tu perfil para continuar (DNI y Celular son obligatorios).")
+
     if request.method == 'POST':
         u_form = UserUpdateForm(request.POST, instance=request.user)
         p_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
@@ -79,6 +84,7 @@ def profile_edit(request):
             u_form.save()
             p_form.save()
             messages.success(request, "Perfil actualizado correctamente")
+            # Si ya completó, se queda aquí o puede ir al dashboard
             return redirect('academy:profile_edit')
     else:
         u_form = UserUpdateForm(instance=request.user)

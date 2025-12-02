@@ -15,5 +15,6 @@ urlpatterns = [
     path('api/me/', current_user),
     path('', include('academy.urls')),
     path('tinymce/', include('tinymce.urls')),
+    path('accounts/', include('allauth.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
