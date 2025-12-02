@@ -110,7 +110,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_ALL_ORIGINS = True
 LOGIN_REDIRECT_URL = 'academy:dashboard'
-LOGOUT_REDIRECT_URL = 'login'
+LOGOUT_REDIRECT_URL = 'academy:login'
+
+# Asegúrate también de que LOGIN_URL tenga el mismo formato si lo agregaste:
+LOGIN_URL = 'academy:login'
 
 # --- AUTHENTICATION ---
 AUTHENTICATION_BACKENDS = [
@@ -170,3 +173,5 @@ TINYMCE_DEFAULT_CONFIG = {
     'menubar': True,
     'statusbar': True,
 }
+
+SOCIALACCOUNT_LOGIN_ON_GET = True

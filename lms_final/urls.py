@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
 from academy.views import CourseViewSet, ProgressViewSet, current_user
+from django.contrib.auth.views import LogoutView
 
 router = DefaultRouter()
 router.register(r'courses', CourseViewSet)
@@ -16,5 +17,6 @@ urlpatterns = [
     path('', include('academy.urls')),
     path('tinymce/', include('tinymce.urls')),
     path('accounts/', include('allauth.urls')),
-    path('accounts/', include('django.contrib.auth.urls')),
+    # path('accounts/', include('django.contrib.auth.urls')),
+    path('logout/', LogoutView.as_view(), name='logout'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
