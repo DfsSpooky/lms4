@@ -49,6 +49,10 @@ urlpatterns = [
     path('teacher/lesson/<int:pk>/edit/', views.edit_lesson, name='edit_lesson'),
     path('teacher/lesson/<int:lesson_id>/submissions/', views.lesson_submissions, name='lesson_submissions'),
     path('teacher/submission/<int:progress_id>/grade/', views.grade_submission, name='grade_submission'),
+    path('teacher/content/reorder/', views.reorder_content, name='reorder_content'),
+    path('teacher/course/<slug:slug>/preview/', views.course_preview, name='course_preview'),
+    path('teacher/inbox/', views.TeacherInboxView.as_view(), name='teacher_inbox'),
+    path('teacher/inbox/reply/<int:comment_id>/', views.teacher_reply_comment, name='teacher_reply_comment'),
 
     # Quiz Management
     path('teacher/quiz/add/', views.add_quiz, name='add_quiz'),

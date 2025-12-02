@@ -182,12 +182,25 @@ class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
         fields = [
-            'title', 'category', 'course_type', 'level', 'institution',
+            'title', 'category', 'course_type', 'level', 'status', 'institution',
             'price', 'old_price', 'allow_monthly_payment', 'monthly_price', 'duration_months',
             'start_date', 'end_date', 'live_url', 'launch_date',
-            'preview_video_url', 'description', 'short_description', 'thumbnail'
+            'preview_video_url', 'description', 'short_description', 'learning_objectives', 'requirements', 'thumbnail'
         ]
         widgets = {
+            'learning_objectives': forms.Textarea(attrs={
+                'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-slate-500 transition-all resize-y font-mono text-sm',
+                'rows': 5,
+                'placeholder': '- Aprenderás a crear apps con Django\n- Dominarás el ORM\n- Desplegarás en producción'
+            }),
+            'requirements': forms.Textarea(attrs={
+                'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-slate-500 transition-all resize-y font-mono text-sm',
+                'rows': 4,
+                'placeholder': '- Conocimientos básicos de Python\n- Computadora con acceso a internet'
+            }),
+            'status': forms.Select(attrs={
+                'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all cursor-pointer'
+            }),
             'institution': forms.Select(attrs={
                 'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all cursor-pointer'
             }),

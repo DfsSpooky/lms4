@@ -159,6 +159,46 @@
                     </div>
                 </div>
 
+                {% if course.learning_objectives or course.requirements %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {% if course.learning_objectives %}
+                    <div class="bg-slate-800/50 rounded-2xl p-8 border border-slate-700/50">
+                        <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                            <i class="fas fa-check-circle text-emerald-400"></i> Lo que aprenderás
+                        </h3>
+                        <ul class="space-y-3">
+                            {% for line in course.learning_objectives.splitlines %}
+                                {% if line %}
+                                <li class="flex items-start gap-3 text-slate-300 text-sm">
+                                    <i class="fas fa-check text-emerald-500 mt-1"></i>
+                                    <span>{{ line|cut:"-"|stringformat:"s"|trim }}</span>
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    {% if course.requirements %}
+                    <div class="bg-slate-800/50 rounded-2xl p-8 border border-slate-700/50">
+                        <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                            <i class="fas fa-info-circle text-indigo-400"></i> Requisitos
+                        </h3>
+                        <ul class="space-y-3">
+                            {% for line in course.requirements.splitlines %}
+                                {% if line %}
+                                <li class="flex items-start gap-3 text-slate-300 text-sm">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-2 shrink-0"></span>
+                                    <span>{{ line|cut:"-"|stringformat:"s"|trim }}</span>
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
                 <div id="curriculum">
                     <div class="flex items-center justify-between mb-8">
                         <h2 class="text-2xl font-black text-white flex items-center gap-4">

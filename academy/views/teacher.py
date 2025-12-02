@@ -4,11 +4,11 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views import generic
 from django.contrib import messages
 from django.http import JsonResponse
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Avg
 from django.urls import reverse_lazy
 import json
-from ..models import Course, Enrollment, Module, Lesson, Quiz, Question, Answer, QuizSubmission, LessonProgress
-from ..forms import CourseForm, ModuleForm, LessonForm, QuizForm, AssignmentGradingForm
+from ..models import Course, Enrollment, Module, Lesson, Quiz, Question, Answer, QuizSubmission, LessonProgress, Review, LessonComment
+from ..forms import CourseForm, ModuleForm, LessonForm, QuizForm, AssignmentGradingForm, LessonCommentForm
 
 class TeacherRequiredMixin(UserPassesTestMixin):
     def test_func(self):
@@ -19,9 +19,52 @@ class TeacherDashboardView(LoginRequiredMixin, TeacherRequiredMixin, generic.Lis
     template_name = 'academy/teacher_dashboard.html'
     context_object_name = 'courses'
     def get_queryset(self):
-        return Course.objects.filter(instructor=self.request.user).annotate(
+        status_filter = self.request.GET.get('status')
+        queryset = Course.objects.filter(instructor=self.request.user)
+
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+
+        return queryset.annotate(
             student_count=Count('enrollments', filter=Q(enrollments__status='approved'))
         )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Dashboard Analytics
+        instructor_courses = Course.objects.filter(instructor=self.request.user)
+
+        # 1. Total Students (Unique)
+        context['total_students_unique'] = Enrollment.objects.filter(
+            course__in=instructor_courses,
+            status='approved'
+        ).values('user').distinct().count()
+
+        # 2. Total Reviews & Rating
+        reviews = Review.objects.filter(course__in=instructor_courses)
+        context['total_reviews'] = reviews.count()
+        context['average_rating'] = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+
+        # 3. Pending Grading
+        # Lesson Assignments
+        pending_assignments = LessonProgress.objects.filter(
+            lesson__module__course__in=instructor_courses,
+            is_completed=True,
+            score__isnull=True,
+            lesson__lesson_type='assignment'
+        ).count()
+
+        # Quiz Submissions (Manual Grading needed?)
+        # Note: Current quiz implementation might need updates to flag manual grading,
+        # but we can count un-graded submissions if we assume all submissions need check?
+        # Actually QuizSubmission has 'passed' and 'score', if score is set it's graded.
+        # But auto-grading sets score immediately.
+        # Let's count assignments for now as they are the primary manual task.
+
+        context['pending_grading'] = pending_assignments
+
+        return context
 
 class TeacherCourseStudentsView(LoginRequiredMixin, TeacherRequiredMixin, generic.DetailView):
     model = Course
@@ -312,3 +355,82 @@ def grade_submission(request, progress_id):
         'form': form,
         'progress': progress
     })
+
+@login_required
+def reorder_content(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            items = data.get('items', [])
+            item_type = data.get('type')
+
+            if item_type == 'module':
+                for item in items:
+                    Module.objects.filter(
+                        id=item['id'],
+                        course__instructor=request.user
+                    ).update(order=item['order'])
+            elif item_type == 'lesson':
+                for item in items:
+                    Lesson.objects.filter(
+                        id=item['id'],
+                        module__course__instructor=request.user
+                    ).update(
+                        order=item['order'],
+                        module_id=item['module_id']
+                    )
+
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error'}, status=400)
+
+@login_required
+def course_preview(request, slug):
+    # Allow instructor to preview their own course regardless of status
+    course = get_object_or_404(Course, slug=slug, instructor=request.user)
+
+    # Simular contexto de detalle de curso pero para el instructor
+    context = {
+        'course': course,
+        'modules': course.modules.prefetch_related('lessons', 'quizzes').all(),
+        'is_enrolled': True, # Simular que está inscrito
+        'reviews': course.reviews.all().order_by('-created_at'),
+        'avg_rating': course.average_rating,
+        'preview_mode': True
+    }
+    return render(request, 'academy/course_detail.html', context)
+
+class TeacherInboxView(LoginRequiredMixin, TeacherRequiredMixin, generic.ListView):
+    model = LessonComment
+    template_name = 'academy/teacher_inbox.html'
+    context_object_name = 'comments'
+    paginate_by = 20
+
+    def get_queryset(self):
+        # Get comments on lessons belonging to courses taught by this user
+        # Exclude comments made by the instructor themselves
+        return LessonComment.objects.filter(
+            lesson__module__course__instructor=self.request.user
+        ).exclude(
+            user=self.request.user
+        ).select_related(
+            'user', 'user__profile', 'lesson', 'lesson__module__course'
+        ).order_by('-created_at')
+
+@login_required
+def teacher_reply_comment(request, comment_id):
+    parent_comment = get_object_or_404(LessonComment, id=comment_id, lesson__module__course__instructor=request.user)
+
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        if content:
+            LessonComment.objects.create(
+                lesson=parent_comment.lesson,
+                user=request.user,
+                content=content,
+                parent=parent_comment
+            )
+            messages.success(request, "Respuesta enviada")
+
+    return redirect('academy:teacher_inbox')

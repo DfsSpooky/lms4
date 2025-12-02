@@ -85,6 +85,11 @@ class Course(models.Model):
         ('course', 'Curso Grabado'),
         ('seminar', 'Seminario en Vivo'),
     ]
+    STATUS_CHOICES = [
+        ('draft', 'Borrador'),
+        ('published', 'Publicado'),
+        ('archived', 'Archivado'),
+    ]
 
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, blank=True)
@@ -92,6 +97,8 @@ class Course(models.Model):
     course_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='course', verbose_name="Tipo de Producto")
     description = models.TextField()
     short_description = models.CharField(max_length=300, blank=True)
+    learning_objectives = models.TextField(blank=True, verbose_name="Lo que aprenderás (un punto por línea)")
+    requirements = models.TextField(blank=True, verbose_name="Requisitos (un punto por línea)")
     thumbnail = models.ImageField(upload_to='courses/', blank=True, null=True)
     preview_video_url = models.URLField(blank=True, null=True, verbose_name="Video de Vista Previa (YouTube)")
     
@@ -137,6 +144,8 @@ class Course(models.Model):
         related_name='courses',
         verbose_name="Institución que Respalda"
     )
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft', verbose_name="Estado")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
