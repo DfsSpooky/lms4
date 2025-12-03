@@ -1,0 +1,218 @@
+{% extends 'academy/base.html' %}
+
+{% block title %}Pago de Evento - LMS Academy{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#0B1120] py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden font-sans selection:bg-indigo-500 selection:text-white"
+     x-data="{
+        activeTab: 0
+     }">
+
+    <div class="absolute top-0 left-0 w-[600px] h-[600px] bg-red-600/5 rounded-full blur-[120px] animate-pulse pointer-events-none"></div>
+    <div class="absolute bottom-0 right-0 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px] animate-pulse pointer-events-none"></div>
+
+    <div class="max-w-6xl mx-auto relative z-10">
+
+        <h1 class="text-3xl font-bold text-white mb-8 text-center">Pago para el evento: {{ event.title }}</h1>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+            <div class="lg:col-span-7 space-y-6">
+
+                <!-- RESUMEN EVENTO -->
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-6 border border-slate-700/50">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">
+                                Evento
+                            </p>
+                            <h2 class="text-xl font-bold text-white">{{ event.title }}</h2>
+                            <p class="text-indigo-400 text-xs mt-1">
+                                <i class="far fa-calendar-alt mr-1"></i> {{ event.date|date:"d M Y, h:i A" }}
+                            </p>
+                        </div>
+                        <div class="text-right">
+                             <!-- Precio -->
+                            <span class="block text-3xl font-black text-white">
+                                S/ {{ event.price }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TABS DE MÉTODOS DE PAGO -->
+                <div class="bg-slate-900 rounded-3xl border border-slate-700 overflow-hidden shadow-2xl relative min-h-[400px]">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500"></div>
+
+                    <!-- TAB NAVIGATION -->
+                    <div class="flex overflow-x-auto border-b border-slate-800 scrollbar-hide">
+                        {% for method in payment_methods %}
+                        <button @click="activeTab = {{ forloop.counter0 }}"
+                                :class="{
+                                    'border-b-2 text-white bg-slate-800/50': activeTab === {{ forloop.counter0 }},
+                                    'border-transparent text-slate-400 hover:text-slate-300 hover:bg-slate-800/30': activeTab !== {{ forloop.counter0 }}
+                                }"
+                                class="flex-1 min-w-[120px] py-4 px-6 text-sm font-bold uppercase tracking-wider transition-all duration-300 relative focus:outline-none"
+                                style="border-color: activeTab === {{ forloop.counter0 }} ? '{{ method.color }}' : ''">
+
+                            <!-- Indicador de color activo -->
+                            <div x-show="activeTab === {{ forloop.counter0 }}"
+                                 class="absolute bottom-0 left-0 w-full h-0.5"
+                                 style="background-color: {{ method.color|default:'blue' }}"></div>
+
+                            {{ method.name }}
+                        </button>
+                        {% empty %}
+                        <div class="p-6 text-center w-full text-slate-400">
+                            No hay métodos de pago configurados.
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- TAB CONTENTS -->
+                    <div class="p-8">
+                        {% for method in payment_methods %}
+                        <div x-show="activeTab === {{ forloop.counter0 }}"
+                             x-transition:enter="transition ease-out duration-300"
+                             x-transition:enter-start="opacity-0 translate-y-2"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             class="space-y-6">
+
+                            <div class="flex items-center gap-4 mb-6">
+                                <div class="w-14 h-14 bg-slate-800 rounded-xl flex items-center justify-center shadow-lg border border-slate-700">
+                                    <i class="fas fa-wallet text-2xl" style="color: {{ method.color|default:'white' }}"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-bold text-white">Pagar con {{ method.name }}</h3>
+                                    <p class="text-slate-400 text-sm">Sigue las instrucciones para realizar tu pago</p>
+                                </div>
+                            </div>
+
+                            <div class="grid md:grid-cols-2 gap-8">
+                                <!-- Columna QR -->
+                                <div class="flex flex-col items-center justify-center bg-white p-4 rounded-xl shadow-lg max-w-[250px] mx-auto md:mx-0">
+                                    {% if method.qr_image %}
+                                    <img src="{{ method.qr_image.url }}" alt="QR {{ method.name }}" class="w-full h-auto rounded-lg">
+                                    <p class="text-slate-900 font-bold text-center mt-2 text-sm">Escanear QR</p>
+                                    {% else %}
+                                    <div class="w-full h-48 bg-slate-200 flex items-center justify-center rounded text-slate-400 text-xs">
+                                        Sin QR
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Columna Datos -->
+                                <div class="space-y-4">
+                                    <div>
+                                        <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Cuenta / Celular:</p>
+                                        <div class="flex items-center gap-2 bg-slate-950 p-3 rounded-lg border border-slate-700 group cursor-pointer hover:border-indigo-500 transition-colors"
+                                             onclick="navigator.clipboard.writeText('{{ method.account_info }}'); alert('Copiado!')">
+                                            <span class="text-xl font-mono font-bold text-white">{{ method.account_info }}</span>
+                                            <i class="far fa-copy text-indigo-400 ml-auto opacity-50 group-hover:opacity-100"></i>
+                                        </div>
+                                    </div>
+
+                                    {% if method.instructions %}
+                                    <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                                        <p class="text-slate-300 text-sm whitespace-pre-line leading-relaxed">
+                                            <i class="fas fa-info-circle text-indigo-400 mr-2"></i>
+                                            {{ method.instructions }}
+                                        </p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- FORMULARIO DE CONSTANCIA (SIDEBAR) -->
+            <div class="lg:col-span-5">
+                <div class="sticky top-24">
+                    <div class="bg-slate-800 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden relative">
+
+                        <div class="p-6 md:p-8">
+                            <div class="text-center mb-6">
+                                <h3 class="text-white font-bold text-xl mb-2">Confirmar Pago</h3>
+                                <p class="text-slate-400 text-sm">Una vez realizado el pago, descarga la constancia (o captura) y súbela aquí.</p>
+                            </div>
+
+                            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                                {% csrf_token %}
+
+                                <div class="relative group w-full">
+                                    <div class="border-2 border-dashed border-slate-600 rounded-2xl h-64 flex flex-col items-center justify-center text-center transition-all duration-300 group-hover:border-emerald-500 group-hover:bg-emerald-500/5 relative overflow-hidden" id="drop-area">
+
+                                        <!-- INPUT FILE -->
+                                        <input type="file" name="voucher_image" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
+
+                                        <div class="pointer-events-none transition-all duration-300 transform group-hover:scale-105" id="upload-content">
+                                            <div class="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-emerald-500 group-hover:text-white transition-colors shadow-lg">
+                                                <i class="fas fa-cloud-upload-alt text-2xl text-slate-300 group-hover:text-white"></i>
+                                            </div>
+                                            <p class="text-sm font-bold text-white mb-1">Subir Constancia</p>
+                                            <p class="text-xs text-slate-500 px-4">Arrastra el archivo o haz clic aquí</p>
+                                        </div>
+
+                                        <div id="file-preview" class="hidden absolute inset-0 bg-slate-800 z-10 flex-col items-center justify-center w-full h-full p-4">
+                                            <div class="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/50 animate-bounce">
+                                                <i class="fas fa-check text-2xl text-emerald-400"></i>
+                                            </div>
+                                            <p class="text-sm font-bold text-emerald-400 mb-1">¡Archivo Listo!</p>
+                                            <p class="text-xs text-white truncate max-w-[200px] bg-slate-900 px-3 py-1 rounded-full border border-slate-700" id="file-name">nombre_archivo.jpg</p>
+                                            <p class="text-[10px] text-slate-500 mt-4">Haz clic para cambiar</p>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transform hover:-translate-y-1 transition-all">
+                                    <span>Enviar para Revisión</span>
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // Función para manejar la vista previa del archivo
+    document.querySelector('input[type="file"]').addEventListener('change', function(e) {
+        updateFileName(this);
+    });
+
+    function updateFileName(input) {
+        const content = document.getElementById('upload-content');
+        const preview = document.getElementById('file-preview');
+        const fileName = document.getElementById('file-name');
+        const dropArea = document.getElementById('drop-area');
+
+        if (input.files && input.files[0]) {
+            // Mostrar Preview
+            preview.classList.remove('hidden');
+            preview.classList.add('flex');
+            fileName.textContent = input.files[0].name;
+
+            // Estilo activo del borde
+            dropArea.classList.add('border-emerald-500', 'ring-2', 'ring-emerald-500/20');
+            dropArea.classList.remove('border-slate-600');
+        } else {
+            // Ocultar Preview
+            preview.classList.add('hidden');
+            preview.classList.remove('flex');
+
+            // Reset estilo
+            dropArea.classList.remove('border-emerald-500', 'ring-2', 'ring-emerald-500/20');
+            dropArea.classList.add('border-slate-600');
+        }
+    }
+</script>
+{% endblock %}

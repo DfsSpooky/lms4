@@ -113,5 +113,6 @@ urlpatterns = [
     path('events/', views.EventListView.as_view(), name='event_list'),
     path('events/<slug:slug>/', views.EventDetailView.as_view(), name='event_detail'),
     path('events/<int:pk>/register/', views.EventRegistrationView.as_view(), name='event_register'),
+    path('events/ticket/<uuid:ticket_id>/pay/', views.EventPaymentView.as_view(), name='event_payment'),
     path('ticket/<uuid:ticket_id>/', views.TicketDetailView.as_view(), name='ticket_detail'),
 ]

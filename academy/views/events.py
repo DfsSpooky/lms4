@@ -61,14 +61,56 @@ class EventRegistrationView(LoginRequiredMixin, View):
             return redirect('academy:event_detail', slug=event.slug)
 
         # Check existing ticket
-        if Ticket.objects.filter(user=request.user, event=event).exists():
+        existing_ticket = Ticket.objects.filter(user=request.user, event=event).first()
+        if existing_ticket:
+            if existing_ticket.status == 'pending':
+                return redirect('academy:event_payment', ticket_id=existing_ticket.id)
             messages.info(request, "Ya estás registrado en este evento.")
             return redirect('academy:event_detail', slug=event.slug)
 
         # Create ticket
-        ticket = Ticket.objects.create(user=request.user, event=event)
-        messages.success(request, "¡Registro exitoso! Aquí está tu entrada.")
-        return redirect('academy:ticket_detail', ticket_id=ticket.id)
+        if event.price > 0:
+            ticket = Ticket.objects.create(user=request.user, event=event, status='pending')
+            return redirect('academy:event_payment', ticket_id=ticket.id)
+        else:
+            ticket = Ticket.objects.create(user=request.user, event=event, status='approved')
+            messages.success(request, "¡Registro exitoso! Aquí está tu entrada.")
+            return redirect('academy:ticket_detail', ticket_id=ticket.id)
+
+
+class EventPaymentView(LoginRequiredMixin, View):
+    def get(self, request, ticket_id):
+        ticket = get_object_or_404(Ticket, id=ticket_id, user=request.user)
+
+        if ticket.status == 'approved':
+             return redirect('academy:ticket_detail', ticket_id=ticket.id)
+
+        # Assuming we can use the same payment methods as courses or default ones
+        # For simplicity, we might just show bank info or use existing PaymentMethods
+        # Let's fetch all payment methods for now, or if events had specific ones we would use that.
+        # Since Event doesn't have m2m to PaymentMethod, let's just show all available.
+        from ..models import PaymentMethod
+        payment_methods = PaymentMethod.objects.all()
+
+        return render(request, 'academy/event_payment.html', {
+            'ticket': ticket,
+            'event': ticket.event,
+            'payment_methods': payment_methods
+        })
+
+    def post(self, request, ticket_id):
+        ticket = get_object_or_404(Ticket, id=ticket_id, user=request.user)
+
+        voucher = request.FILES.get('voucher_image')
+        if voucher:
+            ticket.voucher_image = voucher
+            ticket.status = 'review'
+            ticket.save()
+            messages.success(request, "Tu constancia ha sido enviada. Un administrador la revisará pronto.")
+            return redirect('academy:event_detail', slug=ticket.event.slug)
+        else:
+            messages.error(request, "Por favor sube una imagen del voucher.")
+            return redirect('academy:event_payment', ticket_id=ticket.id)
 
 class TicketDetailView(LoginRequiredMixin, DetailView):
     model = Ticket
