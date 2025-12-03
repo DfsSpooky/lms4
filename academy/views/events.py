@@ -35,10 +35,10 @@ class EventListView(ListView):
     model = Event
     template_name = 'academy/event_list.html'
     context_object_name = 'events'
-    ordering = ['date']
+    ordering = ['start_date']
 
     def get_queryset(self):
-        return Event.objects.filter(is_active=True, date__gte=timezone.now()).order_by('date')
+        return Event.objects.filter(is_active=True, start_date__gte=timezone.now()).order_by('start_date')
 
 class EventDetailView(DetailView):
     model = Event

@@ -1,76 +1,249 @@
 {% extends 'academy/base.html' %}
 
+{% block title %}{{ event.title }} - Eventos LMS{% endblock %}
+
 {% block content %}
-<div class="bg-gray-50 py-10">
-    <div class="container mx-auto px-4">
-        <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
-            {% if event.image %}
-                <img src="{{ event.image.url }}" alt="{{ event.title }}" class="w-full h-64 md:h-96 object-cover">
-            {% endif %}
+<div class="min-h-screen bg-[#0B1120] relative">
+    
+    <div class="relative h-[500px] w-full overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-t from-[#0B1120] via-[#0B1120]/80 to-transparent z-10"></div>
+        <div class="absolute inset-0 bg-indigo-900/30 mix-blend-multiply z-10"></div>
+        
+        {% if event.image %}
+            <img src="{{ event.image.url }}" alt="{{ event.title }}" class="w-full h-full object-cover">
+        {% else %}
+            <div class="w-full h-full bg-slate-800 flex items-center justify-center">
+                <i class="fas fa-calendar-alt text-9xl text-slate-700 opacity-20"></i>
+            </div>
+        {% endif %}
 
-            <div class="p-8">
-                <div class="flex flex-col md:flex-row justify-between items-start mb-6">
-                    <div>
-                        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{{ event.title }}</h1>
-                        <div class="text-gray-600 flex items-center space-x-4">
-                            <span><i class="far fa-calendar mr-2"></i>{{ event.date|date:"l, d de F Y" }}</span>
-                            <span><i class="far fa-clock mr-2"></i>{{ event.date|date:"h:i A" }}</span>
+        <div class="absolute bottom-0 left-0 w-full z-20 px-4 pb-16">
+            <div class="max-w-7xl mx-auto">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-600/90 text-white text-xs font-bold uppercase tracking-widest mb-6 border border-white/10 backdrop-blur-md">
+                    <i class="fas fa-bolt"></i> Evento Presencial
+                </div>
+                <h1 class="text-4xl md:text-6xl font-black text-white mb-6 leading-tight max-w-4xl drop-shadow-xl">{{ event.title }}</h1>
+                
+                <div class="flex flex-wrap gap-6 text-slate-300 font-medium text-sm sm:text-base bg-black/30 backdrop-blur-md p-4 rounded-2xl border border-white/10 w-fit">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400 border border-indigo-500/30">
+                            <i class="far fa-calendar-alt"></i>
                         </div>
-                        <div class="mt-2 text-gray-600">
-                            <i class="fas fa-map-marker-alt mr-2"></i>{{ event.location }}
+                        <div class="flex flex-col">
+                            <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Fecha</span>
+                            <span class="text-white">{{ event.start_date|date:"d M, Y" }}</span>
                         </div>
                     </div>
-                    <div class="mt-4 md:mt-0 text-right">
-                        <div class="text-2xl font-bold text-blue-600">
-                            {% if event.price > 0 %}
-                                ${{ event.price }}
-                            {% else %}
-                                Gratis
-                            {% endif %}
+                    
+                    <div class="w-px h-10 bg-white/10 hidden sm:block"></div>
+
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 border border-emerald-500/30">
+                            <i class="far fa-clock"></i>
                         </div>
-                        <div class="text-sm text-gray-500">
-                            {{ event.spots_left }} cupos disponibles
+                        <div class="flex flex-col">
+                            <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Hora</span>
+                            <span class="text-white">{{ event.start_date|date:"h:i A" }}</span>
+                        </div>
+                    </div>
+
+                    <div class="w-px h-10 bg-white/10 hidden sm:block"></div>
+
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-pink-500/20 flex items-center justify-center text-pink-400 border border-pink-500/30">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Ubicación</span>
+                            <span class="text-white max-w-[150px] truncate">{{ event.location }}</span>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
 
-                <div class="prose max-w-none text-gray-700 mb-8">
-                    {{ event.description|linebreaks }}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-20 -mt-10">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            
+            <div class="lg:col-span-2 space-y-12">
+                
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-3xl p-8 border border-slate-700/50 shadow-xl">
+                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center text-slate-400">
+                            <i class="fas fa-align-left text-sm"></i>
+                        </span>
+                        Sobre el evento
+                    </h2>
+                    <div class="prose prose-invert prose-lg max-w-none text-slate-400 leading-relaxed">
+                        {{ event.description|linebreaks }}
+                    </div>
                 </div>
 
-                <div class="border-t pt-8 text-center">
-                    {% if user.is_authenticated %}
-                        {% if user_ticket %}
-                            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                                <strong class="font-bold">¡Estás registrado!</strong>
-                                <span class="block sm:inline">Ya tienes tu entrada para este evento.</span>
+                <div>
+                    <h2 class="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+                            <i class="fas fa-list-ul text-sm"></i>
+                        </span>
+                        Agenda del Evento
+                    </h2>
+
+                    {% if event.sessions.exists %}
+                        {% regroup event.sessions.all by start_time|date:"l, d \d\e F" as sessions_by_day %}
+
+                        <div class="space-y-8">
+                            {% for day in sessions_by_day %}
+                            <div class="relative pl-8 border-l-2 border-slate-800">
+                                <div class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-indigo-500 border-4 border-[#0B1120]"></div>
+                                <h3 class="text-xl font-bold text-white mb-6 uppercase tracking-wide flex items-center gap-3">
+                                    {{ day.grouper }}
+                                </h3>
+
+                                <div class="space-y-4">
+                                    {% for session in day.list %}
+                                    <div class="group bg-slate-800 rounded-2xl p-5 border border-slate-700 hover:border-indigo-500/50 transition-all hover:bg-slate-750 flex flex-col sm:flex-row gap-6">
+                                        
+                                        <div class="flex flex-row sm:flex-col items-center sm:items-start gap-2 sm:w-24 shrink-0">
+                                            <span class="text-lg font-black text-white">{{ session.start_time|date:"H:i" }}</span>
+                                            <span class="text-xs font-bold text-slate-500 uppercase">{{ session.end_time|date:"H:i" }}</span>
+                                            
+                                            {% if session.session_type == 'break' %}
+                                                <span class="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-700 text-slate-400 border border-slate-600 uppercase">Receso</span>
+                                            {% elif session.session_type == 'workshop' %}
+                                                <span class="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20 uppercase">Taller</span>
+                                            {% elif session.session_type == 'networking' %}
+                                                <span class="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase">Social</span>
+                                            {% else %}
+                                                <span class="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase">Charla</span>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="flex-1">
+                                            <h4 class="text-lg font-bold text-white mb-2 group-hover:text-indigo-400 transition-colors">{{ session.title }}</h4>
+                                            
+                                            {% if session.description %}
+                                                <p class="text-sm text-slate-400 mb-4 leading-relaxed">{{ session.description }}</p>
+                                            {% endif %}
+
+                                            <div class="flex flex-wrap items-center gap-4">
+                                                {% if session.speaker %}
+                                                <div class="flex items-center gap-2 bg-slate-900/50 pr-3 rounded-full border border-slate-700/50">
+                                                    {% if session.speaker.profile.avatar %}
+                                                        <img src="{{ session.speaker.profile.avatar.url }}" class="w-8 h-8 rounded-full border border-slate-600">
+                                                    {% else %}
+                                                        <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs text-slate-400"><i class="fas fa-user"></i></div>
+                                                    {% endif %}
+                                                    <span class="text-xs font-bold text-slate-300">{{ session.speaker.get_full_name|default:session.speaker.username }}</span>
+                                                </div>
+                                                {% endif %}
+
+                                                {% if session.room %}
+                                                <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                                                    <i class="fas fa-door-open text-indigo-500"></i>
+                                                    <span class="font-medium">{{ session.room }}</span>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
                             </div>
-                            <a href="{% url 'academy:ticket_detail' ticket_id=user_ticket.id %}" class="inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition">
-                                Ver mi Ticket
-                            </a>
-                        {% else %}
-                            {% if event.spots_left > 0 %}
-                                <form action="{% url 'academy:event_register' pk=event.pk %}" method="post">
-                                    {% csrf_token %}
-                                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition">
-                                        Registrarme Ahora
-                                    </button>
-                                </form>
-                            {% else %}
-                                <button disabled class="bg-gray-400 text-white font-bold py-3 px-8 rounded-full cursor-not-allowed">
-                                    Cupos Agotados
-                                </button>
-                            {% endif %}
-                        {% endif %}
+                            {% endfor %}
+                        </div>
                     {% else %}
-                        <div class="bg-blue-50 border border-blue-200 p-6 rounded-lg">
-                            <p class="mb-4 text-gray-700">Para registrarte en este evento necesitas iniciar sesión.</p>
-                            <a href="{% url 'academy:login' %}?next={{ request.path }}" class="text-blue-600 font-bold hover:underline">Iniciar Sesión</a> o
-                            <a href="{% url 'academy:signup' %}?next={{ request.path }}" class="text-blue-600 font-bold hover:underline">Registrarse</a>
+                        <div class="bg-slate-800/30 rounded-2xl p-8 border border-slate-700 border-dashed text-center">
+                            <i class="fas fa-calendar-day text-4xl text-slate-600 mb-3"></i>
+                            <p class="text-slate-500">La agenda detallada estará disponible próximamente.</p>
                         </div>
                     {% endif %}
                 </div>
+
             </div>
+
+            <div class="lg:col-span-1">
+                <div class="sticky top-24 space-y-6">
+                    
+                    <div class="bg-slate-800/80 backdrop-blur-md rounded-3xl p-6 border border-slate-700 shadow-2xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-[50px] pointer-events-none"></div>
+                        
+                        <div class="text-center mb-6">
+                            <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Precio de Entrada</p>
+                            <div class="flex items-center justify-center gap-2">
+                                {% if event.price > 0 %}
+                                    <span class="text-4xl font-black text-white">S/ {{ event.price|floatformat:0 }}</span>
+                                {% else %}
+                                    <span class="text-4xl font-black text-emerald-400">Gratis</span>
+                                {% endif %}
+                            </div>
+                            <p class="text-xs text-slate-500 mt-2 font-medium">
+                                {% if event.spots_left > 0 %}
+                                    <i class="fas fa-fire text-orange-500 mr-1"></i> ¡Quedan {{ event.spots_left }} cupos!
+                                {% else %}
+                                    <span class="text-red-400">Cupos Agotados</span>
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        {% if user.is_authenticated %}
+                            {% if user_ticket %}
+                                <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-center mb-4">
+                                    <div class="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-white mx-auto mb-2 shadow-lg shadow-emerald-500/20">
+                                        <i class="fas fa-check text-xl"></i>
+                                    </div>
+                                    <h3 class="text-white font-bold mb-1">¡Ya estás registrado!</h3>
+                                    <p class="text-emerald-400 text-xs mb-3">Tienes tu entrada asegurada.</p>
+                                    <a href="{% url 'academy:ticket_detail' ticket_id=user_ticket.id %}" class="block w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-sm transition-colors shadow-lg">
+                                        <i class="fas fa-ticket-alt mr-2"></i> Ver mi Ticket
+                                    </a>
+                                </div>
+                            {% else %}
+                                {% if event.spots_left > 0 %}
+                                    <form action="{% url 'academy:event_register' pk=event.pk %}" method="post">
+                                        {% csrf_token %}
+                                        <button type="submit" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-lg shadow-lg shadow-indigo-500/25 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2 group">
+                                            <span>Registrarme Ahora</span>
+                                            <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                                        </button>
+                                    </form>
+                                    <p class="text-center text-[10px] text-slate-500 mt-3">Al registrarte aceptas nuestros términos y condiciones.</p>
+                                {% else %}
+                                    <button disabled class="w-full py-4 bg-slate-700 text-slate-400 rounded-xl font-bold text-lg cursor-not-allowed border border-slate-600">
+                                        Agotado
+                                    </button>
+                                {% endif %}
+                            {% endif %}
+                        {% else %}
+                            <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-700 text-center">
+                                <p class="text-slate-300 text-sm mb-3">Inicia sesión para registrarte en este evento.</p>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <a href="{% url 'academy:login' %}?next={{ request.path }}" class="py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold transition-colors">Entrar</a>
+                                    <a href="{% url 'academy:signup' %}?next={{ request.path }}" class="py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-colors">Crear Cuenta</a>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="bg-slate-800/30 rounded-2xl p-6 border border-slate-700/50">
+                        <h4 class="text-white font-bold text-sm mb-4 uppercase tracking-wider border-b border-slate-700 pb-2">Organizador</h4>
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center p-1">
+                                {% if site_config.logo %}
+                                    <img src="{{ site_config.logo.url }}" class="w-full h-full object-contain">
+                                {% else %}
+                                    <i class="fas fa-building text-slate-800"></i>
+                                {% endif %}
+                            </div>
+                            <span class="font-bold text-slate-200">{{ site_config.site_name|default:"LMS Academy" }}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            Líderes en educación tecnológica y desarrollo profesional. Organizamos eventos de alto impacto para la comunidad.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
         </div>
     </div>
 </div>

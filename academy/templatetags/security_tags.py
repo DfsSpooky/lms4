@@ -4,6 +4,13 @@ from django.utils.safestring import mark_safe
 
 register = template.Library()
 
+@register.filter(name='trim')
+def trim(value):
+    """Elimina espacios en blanco al inicio y al final de la cadena."""
+    if isinstance(value, str):
+        return value.strip()
+    return value
+
 @register.filter(name='sanitize')
 def sanitize_html(value):
     """

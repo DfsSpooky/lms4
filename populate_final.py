@@ -91,6 +91,7 @@ def populate():
             'price': 35.00,
             'desc': 'Aprende Figma a fondo.',
             'short': 'Diseña apps que los usuarios amen usar.'
+            
         },
         {
             'title': 'Liderazgo para Gerentes',
