@@ -53,6 +53,15 @@
                 <i class="fas fa-graduation-cap"></i> Cursos
             </button>
             
+            <button @click="tab = 'events'"
+                    :class="tab === 'events' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25' : 'text-slate-400 hover:text-white hover:bg-slate-700/50'"
+                    class="px-5 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2">
+                <i class="fas fa-calendar-alt"></i> Eventos
+                {% if service_requests.count > 0 %}
+                <span class="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">{{ service_requests.count }}</span>
+                {% endif %}
+            </button>
+
             <button @click="tab = 'content'"
                     :class="tab === 'content' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25' : 'text-slate-400 hover:text-white hover:bg-slate-700/50'"
                     class="px-5 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2">
@@ -238,6 +247,8 @@
                                                 <button type="submit" name="action" value="demote_student" class="text-xs font-bold text-slate-400 hover:text-white bg-slate-700/50 hover:bg-slate-600 px-3 py-1.5 rounded-lg transition-colors">Degradar</button>
                                             {% endif %}
                                         </form>
+                                        <a href="{% url 'academy:admin_user_edit' u.id %}" class="text-xs font-bold text-blue-400 hover:text-white bg-blue-500/10 hover:bg-blue-600 px-3 py-1.5 rounded-lg transition-colors">Editar</a>
+                                        <a href="{% url 'academy:admin_user_delete' u.id %}" class="text-xs font-bold text-red-400 hover:text-white bg-red-500/10 hover:bg-red-600 px-3 py-1.5 rounded-lg transition-colors">Eliminar</a>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -310,6 +321,123 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+
+            <div x-show="tab === 'events'" x-transition.opacity.duration.300ms style="display: none;">
+                
+                <h2 class="text-2xl font-bold text-white mb-6 border-b border-slate-700 pb-2 flex justify-between items-center">
+                    Solicitudes Empresariales ({{ service_requests.count }})
+                </h2>
+
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-3xl border border-slate-700/50 overflow-hidden shadow-2xl mb-12">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-900/80 text-xs uppercase text-slate-400 font-bold tracking-wider">
+                                <tr>
+                                    <th class="px-6 py-4">Empresa / Contacto</th>
+                                    <th class="px-6 py-4">Email / Teléfono</th>
+                                    <th class="px-6 py-4">Requerimiento</th>
+                                    <th class="px-6 py-4 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700/50">
+                                {% for sr in service_requests %}
+                                <tr class="hover:bg-slate-700/30 transition-colors">
+                                    <td class="px-6 py-4">
+                                        <div class="font-bold text-white text-sm">{{ sr.company_name }}</div>
+                                        <div class="text-xs text-indigo-400">{{ sr.contact_name }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-slate-400">
+                                        <div class="text-white">{{ sr.email }}</div>
+                                        <div class="text-xs text-slate-500">{{ sr.phone }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-slate-300 max-w-[300px] truncate" title="{{ sr.message }}">
+                                        {{ sr.message|truncatechars:50 }}
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <form method="post" class="inline-block">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="service_request_id" value="{{ sr.id }}">
+                                            <button type="submit" name="action" value="mark_handled" class="text-xs font-bold text-emerald-400 hover:text-white bg-emerald-500/10 hover:bg-emerald-600 px-3 py-1.5 rounded-lg transition-colors">Marcar Atendida</button>
+                                        </form>
+                                        <form method="post" class="inline-block" onsubmit="return confirm('¿Eliminar esta solicitud?')">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="service_request_id" value="{{ sr.id }}">
+                                            <button type="submit" name="action" value="delete" class="text-xs font-bold text-red-400 hover:text-white bg-red-500/10 hover:bg-red-600 px-3 py-1.5 rounded-lg transition-colors">Eliminar</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if not service_requests %}
+                    <div class="p-10 text-center text-slate-500">
+                         <i class="fas fa-envelope-open-text text-4xl mb-3 opacity-50"></i>
+                         <p>No hay solicitudes pendientes.</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <h2 class="text-2xl font-bold text-white mb-6 border-b border-slate-700 pb-2 flex justify-between items-center">
+                    Gestión de Eventos
+                    <a href="{% url 'academy:admin_event_add' %}" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg text-sm flex items-center gap-2">
+                        <i class="fas fa-plus"></i> Nuevo Evento
+                    </a>
+                </h2>
+
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-3xl border border-slate-700/50 overflow-hidden shadow-2xl">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-900/80 text-xs uppercase text-slate-400 font-bold tracking-wider">
+                                <tr>
+                                    <th class="px-6 py-4">Título</th>
+                                    <th class="px-6 py-4">Fecha</th>
+                                    <th class="px-6 py-4">Capacidad</th>
+                                    <th class="px-6 py-4">Estado</th>
+                                    <th class="px-6 py-4 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700/50">
+                                {% for event in events %}
+                                <tr class="hover:bg-slate-700/30 transition-colors">
+                                    <td class="px-6 py-4 font-bold text-white text-sm">{{ event.title }}</td>
+                                    <td class="px-6 py-4 text-sm text-slate-400">{{ event.date|date:"d M Y h:i A" }}</td>
+                                    <td class="px-6 py-4">
+                                        <span class="text-sm font-bold text-indigo-400">{{ event.spots_left }}</span>
+                                        <span class="text-xs text-slate-500"> / {{ event.capacity }}</span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        {% if event.is_active %}
+                                            <span class="text-emerald-400 text-xs font-bold">Activo</span>
+                                        {% else %}
+                                            <span class="text-red-400 text-xs font-bold">Inactivo</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 text-right flex items-center justify-end gap-2">
+                                        <a href="{% url 'academy:admin_event_edit' event.id %}" class="p-2 bg-slate-700 rounded-lg text-blue-400 hover:bg-blue-500 hover:text-white transition-colors" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form method="post" class="inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="event_id" value="{{ event.id }}">
+                                            <button type="submit" name="action" value="delete" class="p-2 bg-slate-700 rounded-lg text-red-400 hover:bg-red-500 hover:text-white transition-colors" title="Eliminar" onclick="return confirm('¿Eliminar este evento?')">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if not events %}
+                    <div class="p-10 text-center text-slate-500">
+                         <i class="fas fa-calendar-times text-4xl mb-3 opacity-50"></i>
+                         <p>No hay eventos programados.</p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -419,7 +547,6 @@
 
             <div x-show="tab === 'config'" x-transition.opacity.duration.300ms style="display: none;">
                 
-                <!-- SITE CONFIGURATION (New) -->
                 <div class="bg-slate-800/50 backdrop-blur-md rounded-3xl border border-slate-700/50 p-6 shadow-xl mb-8">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-xl font-bold text-white">Identidad del Sitio</h3>

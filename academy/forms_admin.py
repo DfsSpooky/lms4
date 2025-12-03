@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Profile, HeroSlide, Category, CertificationCard, AnnouncementCard, Institution, PaymentMethod, TopBanner, SiteConfiguration
+from .models import Profile, HeroSlide, Category, CertificationCard, AnnouncementCard, Institution, PaymentMethod, TopBanner, SiteConfiguration, Event
+from django.forms import DateTimeInput # Necesario para el widget de fecha en EventForm
 
 class AdminUserCreationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput, required=True, label="Contraseña")
@@ -124,4 +125,23 @@ class SiteConfigurationForm(forms.ModelForm):
             'site_name': forms.TextInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white'}),
             'logo_width': forms.NumberInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white'}),
             'logo_height': forms.NumberInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white'}),
+        }
+
+# =======================================================
+# NUEVA CLASE: FORMULARIO DE EVENTOS
+# =======================================================
+class EventForm(forms.ModelForm):
+    class Meta:
+        model = Event
+        fields = ['title', 'slug', 'description', 'date', 'location', 'capacity', 'price', 'image', 'is_active']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white'}),
+            # El slug debe ser de solo lectura para evitar errores manuales, se genera automáticamente
+            'slug': forms.TextInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white', 'readonly': 'readonly'}), 
+            'description': forms.Textarea(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white', 'rows': 5}),
+            # Usar un widget de HTML5 para datetime-local
+            'date': DateTimeInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white', 'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
+            'location': forms.TextInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white'}),
+            'capacity': forms.NumberInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white'}),
+            'price': forms.NumberInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white', 'step': '0.01'}),
         }

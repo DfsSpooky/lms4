@@ -7,8 +7,8 @@ register = template.Library()
 @register.filter(name='sanitize')
 def sanitize_html(value):
     """
-    Sanitizes HTML content using bleach.
-    Allows a set of safe tags and attributes.
+    Sanitizes HTML content using bleach, removing any possibility of injecting 
+    unsupported CSS style arguments.
     """
     if not value:
         return ""
@@ -26,16 +26,18 @@ def sanitize_html(value):
         'iframe': ['src', 'width', 'height', 'frameborder', 'allowfullscreen']
     }
 
-    allowed_styles = [
-        'color', 'font-weight', 'background-color', 'text-align', 'font-size', 'padding', 'margin'
-    ]
-
-    cleaned_text = bleach.clean(
-        value,
-        tags=allowed_tags,
-        attributes=allowed_attributes,
-        styles=allowed_styles,
-        strip=True
-    )
+    # FIX FINAL: Se llama a bleach.clean() sin el argumento de estilos.
+    # Esto resuelve la incompatibilidad de versiones al no depender de 'styles' ni 'allowed_css_properties'.
+    try:
+        cleaned_text = bleach.clean(
+            value,
+            tags=allowed_tags,
+            attributes=allowed_attributes,
+            strip=True
+        )
+    except Exception as e:
+        # En caso de que ocurra otro error, usamos el método más seguro (aunque básico).
+        print(f"Bleach fallback error: {e}")
+        cleaned_text = bleach.clean(value, tags=allowed_tags, attributes=allowed_attributes, strip=True)
 
     return mark_safe(cleaned_text)

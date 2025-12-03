@@ -52,6 +52,11 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, generic.Templa
         ctx['top_banners'] = TopBanner.objects.all().order_by('-created_at')
         ctx['site_config'] = SiteConfiguration.get_solo()
         ctx['site_config_form'] = SiteConfigurationForm(instance=ctx['site_config'])
+        
+        # CONTEXTOS AÑADIDOS PARA EVENTOS Y EMPRESAS
+        ctx['events'] = Event.objects.all().order_by('date')
+        ctx['service_requests'] = ServiceRequest.objects.filter(is_handled=False).order_by('-created_at')
+        
         return ctx
 
     def post(self, request, *args, **kwargs):
@@ -195,6 +200,26 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, generic.Templa
             elif action == 'delete':
                 banner.delete()
                 messages.success(request, "Banner eliminado.")
+
+        # LÓGICA AÑADIDA: ServiceRequest
+        elif 'service_request_id' in request.POST:
+            sr = get_object_or_404(ServiceRequest, id=request.POST.get('service_request_id'))
+            action = request.POST.get('action')
+            if action == 'mark_handled':
+                sr.is_handled = True
+                sr.save()
+                messages.success(request, f"Solicitud de {sr.company_name} marcada como atendida.")
+            elif action == 'delete':
+                sr.delete()
+                messages.success(request, "Solicitud eliminada.")
+        
+        # LÓGICA AÑADIDA: Eventos
+        elif 'event_id' in request.POST:
+            event = get_object_or_404(Event, id=request.POST.get('event_id'))
+            action = request.POST.get('action')
+            if action == 'delete':
+                event.delete()
+                messages.success(request, f"Evento '{event.title}' eliminado.")
 
         return redirect('academy:admin_dashboard')
 
@@ -434,3 +459,30 @@ class AdminUserDeleteView(LoginRequiredMixin, UserPassesTestMixin, generic.Delet
             return redirect('academy:admin_dashboard')
         messages.success(request, f"Usuario {user.username} eliminado.")
         return super().delete(request, *args, **kwargs)
+
+# CLASES AÑADIDAS PARA GESTIÓN DE EVENTOS
+class EventCreateView(LoginRequiredMixin, UserPassesTestMixin, generic.CreateView):
+    model = Event
+    form_class = EventForm
+    template_name = 'academy/event_form.html'
+    success_url = reverse_lazy('academy:admin_dashboard')
+
+    def test_func(self):
+        return self.request.user.is_superuser
+
+    def form_valid(self, form):
+        messages.success(self.request, "Evento creado exitosamente.")
+        return super().form_valid(form)
+
+class EventUpdateView(LoginRequiredMixin, UserPassesTestMixin, generic.UpdateView):
+    model = Event
+    form_class = EventForm
+    template_name = 'academy/event_form.html'
+    success_url = reverse_lazy('academy:admin_dashboard')
+
+    def test_func(self):
+        return self.request.user.is_superuser
+
+    def form_valid(self, form):
+        messages.success(self.request, "Evento actualizado exitosamente.")
+        return super().form_valid(form)

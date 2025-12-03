@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 
 app_name = 'academy'
@@ -88,6 +88,10 @@ urlpatterns = [
 
     path('admin-dashboard/payment-method/add/', views.PaymentMethodCreateView.as_view(), name='payment_method_add'),
     path('admin-dashboard/payment-method/<int:pk>/edit/', views.PaymentMethodUpdateView.as_view(), name='payment_method_edit'),
+
+    # RUTAS AÑADIDAS PARA GESTIÓN DE EVENTOS
+    path('admin-dashboard/event/add/', views.EventCreateView.as_view(), name='admin_event_add'),
+    path('admin-dashboard/event/<int:pk>/edit/', views.EventUpdateView.as_view(), name='admin_event_edit'),
 
     # Certificate
     path('course/<slug:slug>/certificate/', views.CertificateView.as_view(), name='certificate'),
