@@ -403,7 +403,7 @@
                                 {% for event in events %}
                                 <tr class="hover:bg-slate-700/30 transition-colors">
                                     <td class="px-6 py-4 font-bold text-white text-sm">{{ event.title }}</td>
-                                    <td class="px-6 py-4 text-sm text-slate-400">{{ event.date|date:"d M Y h:i A" }}</td>
+                                    <td class="px-6 py-4 text-sm text-slate-400">{{ event.start_date|date:"d M Y h:i A" }}</td>
                                     <td class="px-6 py-4">
                                         <span class="text-sm font-bold text-indigo-400">{{ event.spots_left }}</span>
                                         <span class="text-xs text-slate-500"> / {{ event.capacity }}</span>

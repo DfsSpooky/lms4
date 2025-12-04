@@ -82,7 +82,7 @@
                 </h1>
 
                 <p class="text-lg md:text-xl text-slate-300 mb-10 max-w-3xl leading-relaxed font-light animate-fade-in border-l-4 border-indigo-500/50 pl-6">
-                    {{ course.short_description|default:course.description|striptags|sanitize|truncatechars:250 }}
+                    {{ course.short_description|default:course.description|striptags|truncatechars:250 }}
                 </p>
 
                 <div class="flex flex-wrap items-center gap-8 mb-8 text-sm font-medium text-slate-300 bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 w-fit animate-fade-in hover:bg-white/10 transition-colors duration-300">
@@ -154,8 +154,9 @@
                         </span>
                         Lo que aprenderás
                     </h2>
+                    
                     <div class="prose prose-invert prose-lg max-w-none text-slate-400 leading-relaxed prose-headings:text-white prose-a:text-indigo-400 hover:prose-a:text-indigo-300 prose-strong:text-white prose-li:marker:text-indigo-500">
-                        {{ course.description|sanitize }}
+                        {{ course.description|safe }}
                     </div>
                 </div>
 
@@ -164,14 +165,14 @@
                     {% if course.learning_objectives %}
                     <div class="bg-slate-800/50 rounded-2xl p-8 border border-slate-700/50">
                         <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                            <i class="fas fa-check-circle text-emerald-400"></i> Lo que aprenderás
+                            <i class="fas fa-check-circle text-emerald-400"></i> Objetivos
                         </h3>
                         <ul class="space-y-3">
                             {% for line in course.learning_objectives.splitlines %}
                                 {% if line %}
                                 <li class="flex items-start gap-3 text-slate-300 text-sm">
                                     <i class="fas fa-check text-emerald-500 mt-1"></i>
-                                    <span>{{ line|cut:"-"|stringformat:"s"|trim }}</span>
+                                    <span>{{ line|cut:"-"|stringformat:"s"|trim|safe }}</span>
                                 </li>
                                 {% endif %}
                             {% endfor %}
@@ -189,7 +190,7 @@
                                 {% if line %}
                                 <li class="flex items-start gap-3 text-slate-300 text-sm">
                                     <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-2 shrink-0"></span>
-                                    <span>{{ line|cut:"-"|stringformat:"s"|trim }}</span>
+                                    <span>{{ line|cut:"-"|stringformat:"s"|trim|safe }}</span>
                                 </li>
                                 {% endif %}
                             {% endfor %}
@@ -441,21 +442,45 @@
                                         </button>
                                     </div>
 
-                                    <div x-show="pricingMode === 'full'" x-transition:enter.duration.300ms class="text-center">
-                                        <div class="flex items-end justify-center gap-2 mb-2">
-                                            <span class="text-6xl font-black text-white tracking-tighter leading-none drop-shadow-lg">
-                                                <span class="text-2xl text-slate-400 font-bold align-top mr-1">S/</span>{{ course.price|floatformat:0 }}
-                                            </span>
-                                        </div>
-                                        
+                                    <div x-show="pricingMode === 'full'" x-transition:enter.duration.300ms class="text-center relative py-2">
                                         {% if course.old_price and course.old_price > course.price %}
-                                            <div class="flex items-center justify-center gap-3 mb-4">
-                                                <span class="text-slate-500 line-through decoration-slate-600 text-lg">S/ {{ course.old_price|floatformat:0 }}</span>
-                                                <span class="bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide">
-                                                    -{{ course.discount_percent }}% OFF
-                                                </span>
+                                            <div class="absolute -top-4 -right-2 z-20 transform rotate-12 animate-bounce" style="animation-duration: 2s;">
+                                                <div class="relative">
+                                                    <div class="absolute inset-0 bg-red-600 blur opacity-50 rounded-full animate-pulse"></div>
+                                                    <span class="relative bg-gradient-to-r from-red-600 to-rose-500 text-white text-xs font-black px-3 py-1.5 rounded-full shadow-xl border border-white/20 flex items-center gap-1">
+                                                        <i class="fas fa-fire text-yellow-300 animate-pulse"></i>
+                                                        AHORRAS {{ course.discount_percent }}%
+                                                    </span>
+                                                </div>
                                             </div>
                                         {% endif %}
+
+                                        <div class="relative group inline-block">
+                                            {% if course.old_price and course.old_price > course.price %}
+                                                <div class="absolute -inset-4 bg-gradient-to-r from-emerald-500/20 via-cyan-500/20 to-emerald-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                                            {% endif %}
+
+                                            <div class="relative flex flex-col items-center">
+                                                {% if course.old_price and course.old_price > course.price %}
+                                                    <span class="text-slate-500 text-sm font-bold line-through decoration-red-500/60 decoration-2 mb-[-5px] block">
+                                                        Precio Normal: S/ {{ course.old_price|floatformat:0 }}
+                                                    </span>
+                                                {% endif %}
+
+                                                <div class="flex items-end justify-center gap-1">
+                                                    <span class="text-3xl text-slate-400 font-bold mb-2">S/</span>
+                                                    <span class="text-7xl font-black text-white tracking-tighter drop-shadow-2xl">
+                                                        {{ course.price|floatformat:0 }}
+                                                    </span>
+                                                </div>
+                                                
+                                                {% if course.old_price and course.old_price > course.price %}
+                                                    <p class="text-[10px] font-bold text-emerald-400 uppercase tracking-[0.2em] mt-1 animate-pulse">
+                                                        ¡Oferta por tiempo limitado!
+                                                    </p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <template x-if="hasMonthly">

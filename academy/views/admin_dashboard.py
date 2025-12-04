@@ -54,7 +54,8 @@ class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, generic.Templa
         ctx['site_config_form'] = SiteConfigurationForm(instance=ctx['site_config'])
         
         # CONTEXTOS AÑADIDOS PARA EVENTOS Y EMPRESAS
-        ctx['events'] = Event.objects.all().order_by('date')
+        # CORREGIDO: Se usa 'start_date' en lugar de 'date'
+        ctx['events'] = Event.objects.all().order_by('start_date')
         ctx['service_requests'] = ServiceRequest.objects.filter(is_handled=False).order_by('-created_at')
         
         return ctx

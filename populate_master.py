@@ -1,8 +1,6 @@
 import os
 import django
-from django.utils import timezone
 from django.utils.text import slugify
-from datetime import timedelta
 
 # 1. Configurar entorno Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lms_final.settings')
@@ -11,241 +9,239 @@ django.setup()
 from django.contrib.auth.models import User
 from academy.models import (
     Profile, Category, Course, Module, Lesson, 
-    Quiz, Question, Answer, HeroSlide, CertificationCard, AnnouncementCard,
-    Event, EventSession
+    Quiz, Question, Answer, HeroSlide, AnnouncementCard, CertificationCard
 )
 
-def populate():
-    print("=== INICIANDO POBLACIÓN MAESTRA CON EVENTOS ===")
+def create_quiz(module, title, questions_data):
+    """ Crea un examen con preguntas y respuestas para un módulo """
+    quiz = Quiz.objects.create(
+        module=module,
+        title=title,
+        description="Evaluación de conocimientos fundamentales del módulo.",
+        pass_mark=70,
+        randomize_questions=True,
+        questions_to_show=len(questions_data)
+    )
+    
+    for i, q_data in enumerate(questions_data, 1):
+        q = Question.objects.create(
+            quiz=quiz,
+            text=q_data['text'],
+            question_type='single_choice',
+            points=20.0 / len(questions_data), # Calcula puntos para sumar 20
+            order=i
+        )
+        for ans_text, is_correct in q_data['answers']:
+            Answer.objects.create(question=q, text=ans_text, is_correct=is_correct)
+            
+    print(f"    - [Examen] '{title}' creado con {len(questions_data)} preguntas.")
+
+def populate_master():
+    print("=== GENERANDO SOLO LOS 2 CURSOS SOLICITADOS (OFFICE & IA CON GEMINI) ===")
 
     # ---------------------------------------------------------
-    # 1. USUARIOS (ADMIN / INSTRUCTOR)
+    # 1. INSTRUCTOR
     # ---------------------------------------------------------
-    print("--> [1/6] Gestionando usuarios...")
     if not User.objects.filter(username='admin').exists():
         admin = User.objects.create_superuser('admin', 'admin@lms.com', 'admin123')
-        admin.first_name = "Admin"
-        admin.last_name = "User"
-        admin.save()
+        Profile.objects.create(user=admin, role='teacher', bio='Instructor Principal LMS')
     else:
         admin = User.objects.get(username='admin')
-
-    if not hasattr(admin, 'profile'):
-        Profile.objects.create(user=admin, role='teacher', bio='Director Maestro.')
-    else:
-        admin.profile.role = 'teacher'
-        admin.profile.save()
-
-    # ---------------------------------------------------------
-    # 2. CATEGORÍAS
-    # ---------------------------------------------------------
-    print("--> [2/6] Creando categorías...")
-    categories_data = [
-        {'name': 'Desarrollo Web', 'icon': 'fas fa-code'},
-        {'name': 'Data Science', 'icon': 'fas fa-chart-line'},
-        {'name': 'Diseño UX/UI', 'icon': 'fas fa-pen-nib'},
-        {'name': 'Negocios', 'icon': 'fas fa-briefcase'},
-        {'name': 'Marketing', 'icon': 'fas fa-bullhorn'},
-        {'name': 'Productividad y Oficina', 'icon': 'fas fa-file-word'},
-    ]
+        if not hasattr(admin, 'profile'):
+            Profile.objects.create(user=admin, role='teacher')
     
-    categories = {}
-    for cat in categories_data:
-        slug = slugify(cat['name'])
-        c, created = Category.objects.get_or_create(
-            slug=slug,
-            defaults={'name': cat['name'], 'icon': cat['icon']}
-        )
-        categories[slug] = c
+    print(f"-> Instructor asignado: {admin.username}")
 
     # ---------------------------------------------------------
-    # 3. CURSOS (PUBLICADOS)
+    # 2. LIMPIEZA DE CMS (Para que solo se vea lo nuevo)
     # ---------------------------------------------------------
-    print("--> [3/6] Creando cursos...")
-    
-    # Curso Office
-    office_cat = categories.get('productividad-y-oficina')
-    if office_cat:
-        c_office, created = Course.objects.get_or_create(
-            slug='microsoft-office-365-nivel-basico',
-            defaults={
-                'title': "Microsoft Office 365: Nivel Básico",
-                'category': office_cat,
-                'instructor': admin,
-                'description': "Domina Word, Excel y PowerPoint.",
-                'price': 120.00,
-                'level': 'beginner',
-                'status': 'published' # <--- CLAVE PARA QUE APAREZCA
-            }
-        )
-        if created:
-            m = Module.objects.create(course=c_office, title="Excel Básico", order=1)
-            Lesson.objects.create(module=m, title="Fórmulas", duration=10, order=1)
-
-    # Curso Python
-    web_cat = categories.get('desarrollo-web')
-    if web_cat:
-        c_python, created = Course.objects.get_or_create(
-            slug='python-de-cero-a-experto',
-            defaults={
-                'title': 'Python de Cero a Experto',
-                'category': web_cat,
-                'instructor': admin,
-                'description': 'Aprende a programar desde cero.',
-                'price': 49.99,
-                'level': 'beginner',
-                'status': 'published'
-            }
-        )
+    HeroSlide.objects.all().delete()
+    AnnouncementCard.objects.all().delete()
+    CertificationCard.objects.all().delete()
+    print("-> CMS Limpiado (Slides y Anuncios anteriores eliminados).")
 
     # ---------------------------------------------------------
-    # 4. EVENTOS (NUEVO: AGENDAS DETALLADAS)
+    # 3. CATEGORÍAS
     # ---------------------------------------------------------
-    print("--> [4/6] Creando Evento Futuro con Agenda Completa...")
-    
-    # Definir fechas (Próximo mes)
-    today = timezone.now()
-    event_start = today + timedelta(days=30) # Empieza en 30 días
-    event_end = event_start + timedelta(days=1) # Dura 2 días (Día 30 y Día 31)
-    
-    # 4.1 Crear el Evento Padre
-    tech_summit, created = Event.objects.get_or_create(
-        slug='tech-summit-2025',
+    cat_office, _ = Category.objects.get_or_create(name="Ofimática y Productividad", defaults={'slug': 'ofimatica', 'icon': 'fas fa-briefcase'})
+    cat_design, _ = Category.objects.get_or_create(name="Diseño e Innovación", defaults={'slug': 'diseno', 'icon': 'fas fa-pen-nib'})
+
+    # ==============================================================================
+    # CURSO 1: MICROSOFT OFFICE 365 (COMPLETO)
+    # ==============================================================================
+    course_office, created = Course.objects.get_or_create(
+        title="Microsoft Office 365: Nivel Básico",
         defaults={
-            'title': 'Tech Summit 2025: Inteligencia Artificial',
+            'slug': 'office-365-basico-completo',
+            'category': cat_office,
+            'instructor': admin,
             'description': """
-                El evento más importante de tecnología del año. 
-                Únete a nosotros para dos días intensivos de aprendizaje, networking y talleres prácticos sobre el futuro de la IA.
-                
-                Incluye:
-                - Acceso a todas las conferencias.
-                - Material de los talleres.
-                - Certificado de participación.
-                - Coffee breaks y almuerzo.
+                <p>Domina las herramientas esenciales del mundo laboral con Office 365.</p>
+                <p>Este curso integral cubre las 4 aplicaciones fundamentales:</p>
+                <ul>
+                    <li><strong>Word:</strong> Creación de documentos profesionales.</li>
+                    <li><strong>Excel:</strong> Hojas de cálculo y fórmulas desde cero.</li>
+                    <li><strong>PowerPoint:</strong> Presentaciones de impacto.</li>
+                    <li><strong>Access:</strong> Gestión de bases de datos.</li>
+                </ul>
             """,
-            'start_date': event_start,
-            'end_date': event_end,
-            'location': 'Centro de Convenciones Lima',
-            'capacity': 500,
-            'price': 250.00,
-            'is_active': True
+            'short_description': 'El curso definitivo de Office. Domina Word, Excel, PowerPoint y Access paso a paso.',
+            'price': 120.00,
+            'level': 'beginner',
+            'status': 'published',
+            'learning_objectives': "- Redactar documentos en Word\n- Crear fórmulas en Excel\n- Diseñar slides en PowerPoint\n- Gestionar datos en Access",
+            'requirements': "- PC con Windows\n- Microsoft Office instalado"
         }
     )
-    
-    if not created:
-        # Si ya existe, actualizamos fechas para que siempre sea futuro al correr el script
-        tech_summit.start_date = event_start
-        tech_summit.end_date = event_end
-        tech_summit.save()
-        # Limpiamos sesiones viejas para recrearlas limpias
-        tech_summit.sessions.all().delete()
+    print(f"\n-> Curso 1 Creado: {course_office.title}")
 
-    print(f"    - Evento '{tech_summit.title}' creado/actualizado.")
+    if created:
+        # --- MÓDULO 1: WORD ---
+        m1 = Module.objects.create(course=course_office, title="Módulo 1: Microsoft Word", order=1)
+        Lesson.objects.create(module=m1, title="La Interfaz de Word y Configuración", duration=15, order=1, content="Cinta de opciones y configuración de página.")
+        Lesson.objects.create(module=m1, title="Formato de Texto y Estilos", duration=20, order=2, content="Fuentes, párrafos y uso de estilos rápidos.")
+        Lesson.objects.create(module=m1, title="Tablas e Imágenes", duration=25, order=3, content="Insertar y manipular objetos visuales.")
+        
+        create_quiz(m1, "Quiz de Word", [
+            {'text': "¿Atajo para guardar un documento?", 'answers': [('Ctrl + G', True), ('Ctrl + P', False)]},
+            {'text': "¿Herramienta para alinear texto a ambos márgenes?", 'answers': [('Justificar', True), ('Centrar', False)]}
+        ])
 
-    # 4.2 Crear Agenda (Sesiones)
-    
-    # --- DÍA 1: MAÑANA ---
-    EventSession.objects.create(
-        event=tech_summit,
-        title="Registro y Bienvenida",
-        description="Entrega de credenciales y kits de bienvenida.",
-        start_time=event_start.replace(hour=8, minute=30),
-        end_time=event_start.replace(hour=9, minute=30),
-        session_type='networking',
-        room="Lobby Principal"
+        # --- MÓDULO 2: EXCEL ---
+        m2 = Module.objects.create(course=course_office, title="Módulo 2: Microsoft Excel", order=2)
+        Lesson.objects.create(module=m2, title="Filas, Columnas y Celdas", duration=15, order=1, content="Navegación básica en hojas de cálculo.")
+        Lesson.objects.create(module=m2, title="Fórmulas Básicas (Suma, Promedio)", duration=30, order=2, content="Operaciones matemáticas esenciales.")
+        Lesson.objects.create(module=m2, title="Gráficos Básicos", duration=20, order=3, content="Visualización de datos simple.")
+
+        create_quiz(m2, "Quiz de Excel", [
+            {'text': "¿Con qué signo inicia una fórmula?", 'answers': [('=', True), ('#', False)]},
+            {'text': "La intersección de fila y columna es:", 'answers': [('Celda', True), ('Rango', False)]}
+        ])
+
+        # --- MÓDULO 3: POWERPOINT ---
+        m3 = Module.objects.create(course=course_office, title="Módulo 3: Microsoft PowerPoint", order=3)
+        Lesson.objects.create(module=m3, title="Creación de Diapositivas", duration=20, order=1, content="Estructura y diseño básico.")
+        Lesson.objects.create(module=m3, title="Animaciones y Transiciones", duration=25, order=2, content="Dar vida a la presentación.")
+
+        create_quiz(m3, "Quiz de PowerPoint", [
+            {'text': "¿Tecla para iniciar presentación?", 'answers': [('F5', True), ('Esc', False)]},
+            {'text': "¿Qué es una transición?", 'answers': [('Efecto entre diapositivas', True), ('Movimiento de un objeto', False)]}
+        ])
+
+        # --- MÓDULO 4: ACCESS ---
+        m4 = Module.objects.create(course=course_office, title="Módulo 4: Microsoft Access", order=4)
+        Lesson.objects.create(module=m4, title="Conceptos de Base de Datos", duration=20, order=1, content="Tablas, campos y registros.")
+        Lesson.objects.create(module=m4, title="Creación de Tablas y Formularios", duration=35, order=2, content="Interfaz de usuario para datos.")
+
+        create_quiz(m4, "Quiz de Access", [
+            {'text': "¿Dónde se guardan los datos en Access?", 'answers': [('Tablas', True), ('Formularios', False)]},
+            {'text': "¿Qué es un campo?", 'answers': [('Una columna de información', True), ('Una fila de datos', False)]}
+        ])
+
+    # ==============================================================================
+    # CURSO 2: IA EN DISEÑO GRÁFICO (CON GOOGLE GEMINI)
+    # ==============================================================================
+    course_ai, created = Course.objects.get_or_create(
+        title="Inteligencia Artificial en Diseño Gráfico",
+        defaults={
+            'slug': 'ia-diseno-gemini',
+            'category': cat_design,
+            'instructor': admin,
+            'description': """
+                <p>Descubre cómo revolucionar tu proceso creativo utilizando la potencia de <strong>Google Gemini</strong> y otras herramientas de IA.</p>
+                <p>En este curso aprenderás a:</p>
+                <ul>
+                    <li>Usar <strong>Gemini</strong> para generar ideas, conceptos y textos creativos (Copywriting).</li>
+                    <li>Crear prompts efectivos para generación de imágenes (Imagen 3 / Midjourney).</li>
+                    <li>Integrar IA en Adobe Photoshop y flujos de trabajo de diseño.</li>
+                </ul>
+            """,
+            'short_description': 'Potencia tu creatividad con Google Gemini. Aprende a generar conceptos, textos e imágenes con IA.',
+            'price': 90.00,
+            'level': 'beginner',
+            'status': 'published',
+            'learning_objectives': "- Dominar Google Gemini para brainstorming\n- Ingeniería de Prompts\n- Generación de Imágenes con IA\n- Ética en el diseño con IA",
+            'requirements': "- Cuenta de Google (para Gemini)\n- Nociones básicas de diseño"
+        }
     )
-    
-    EventSession.objects.create(
-        event=tech_summit,
-        title="Keynote: El Futuro de la IA Generativa",
-        description="Charla magistral sobre cómo los LLMs están transformando la industria.",
-        start_time=event_start.replace(hour=9, minute=30),
-        end_time=event_start.replace(hour=11, minute=0),
-        session_type='lecture',
-        room="Auditorio A",
-        speaker=admin # Usamos al admin como speaker por defecto
-    )
+    print(f"\n-> Curso 2 Creado: {course_ai.title}")
 
-    EventSession.objects.create(
-        event=tech_summit,
-        title="Coffee Break",
-        description="Espacio para networking y refrigerio.",
-        start_time=event_start.replace(hour=11, minute=0),
-        end_time=event_start.replace(hour=11, minute=30),
-        session_type='break',
-        room="Terraza"
-    )
+    if created:
+        # --- MÓDULO 1: FUNDAMENTOS Y GEMINI ---
+        m1 = Module.objects.create(course=course_ai, title="Introducción a la IA Generativa con Gemini", order=1)
+        Lesson.objects.create(module=m1, title="¿Qué es Google Gemini?", duration=15, order=1, content="Introducción al modelo multimodal de Google.")
+        Lesson.objects.create(module=m1, title="Brainstorming Creativo", duration=20, order=2, content="Usando Gemini para generar lluvias de ideas y conceptos visuales.")
+        Lesson.objects.create(module=m1, title="Copywriting para Diseñadores", duration=20, order=3, content="Creación de textos publicitarios y slogans con Gemini.")
 
-    EventSession.objects.create(
-        event=tech_summit,
-        title="Taller: Creando tu primer Chatbot",
-        description="Taller práctico. Traer laptop.",
-        start_time=event_start.replace(hour=11, minute=30),
-        end_time=event_start.replace(hour=13, minute=0),
-        session_type='workshop',
-        room="Laboratorio 1",
-        speaker=admin
-    )
+        create_quiz(m1, "Quiz: Fundamentos de Gemini", [
+            {'text': "¿Qué tipo de modelo es Gemini?", 'answers': [('Multimodal (Texto, Imagen, Video)', True), ('Solo texto', False)]},
+            {'text': "¿Para qué sirve el prompting?", 'answers': [('Dar instrucciones a la IA', True), ('Editar fotos', False)]}
+        ])
 
-    # --- DÍA 1: TARDE ---
-    EventSession.objects.create(
-        event=tech_summit,
-        title="Almuerzo Ejecutivo",
-        description="Almuerzo incluido para todos los asistentes.",
-        start_time=event_start.replace(hour=13, minute=0),
-        end_time=event_start.replace(hour=14, minute=30),
-        session_type='break',
-        room="Comedor Central"
-    )
+        # --- MÓDULO 2: GENERACIÓN DE IMÁGENES ---
+        m2 = Module.objects.create(course=course_ai, title="Generación de Imágenes (Imagen 3 y Otros)", order=2)
+        Lesson.objects.create(module=m2, title="Ingeniería de Prompts Visuales", duration=25, order=1, content="Cómo describir estilos, iluminación y composición a la IA.")
+        Lesson.objects.create(module=m2, title="Herramientas de Google: ImageFX", duration=20, order=2, content="Usando la tecnología de Google Imagen para crear assets.")
+        
+        create_quiz(m2, "Quiz: Generación Visual", [
+            {'text': "¿Qué elemento es clave en un prompt visual?", 'answers': [('El estilo artístico', True), ('La velocidad de internet', False)]},
+            {'text': "¿Qué es ImageFX?", 'answers': [('Herramienta de generación de imágenes de Google', True), ('Un editor de video', False)]}
+        ])
 
-    EventSession.objects.create(
-        event=tech_summit,
-        title="Panel: Ética en la IA",
-        description="Debate con expertos sobre los límites de la tecnología.",
-        start_time=event_start.replace(hour=15, minute=0),
-        end_time=event_start.replace(hour=16, minute=30),
-        session_type='lecture',
-        room="Auditorio B"
-    )
-
-    # --- DÍA 2: MAÑANA (Solo un ejemplo rápido) ---
-    day_2 = event_start + timedelta(days=1)
-    
-    EventSession.objects.create(
-        event=tech_summit,
-        title="Workshop Avanzado: Fine-Tuning",
-        description="Aprende a entrenar tus propios modelos.",
-        start_time=day_2.replace(hour=10, minute=0),
-        end_time=day_2.replace(hour=13, minute=0),
-        session_type='workshop',
-        room="Laboratorio 2",
-        speaker=admin
-    )
-
-    print("    - Agenda detallada (Mañana/Tarde/Día 2) generada.")
+        # --- MÓDULO 3: EDICIÓN Y FLUJO DE TRABAJO ---
+        m3 = Module.objects.create(course=course_ai, title="Flujo de Trabajo Híbrido", order=3)
+        Lesson.objects.create(module=m3, title="De la IA al PSD", duration=30, order=1, content="Incorporando assets generados en Photoshop.")
+        Lesson.objects.create(module=m3, title="Vectorización y Acabado", duration=25, order=2, content="Transformando ideas de IA en vectores editables.")
 
     # ---------------------------------------------------------
-    # 5. CONTENIDO DEL HOME (CMS)
+    # 4. CONFIGURACIÓN DEL HOME (SLIDES Y BANNERS)
     # ---------------------------------------------------------
-    print("--> [5/6] Configurando CMS (Slides y Banners)...")
+    print("\n-> Configurando Home Page...")
     
-    AnnouncementCard.objects.all().delete()
+    # Slides
+    HeroSlide.objects.create(
+        title='Domina <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">Office 365</span>',
+        description='El estándar de la industria. Aprende Excel, Word, PPT y Access.',
+        style='business',
+        btn1_text='Ver Curso',
+        btn1_url=f'/course/{course_office.slug}/',
+        is_active=True,
+        order=1
+    )
+    HeroSlide.objects.create(
+        title='Diseña con <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Google Gemini</span>',
+        description='Potencia tu creatividad usando la Inteligencia Artificial más avanzada de Google.',
+        style='new',
+        btn1_text='Ver Curso',
+        btn1_url=f'/course/{course_ai.slug}/',
+        is_active=True,
+        order=2
+    )
+
+    # Anuncios (Cards)
     AnnouncementCard.objects.create(
-        title="LMS Plus: Acceso Ilimitado",
-        description="Suscripción anual con descuento.",
-        btn_text="Ver Oferta", btn_url="/plus/",
-        style="primary", order=1, is_active=True
+        title="Nuevo: Office 365 Completo",
+        description="Desde lo básico hasta Access. Todo en un solo curso.",
+        btn_text="Inscribirme",
+        btn_url=f"/course/{course_office.slug}/",
+        style="primary",
+        order=1
+    )
+    AnnouncementCard.objects.create(
+        title="IA con Gemini para Creativos",
+        description="Aprende a usar la IA de Google en tu flujo de diseño.",
+        btn_text="Explorar",
+        btn_url=f"/course/{course_ai.slug}/",
+        style="dark",
+        order=2
     )
     
-    HeroSlide.objects.get_or_create(
-        title='Aprende el Futuro',
-        defaults={'style': 'new', 'is_active': True, 'order': 1}
-    )
+    # Certificaciones (Ejemplos visuales en el home)
+    CertificationCard.objects.create(title="Office Specialist", provider="Microsoft", style="blue", order=1)
+    CertificationCard.objects.create(title="AI Creative", provider="Google Cloud", style="green", order=2)
 
-    print("\n=== ¡POBLACIÓN MAESTRA COMPLETADA! ===")
-    print(f"Evento creado: {tech_summit.title}")
-    print(f"Fechas: {event_start.strftime('%d/%m')} - {event_end.strftime('%d/%m')}")
-    print("Los cursos ahora están publicados y visibles.")
+    print("\n=== ¡POBLACIÓN FINALIZADA CON ÉXITO! ===")
+    print("Recuerda entrar al Panel de Instructor para subir tus videos a las lecciones.")
 
 if __name__ == '__main__':
-    populate()
+    populate_master()
