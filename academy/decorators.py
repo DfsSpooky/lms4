@@ -51,3 +51,17 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
+
+def student_required(view_func):
+    """
+    Decorator that checks if the user is not an organizer.
+    If it is an organizer, redirects to their dashboard.
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if request.user.is_authenticated and hasattr(request.user, 'profile'):
+            if request.user.profile.role == 'organizer':
+                from django.shortcuts import redirect
+                return redirect('academy:organizer_dashboard')
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view

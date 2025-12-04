@@ -12,7 +12,8 @@ class EventTests(TestCase):
         self.event = Event.objects.create(
             title='Test Event',
             description='Test Description',
-            date=timezone.now() + datetime.timedelta(days=1),
+            start_date=timezone.now() + datetime.timedelta(days=1),
+            end_date=timezone.now() + datetime.timedelta(days=1, hours=2),
             location='Test Location',
             capacity=10,
             price=0

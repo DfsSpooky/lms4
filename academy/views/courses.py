@@ -5,9 +5,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.utils import timezone
 from django.contrib import messages
 from django.http import JsonResponse
+from django.utils.decorators import method_decorator
 from ..models import *
 from ..forms import LessonCommentForm, AssignmentSubmissionForm
+from ..decorators import student_required
 
+@method_decorator(student_required, name='dispatch')
 class CourseListView(generic.ListView):
     model = Course
     template_name = 'academy/course_list.html'
@@ -89,6 +92,7 @@ class CourseDetailView(generic.DetailView):
         return context
 
 @login_required
+@student_required
 def course_play(request, slug):
     course = get_object_or_404(Course, slug=slug)
     enrollment = Enrollment.objects.filter(user=request.user, course=course, status='approved').first()
@@ -121,6 +125,7 @@ def course_play(request, slug):
 
     return redirect('academy:lesson_detail', pk=next_lesson.id)
 
+@method_decorator(student_required, name='dispatch')
 class StudentDashboardView(LoginRequiredMixin, generic.TemplateView):
     template_name = 'academy/dashboard.html'
 

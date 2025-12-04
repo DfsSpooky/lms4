@@ -108,9 +108,13 @@
                                 <input type="email" name="email" value="{{ u_form.email.value }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-400 mb-1">Nombres</label>
+                                <label class="block text-sm font-medium text-slate-400 mb-1">
+                                    {% if user.profile.role == 'organizer' %}Nombre de la Organización{% else %}Nombres{% endif %}
+                                </label>
                                 <input type="text" name="first_name" value="{{ u_form.first_name.value }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
                             </div>
+
+                            {% if user.profile.role != 'organizer' %}
                             <div>
                                 <label class="block text-sm font-medium text-slate-400 mb-1">Apellidos</label>
                                 <input type="text" name="last_name" value="{{ u_form.last_name.value }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
@@ -119,10 +123,17 @@
                                 <label class="block text-sm font-medium text-slate-400 mb-1">DNI</label>
                                 <input type="text" name="dni" value="{{ p_form.dni.value|default:'' }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
                             </div>
+                            {% else %}
+                                <input type="hidden" name="last_name" value="{{ u_form.last_name.value|default:'.' }}">
+                                <input type="hidden" name="dni" value="{{ p_form.dni.value|default:'00000000' }}">
+                            {% endif %}
+
                             <div>
                                 <label class="block text-sm font-medium text-slate-400 mb-1">Dirección</label>
                                 <input type="text" name="address" value="{{ p_form.address.value|default:'' }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
                             </div>
+
+                            {% if user.profile.role != 'organizer' %}
                             <div>
                                 <label class="block text-sm font-medium text-slate-400 mb-1">Género</label>
                                 <select name="gender" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all cursor-pointer appearance-none">
@@ -131,10 +142,23 @@
                                     <option value="female" {% if p_form.gender.value == 'female' %}selected{% endif %}>Femenino</option>
                                 </select>
                             </div>
+                            {% endif %}
+
                             <div>
                                 <label class="block text-sm font-medium text-slate-400 mb-1">Celular</label>
                                 <input type="text" name="phone_number" value="{{ p_form.phone_number.value|default:'' }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
                             </div>
+
+                            {% if user.profile.role == 'organizer' %}
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-1">Sitio Web</label>
+                                <input type="url" name="website" value="{{ p_form.website.value|default:'' }}" placeholder="https://..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-1">Facebook</label>
+                                <input type="url" name="facebook_url" value="{{ p_form.facebook_url.value|default:'' }}" placeholder="https://facebook.com/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                            </div>
+                            {% endif %}
                         </div>
 
                         <div>
