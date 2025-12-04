@@ -1,4 +1,4 @@
-import bleach
+import nh3
 from django import template
 from django.utils.safestring import mark_safe
 
@@ -14,37 +14,39 @@ def trim(value):
 @register.filter(name='sanitize')
 def sanitize_html(value):
     """
-    Sanitizes HTML content using bleach, removing any possibility of injecting 
-    unsupported CSS style arguments.
+    Sanitizes HTML content using nh3 (ammonia), replacing bleach.
     """
     if not value:
         return ""
 
-    allowed_tags = [
+    allowed_tags = {
         'a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'em', 'i', 'li', 'ol', 'strong', 'ul',
         'p', 'br', 'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img', 'table', 'tbody',
         'tr', 'td', 'th', 'thead', 'u', 's', 'pre', 'iframe'
-    ]
-
-    allowed_attributes = {
-        '*': ['class', 'style'],
-        'a': ['href', 'title', 'target'],
-        'img': ['src', 'alt', 'width', 'height'],
-        'iframe': ['src', 'width', 'height', 'frameborder', 'allowfullscreen']
     }
 
-    # FIX FINAL: Se llama a bleach.clean() sin el argumento de estilos.
-    # Esto resuelve la incompatibilidad de versiones al no depender de 'styles' ni 'allowed_css_properties'.
+    allowed_attributes = {
+        '*': {'class', 'style'},
+        'a': {'href', 'title', 'target'},
+        'img': {'src', 'alt', 'width', 'height'},
+        'iframe': {'src', 'width', 'height', 'frameborder', 'allowfullscreen'}
+    }
+
     try:
-        cleaned_text = bleach.clean(
+        # nh3.clean(html, tags=..., attributes=...)
+        # attributes should be a dict of tag -> set of attributes
+        # '*' acts as global allowed attributes in nh3 as well.
+        cleaned_text = nh3.clean(
             value,
             tags=allowed_tags,
             attributes=allowed_attributes,
-            strip=True
+            # strip_comments=True is default
+            # link_rel='noopener noreferrer' is default for 'a' tags in some cases, or configurable
         )
     except Exception as e:
-        # En caso de que ocurra otro error, usamos el método más seguro (aunque básico).
-        print(f"Bleach fallback error: {e}")
-        cleaned_text = bleach.clean(value, tags=allowed_tags, attributes=allowed_attributes, strip=True)
+        print(f"nh3 error: {e}")
+        # Fallback or re-raise. For now return empty or safe minimal.
+        # But nh3 is robust.
+        return mark_safe("")
 
     return mark_safe(cleaned_text)
