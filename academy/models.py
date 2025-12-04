@@ -18,7 +18,7 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     bio = models.TextField(blank=True)
-    role = models.CharField(max_length=20, choices=[('student', 'Estudiante'), ('teacher', 'Profesor')], default='student')
+    role = models.CharField(max_length=20, choices=[('student', 'Estudiante'), ('teacher', 'Profesor'), ('organizer', 'Organizador')], default='student')
     
     dni = models.CharField(max_length=8, blank=True, help_text="DNI de 8 dígitos")
     address = models.CharField(max_length=255, blank=True, verbose_name="Dirección")
@@ -420,6 +420,7 @@ class ServiceRequest(models.Model):
 
 # --- MODELOS DE EVENTOS ACTUALIZADOS (MULTI-DÍA Y AGENDA) ---
 class Event(models.Model):
+    organizer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organized_events', null=True, blank=True)
     title = models.CharField(max_length=200, verbose_name="Título del Evento")
     slug = models.SlugField(unique=True, blank=True)
     description = models.TextField(verbose_name="Descripción")
