@@ -216,7 +216,7 @@
                         </h3>
                         
                         <p class="text-slate-400 text-sm mb-6 line-clamp-2 leading-relaxed">
-                            {{ course.short_description|default:course.description|striptags|safe }}
+                            {{ course.short_description|default:course.description|striptags|sanitize }}
                         </p>
 
                         <div class="flex items-center gap-2 mb-4 mt-auto">
