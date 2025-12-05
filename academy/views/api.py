@@ -8,11 +8,39 @@ from ..serializers import *
 import json
 
 # --- ENDPOINT API ---
-@api_view(['GET'])
+@api_view(['GET', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def current_user(request):
+    if request.method == 'PATCH':
+        serializer = UserSerializer(request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
     serializer = UserSerializer(request.user)
     return Response(serializer.data)
+
+class MyCoursesViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = MyCourseSerializer
+
+    def get_queryset(self):
+        return Enrollment.objects.filter(user=self.request.user, status__in=['approved', 'pending'])
+
+class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = NotificationSerializer
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def mark_read(self, request, pk=None):
+        notif = self.get_object()
+        notif.is_read = True
+        notif.save()
+        return Response({'status': 'ok'})
 
 class CourseViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Course.objects.all()
@@ -22,10 +50,45 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def enroll(self, request, pk=None):
-        # API simple enrollment (legacy)
         course = self.get_object()
-        Enrollment.objects.get_or_create(user=request.user, course=course)
-        return Response({'status': 'inscripto'})
+        plan = request.data.get('payment_plan', 'full') # 'full' or 'monthly'
+
+        enrollment, created = Enrollment.objects.get_or_create(
+            user=request.user,
+            course=course,
+            defaults={'selected_payment_plan': plan}
+        )
+
+        if created:
+             if plan == 'monthly' and course.allow_monthly_payment:
+                 enrollment.generate_installments()
+             elif plan == 'monthly' and not course.allow_monthly_payment:
+                 # Fallback if monthly not allowed
+                 enrollment.selected_payment_plan = 'full'
+                 enrollment.save()
+
+        return Response({
+            'status': 'enrolled' if created else 'already_enrolled',
+            'enrollment_id': enrollment.id,
+            'payment_status': enrollment.status,
+            'payment_plan': enrollment.selected_payment_plan
+        })
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def upload_voucher(self, request, pk=None):
+        # Allow uploading voucher for course enrollment directly if needed
+        course = self.get_object()
+        enrollment = Enrollment.objects.filter(user=request.user, course=course).first()
+        if not enrollment:
+             return Response({'error': 'No enrollment found'}, status=404)
+
+        if 'voucher' not in request.FILES:
+             return Response({'error': 'No file uploaded'}, status=400)
+
+        enrollment.voucher_image = request.FILES['voucher']
+        enrollment.status = 'review'
+        enrollment.save()
+        return Response({'status': 'uploaded'})
 
 class ProgressViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
