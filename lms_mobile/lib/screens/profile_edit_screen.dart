@@ -5,10 +5,10 @@ import '../services/api_service.dart';
 class ProfileEditScreen extends StatefulWidget {
   final Map<String, dynamic> user;
 
-  const ProfileEditScreen({Key? key, required this.user}) : super(key: key);
+  const ProfileEditScreen({super.key, required this.user});
 
   @override
-  _ProfileEditScreenState createState() => _ProfileEditScreenState();
+  State<ProfileEditScreen> createState() => _ProfileEditScreenState();
 }
 
 class _ProfileEditScreenState extends State<ProfileEditScreen> {
@@ -46,19 +46,21 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
     try {
       await ApiService.updateUserProfile(data);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Perfil actualizado")));
       Navigator.pop(context, true); // Return true to indicate update
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error al guardar")));
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false, // Prevent back if mandatory? No, let's allow back but warn if incomplete?
+    return PopScope(
+      canPop: false, // Prevent back if mandatory? No, let's allow back but warn if incomplete?
       // Actually, if it's mandatory logic in MainScreen, MainScreen handles the block.
       // Here we just provide the form.
       child: Scaffold(

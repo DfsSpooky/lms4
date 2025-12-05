@@ -1,40 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import '../services/api_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/event_provider.dart';
 
 class EventDetailScreen extends StatefulWidget {
   final int eventId;
   final String title;
 
-  const EventDetailScreen({Key? key, required this.eventId, required this.title}) : super(key: key);
+  const EventDetailScreen({super.key, required this.eventId, required this.title});
 
   @override
-  _EventDetailScreenState createState() => _EventDetailScreenState();
+  State<EventDetailScreen> createState() => _EventDetailScreenState();
 }
 
 class _EventDetailScreenState extends State<EventDetailScreen> {
-  late Future<Map<String, dynamic>> _eventFuture;
 
   @override
   void initState() {
     super.initState();
-    _loadEvent();
-  }
-
-  void _loadEvent() {
-    _eventFuture = ApiService.getEventDetail(widget.eventId);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<EventProvider>(context, listen: false).fetchEventDetail(widget.eventId);
+    });
   }
 
   void _register() async {
-    try {
-      await ApiService.registerForEvent(widget.eventId);
+    final provider = Provider.of<EventProvider>(context, listen: false);
+    final success = await provider.registerForEvent(widget.eventId);
+    if (!mounted) return;
+    
+    if (success) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("¡Registro exitoso!")));
-      setState(() {
-        _loadEvent();
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceAll("Exception: ", ""))));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(provider.error?.replaceAll("Exception: ", "") ?? "Error al registrarse")));
     }
   }
 
@@ -55,16 +53,28 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         title: Text(widget.title, style: GoogleFonts.poppins(fontSize: 16)),
         backgroundColor: Color(0xFF151E32),
       ),
-      body: FutureBuilder<Map<String, dynamic>>(
-        future: _eventFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting)
+      body: Consumer<EventProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading) {
             return Center(child: CircularProgressIndicator());
+          }
 
-          if (snapshot.hasError)
-            return Center(child: Text("Error cargando detalles", style: TextStyle(color: Colors.white)));
+          if (provider.error != null) {
+            return Center(child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("Error cargando detalles", style: TextStyle(color: Colors.white)),
+                TextButton(
+                  onPressed: () => provider.fetchEventDetail(widget.eventId),
+                  child: Text("Reintentar")
+                )
+              ],
+            ));
+          }
 
-          final event = snapshot.data!;
+          final event = provider.selectedEvent;
+          if (event == null) return SizedBox();
+
           final sessions = event['sessions'] as List<dynamic>? ?? [];
           final isRegistered = event['is_registered'] ?? false;
           final spotsLeft = event['spots_left'] ?? 0;
@@ -131,7 +141,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                ),
                           ],
                         ),
-                      )).toList(),
+                      )),
 
                       SizedBox(height: 30),
                       SizedBox(
@@ -143,18 +153,18 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                             onPressed: null,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green,
-                              disabledBackgroundColor: Colors.green.withOpacity(0.5),
+                              disabledBackgroundColor: Colors.green.withValues(alpha: 0.5),
                               padding: EdgeInsets.symmetric(vertical: 15),
                             ),
                           )
                         : ElevatedButton(
-                            child: Text(spotsLeft > 0 ? "Registrarme" : "Agotado"),
                             onPressed: spotsLeft > 0 ? _register : null,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Color(0xFF6366F1),
                               padding: EdgeInsets.symmetric(vertical: 15),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             ),
+                            child: Text(spotsLeft > 0 ? "Registrarme" : "Agotado"),
                           ),
                       )
                     ],

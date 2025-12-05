@@ -1,45 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../services/api_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/forum_provider.dart';
 
 class ForumDetailScreen extends StatefulWidget {
   final Map<String, dynamic> topic;
 
-  ForumDetailScreen({required this.topic});
+  const ForumDetailScreen({super.key, required this.topic});
 
   @override
-  _ForumDetailScreenState createState() => _ForumDetailScreenState();
+  State<ForumDetailScreen> createState() => _ForumDetailScreenState();
 }
 
 class _ForumDetailScreenState extends State<ForumDetailScreen> {
-  late Future<List<dynamic>> _repliesFuture;
   final _replyController = TextEditingController();
   bool _isSending = false;
 
   @override
   void initState() {
     super.initState();
-    _loadReplies();
-  }
-
-  void _loadReplies() {
-    setState(() {
-      _repliesFuture = ApiService.getForumReplies(widget.topic['id']);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ForumProvider>(context, listen: false).fetchReplies(widget.topic['id']);
     });
   }
 
   void _sendReply() async {
     if (_replyController.text.isEmpty) return;
     setState(() => _isSending = true);
-    try {
-      await ApiService.postForumReply(widget.topic['id'], _replyController.text);
+    
+    final provider = Provider.of<ForumProvider>(context, listen: false);
+    final success = await provider.postReply(widget.topic['id'], _replyController.text);
+    
+    if (!mounted) return;
+    setState(() => _isSending = false);
+
+    if (success) {
       _replyController.clear();
       FocusScope.of(context).unfocus();
-      _loadReplies();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error al responder")));
-    } finally {
-      setState(() => _isSending = false);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(provider.error ?? "Error al responder")));
     }
   }
 
@@ -85,11 +84,18 @@ class _ForumDetailScreenState extends State<ForumDetailScreen> {
                   SizedBox(height: 20),
 
                   // Replies
-                  FutureBuilder<List<dynamic>>(
-                    future: _repliesFuture,
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
-                      final replies = snapshot.data!;
+                  Consumer<ForumProvider>(
+                    builder: (context, provider, child) {
+                      if (provider.isLoading && provider.replies.isEmpty) {
+                        return Center(child: CircularProgressIndicator());
+                      }
+                      
+                      final replies = provider.replies;
+                      
+                      if (replies.isEmpty) {
+                         return Text("Sé el primero en responder.", style: TextStyle(color: Colors.grey));
+                      }
+
                       return ListView.builder(
                         shrinkWrap: true,
                         physics: NeverScrollableScrollPhysics(),

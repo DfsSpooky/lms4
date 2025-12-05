@@ -1,10 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../services/api_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/course_provider.dart';
+import '../widgets/skeletons.dart';
 import 'course_detail_screen.dart';
 
-class CatalogScreen extends StatelessWidget {
+class CatalogScreen extends StatefulWidget {
+  const CatalogScreen({super.key});
+
+  @override
+  State<CatalogScreen> createState() => _CatalogScreenState();
+}
+
+class _CatalogScreenState extends State<CatalogScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<CourseProvider>(context, listen: false).fetchCourses();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final bgDark = Color(0xFF0B1120);
@@ -16,7 +33,6 @@ class CatalogScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // Header simplificado porque el MainScreen ya maneja algo de contexto
             Padding(
               padding: const EdgeInsets.all(20.0),
               child: Row(
@@ -27,7 +43,6 @@ class CatalogScreen extends StatelessWidget {
               ),
             ),
 
-            // Buscador
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Container(
@@ -51,19 +66,34 @@ class CatalogScreen extends StatelessWidget {
             SizedBox(height: 25),
 
             Expanded(
-              child: FutureBuilder<List<dynamic>>(
-                future: ApiService.getCourses(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) 
-                    return Center(child: CircularProgressIndicator(color: accentColor));
+              child: Consumer<CourseProvider>(
+                builder: (context, provider, child) {
+                  if (provider.isLoading) {
+                    return ListView.builder(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: 3,
+                      itemBuilder: (_, __) => CourseSkeleton(),
+                    );
+                  }
                   
-                  if (snapshot.hasError) 
-                    return Center(child: Text("Error de conexión", style: TextStyle(color: Colors.white)));
+                  if (provider.error != null) {
+                    return Center(child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text("Error de conexión", style: TextStyle(color: Colors.white)),
+                        TextButton(
+                          onPressed: () => provider.fetchCourses(),
+                          child: Text("Reintentar")
+                        )
+                      ],
+                    ));
+                  }
 
-                  final courses = snapshot.data ?? [];
+                  final courses = provider.courses;
 
-                  if (courses.isEmpty)
+                  if (courses.isEmpty) {
                     return Center(child: Text("No hay cursos aún", style: TextStyle(color: Colors.white)));
+                  }
 
                   return ListView.builder(
                     padding: EdgeInsets.symmetric(horizontal: 20),

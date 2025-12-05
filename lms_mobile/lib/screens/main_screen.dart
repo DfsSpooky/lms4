@@ -9,8 +9,10 @@ import 'profile_edit_screen.dart';
 import '../services/api_service.dart';
 
 class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
   @override
-  _MainScreenState createState() => _MainScreenState();
+  State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
@@ -38,11 +40,14 @@ class _MainScreenState extends State<MainScreen> {
       final phone = profile['phone_number'];
 
       if (dni == null || dni.toString().isEmpty || phone == null || phone.toString().isEmpty) {
+        if (!mounted) return;
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          Navigator.push(
-             context,
-             MaterialPageRoute(builder: (_) => ProfileEditScreen(user: user))
-          );
+          if (mounted) {
+            Navigator.push(
+               context,
+               MaterialPageRoute(builder: (_) => ProfileEditScreen(user: user))
+            );
+          }
         });
       }
     } catch (e) {

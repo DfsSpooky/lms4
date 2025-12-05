@@ -1,26 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import '../services/api_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/event_provider.dart';
+import '../widgets/skeletons.dart';
 import 'event_detail_screen.dart';
 
 class EventsScreen extends StatefulWidget {
+  const EventsScreen({super.key});
+
   @override
-  _EventsScreenState createState() => _EventsScreenState();
+  State<EventsScreen> createState() => _EventsScreenState();
 }
 
 class _EventsScreenState extends State<EventsScreen> {
-  late Future<List<dynamic>> _eventsFuture;
 
   @override
   void initState() {
     super.initState();
-    _loadEvents();
-  }
-
-  void _loadEvents() {
-    setState(() {
-      _eventsFuture = ApiService.getEvents();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<EventProvider>(context, listen: false).fetchEvents();
     });
   }
 
@@ -43,19 +42,34 @@ class _EventsScreenState extends State<EventsScreen> {
         elevation: 0,
         automaticallyImplyLeading: false,
       ),
-      body: FutureBuilder<List<dynamic>>(
-        future: _eventsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting)
-            return Center(child: CircularProgressIndicator());
+      body: Consumer<EventProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading) {
+            return ListView.builder(
+              padding: EdgeInsets.all(20),
+              itemCount: 3,
+              itemBuilder: (_, __) => EventSkeleton(),
+            );
+          }
 
-          if (snapshot.hasError)
-            return Center(child: Text("Error al cargar eventos", style: GoogleFonts.poppins(color: Colors.white)));
+          if (provider.error != null) {
+            return Center(child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("Error al cargar eventos", style: GoogleFonts.poppins(color: Colors.white)),
+                TextButton(
+                  onPressed: () => provider.fetchEvents(),
+                  child: Text("Reintentar")
+                )
+              ],
+            ));
+          }
 
-          final events = snapshot.data ?? [];
+          final events = provider.events;
 
-          if (events.isEmpty)
-             return Center(child: Text("No hay eventos disponibles", style: GoogleFonts.poppins(color: Colors.grey)));
+          if (events.isEmpty) {
+            return Center(child: Text("No hay eventos disponibles", style: GoogleFonts.poppins(color: Colors.grey)));
+          }
 
           return ListView.builder(
             padding: EdgeInsets.all(20),

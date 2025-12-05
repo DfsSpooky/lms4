@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../config/app_config.dart';
+
 class ApiService {
   // IMPORTANTE: Asegúrate de que esta IP sea la de tu computadora actual.
-  static const String baseUrl = 'http://192.168.1.58:8000/api'; 
+  static const String baseUrl = AppConfig.apiBaseUrl; 
 
   // Método auxiliar para obtener los headers con el token
   static Future<Map<String, String>> getHeaders() async {
