@@ -78,17 +78,25 @@ class ModuleSerializer(serializers.ModelSerializer):
 class CourseDetailSerializer(serializers.ModelSerializer):
     modules = ModuleSerializer(many=True, read_only=True)
     is_enrolled = serializers.SerializerMethodField()
+    enrollment_status = serializers.SerializerMethodField()
     allowed_payment_methods = PaymentMethodSerializer(many=True, read_only=True)
 
     class Meta:
         model = Course
-        fields = ['id', 'title', 'description', 'price', 'monthly_price', 'allow_monthly_payment', 'duration_months', 'modules', 'is_enrolled', 'allowed_payment_methods']
+        fields = ['id', 'title', 'description', 'price', 'monthly_price', 'allow_monthly_payment', 'duration_months', 'modules', 'is_enrolled', 'enrollment_status', 'allowed_payment_methods']
 
     def get_is_enrolled(self, obj):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             return Enrollment.objects.filter(user=request.user, course=obj).exists()
         return False
+
+    def get_enrollment_status(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            enrollment = Enrollment.objects.filter(user=request.user, course=obj).first()
+            return enrollment.status if enrollment else None
+        return None
 
 class CourseListSerializer(serializers.ModelSerializer):
     instructor_name = serializers.CharField(source='instructor.get_full_name', read_only=True)

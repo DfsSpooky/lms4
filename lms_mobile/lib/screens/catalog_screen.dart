@@ -1,54 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/api_service.dart';
-import '../providers/auth_provider.dart';
 import 'course_detail_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class CatalogScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // Definimos colores modernos aquí para reusar
     final bgDark = Color(0xFF0B1120);
     final cardColor = Color(0xFF151E32);
-    final accentColor = Color(0xFF6366F1); // Indigo vibrante
+    final accentColor = Color(0xFF6366F1);
 
     return Scaffold(
       backgroundColor: bgDark,
       body: SafeArea(
         child: Column(
           children: [
-            // 1. CABECERA PERSONALIZADA
+            // Header simplificado porque el MainScreen ya maneja algo de contexto
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+              padding: const EdgeInsets.all(20.0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Bienvenido de nuevo,", 
-                        style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14)),
-                      Text("Estudiante", 
-                        style: GoogleFonts.poppins(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: accentColor.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: IconButton(
-                      icon: Icon(Icons.logout, color: accentColor),
-                      onPressed: () => Provider.of<AuthProvider>(context, listen: false).logout(),
-                    ),
-                  )
+                   Text("Explorar Cursos",
+                     style: GoogleFonts.poppins(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
 
-            // 2. BUSCADOR VISUAL
+            // Buscador
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Container(
@@ -71,7 +50,6 @@ class HomeScreen extends StatelessWidget {
 
             SizedBox(height: 25),
 
-            // 3. LISTA DE CURSOS CON DISEÑO PRO
             Expanded(
               child: FutureBuilder<List<dynamic>>(
                 future: ApiService.getCourses(),
@@ -119,7 +97,6 @@ class HomeScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Imagen Grande con Etiqueta
                                 Stack(
                                   children: [
                                     ClipRRect(
@@ -143,7 +120,6 @@ class HomeScreen extends StatelessWidget {
                                         decoration: BoxDecoration(
                                           color: Colors.black54,
                                           borderRadius: BorderRadius.circular(10),
-                                          // AQUÍ ESTABA EL ERROR: Se eliminó la línea 'backdropFilter'
                                         ),
                                         child: Row(
                                           children: [
@@ -160,7 +136,6 @@ class HomeScreen extends StatelessWidget {
                                   ],
                                 ),
                                 
-                                // Información del Curso
                                 Padding(
                                   padding: const EdgeInsets.all(15.0),
                                   child: Column(
