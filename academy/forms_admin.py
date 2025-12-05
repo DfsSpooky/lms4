@@ -1,12 +1,11 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Profile, HeroSlide, Category, CertificationCard, AnnouncementCard, Institution, PaymentMethod, TopBanner, SiteConfiguration
+from .models import Profile, HeroSlide, Category, CertificationCard, AnnouncementCard, Institution, PaymentMethod, TopBanner, SiteConfiguration, Event
+from django.forms import DateTimeInput
 
 class AdminUserCreationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput, required=True, label="Contraseña")
     role = forms.ChoiceField(choices=[('student', 'Estudiante'), ('teacher', 'Profesor')], required=True, label="Rol")
-
-    # Extra fields usually needed for creating a user
     first_name = forms.CharField(max_length=150, required=True, label="Nombres")
     last_name = forms.CharField(max_length=150, required=True, label="Apellidos")
     email = forms.EmailField(required=True, label="Email")
@@ -20,7 +19,6 @@ class AdminUserCreationForm(forms.ModelForm):
         user.set_password(self.cleaned_data['password'])
         if commit:
             user.save()
-            # Handle Profile role
             if hasattr(user, 'profile'):
                 user.profile.role = self.cleaned_data['role']
                 user.profile.save()
@@ -51,7 +49,7 @@ class CategoryForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white'}),
             'slug': forms.TextInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white'}),
-            'icon': forms.TextInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white', 'placeholder': 'fas fa-code'}),
+            'icon': forms.TextInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white'}),
         }
 
 class CertificationCardForm(forms.ModelForm):
@@ -124,4 +122,20 @@ class SiteConfigurationForm(forms.ModelForm):
             'site_name': forms.TextInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white'}),
             'logo_width': forms.NumberInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white'}),
             'logo_height': forms.NumberInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white'}),
+        }
+
+class EventForm(forms.ModelForm):
+    class Meta:
+        model = Event
+        fields = ['title', 'slug', 'description', 'start_date', 'end_date', 'location', 'capacity', 'price', 'image', 'is_active']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white'}),
+            'slug': forms.TextInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white', 'readonly': 'readonly'}), 
+            'description': forms.Textarea(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white', 'rows': 5}),
+            'start_date': DateTimeInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white', 'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
+            'end_date': DateTimeInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white', 'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
+            'location': forms.TextInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white'}),
+            'capacity': forms.NumberInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white'}),
+            'price': forms.NumberInput(attrs={'class': 'block w-full rounded-lg bg-slate-800 border-slate-600 text-white', 'step': '0.01'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'w-5 h-5 text-indigo-600 bg-slate-800 border-slate-600 rounded focus:ring-indigo-500'}),
         }
