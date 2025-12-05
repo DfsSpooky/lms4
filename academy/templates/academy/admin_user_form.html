@@ -3,54 +3,127 @@
 {% block title %}Crear Usuario - Admin{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto px-4 py-8">
-    <div class="bg-slate-800 rounded-xl shadow-xl border border-slate-700 p-8">
-        <h2 class="text-2xl font-bold text-white mb-6">Crear Nuevo Usuario</h2>
+<div class="min-h-screen bg-[#0B1120] py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden flex items-center justify-center">
+    
+    <div class="absolute top-0 left-0 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[100px] pointer-events-none"></div>
 
-        <form method="post" class="space-y-6">
-            {% csrf_token %}
-
-            {% for field in form %}
+    <div class="max-w-3xl w-full relative z-10">
+        
+        <div class="mb-8 text-center sm:text-left sm:flex sm:items-center sm:justify-between">
             <div>
-                <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-slate-300 mb-1">
-                    {{ field.label }}
-                </label>
-                {{ field }}
-                {% if field.errors %}
-                <p class="mt-1 text-sm text-red-400">{{ field.errors.0 }}</p>
-                {% endif %}
-                {% if field.help_text %}
-                <p class="mt-1 text-sm text-slate-500">{{ field.help_text }}</p>
-                {% endif %}
-            </div>
-            {% endfor %}
-
-            <div class="flex items-center justify-end gap-4 pt-4">
-                <a href="{% url 'academy:admin_dashboard' %}" class="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors">
-                    Cancelar
+                <a href="{% url 'academy:admin_dashboard' %}" class="inline-flex items-center gap-2 text-slate-400 hover:text-white mb-2 transition-colors text-sm font-bold">
+                    <i class="fas fa-arrow-left"></i> Volver al Panel
                 </a>
-                <button type="submit" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/30">
-                    Crear Usuario
-                </button>
+                <h1 class="text-3xl font-black text-white tracking-tight">
+                    Nuevo <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Usuario</span>
+                </h1>
+                <p class="text-slate-400 text-sm mt-1">Registra un nuevo estudiante o profesor en la plataforma.</p>
             </div>
-        </form>
+            
+            <div class="hidden sm:block">
+                <div class="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400 shadow-lg">
+                    <i class="fas fa-user-plus text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-slate-800/50 backdrop-blur-md rounded-3xl border border-slate-700/50 p-8 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500"></div>
+
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="group">
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2 group-focus-within:text-emerald-400 transition-colors">
+                            <i class="fas fa-user mr-1"></i> Usuario (Username)
+                        </label>
+                        {{ form.username }}
+                        {% if form.username.errors %}<p class="text-red-400 text-xs mt-1">{{ form.username.errors.0 }}</p>{% endif %}
+                    </div>
+                    
+                    <div class="group">
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2 group-focus-within:text-emerald-400 transition-colors">
+                            <i class="fas fa-envelope mr-1"></i> Correo Electrónico
+                        </label>
+                        {{ form.email }}
+                        {% if form.email.errors %}<p class="text-red-400 text-xs mt-1">{{ form.email.errors.0 }}</p>{% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="group">
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2 group-focus-within:text-emerald-400 transition-colors">Nombres</label>
+                        {{ form.first_name }}
+                    </div>
+                    <div class="group">
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2 group-focus-within:text-emerald-400 transition-colors">Apellidos</label>
+                        {{ form.last_name }}
+                    </div>
+                </div>
+
+                <div class="h-px bg-slate-700/50 my-6"></div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="group">
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2 group-focus-within:text-emerald-400 transition-colors">
+                            <i class="fas fa-lock mr-1"></i> Contraseña
+                        </label>
+                        {{ form.password }}
+                        {% if form.password.errors %}<p class="text-red-400 text-xs mt-1">{{ form.password.errors.0 }}</p>{% endif %}
+                    </div>
+
+                    <div class="group">
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2 group-focus-within:text-emerald-400 transition-colors">
+                            <i class="fas fa-id-badge mr-1"></i> Rol en la Plataforma
+                        </label>
+                        <div class="relative">
+                            {{ form.role }}
+                            <div class="absolute right-4 top-3.5 pointer-events-none text-slate-500">
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-1">Define los permisos iniciales del usuario.</p>
+                    </div>
+                </div>
+
+                <div class="pt-6 mt-4 flex items-center justify-end gap-4">
+                    <a href="{% url 'academy:admin_dashboard' %}" class="px-6 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-slate-700 transition-colors font-bold text-sm">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-1 flex items-center gap-2">
+                        <span>Crear Usuario</span>
+                        <i class="fas fa-check"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 <style>
-    /* Simple styling for form inputs generated by Django */
+    /* Estilos globales para inputs (Dark Mode consistente) */
     input[type="text"], input[type="email"], input[type="password"], select {
         width: 100%;
-        border-radius: 0.5rem;
-        background-color: rgb(15 23 42); /* slate-900 */
-        border: 1px solid rgb(71 85 105); /* slate-600 */
+        background-color: #0f172a; /* slate-900 */
+        border: 1px solid #334155; /* slate-700 */
+        border-radius: 0.75rem; /* rounded-xl */
+        padding: 0.75rem 1rem;
         color: white;
-        padding: 0.5rem 0.75rem;
+        transition: all 0.2s;
+        font-size: 0.875rem;
+        outline: none;
     }
     input:focus, select:focus {
-        outline: none;
-        border-color: rgb(99 102 241); /* indigo-500 */
-        ring: 1px solid rgb(99 102 241);
+        border-color: #10b981; /* emerald-500 */
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+    }
+    
+    /* Estilo específico para el select */
+    select {
+        appearance: none;
+        cursor: pointer;
     }
 </style>
 {% endblock %}
