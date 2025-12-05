@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../services/api_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/forum_provider.dart';
 
 class CreateTopicScreen extends StatefulWidget {
+  const CreateTopicScreen({super.key});
+
   @override
-  _CreateTopicScreenState createState() => _CreateTopicScreenState();
+  State<CreateTopicScreen> createState() => _CreateTopicScreenState();
 }
 
 class _CreateTopicScreenState extends State<CreateTopicScreen> {
@@ -16,13 +19,17 @@ class _CreateTopicScreenState extends State<CreateTopicScreen> {
     if (_titleController.text.isEmpty || _contentController.text.isEmpty) return;
 
     setState(() => _isLoading = true);
-    try {
-      await ApiService.createForumTopic(_titleController.text, _contentController.text, null); // null course for general
+    
+    final provider = Provider.of<ForumProvider>(context, listen: false);
+    final success = await provider.createTopic(_titleController.text, _contentController.text, null); // null course for general
+    
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (success) {
       Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error al crear tema")));
-    } finally {
-      setState(() => _isLoading = false);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(provider.error ?? "Error al crear tema")));
     }
   }
 

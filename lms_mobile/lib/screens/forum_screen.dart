@@ -1,26 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../services/api_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/forum_provider.dart';
+import '../widgets/skeletons.dart';
 import 'forum_detail_screen.dart';
 import 'create_topic_screen.dart';
 
 class ForumScreen extends StatefulWidget {
+  const ForumScreen({super.key});
+
   @override
-  _ForumScreenState createState() => _ForumScreenState();
+  State<ForumScreen> createState() => _ForumScreenState();
 }
 
 class _ForumScreenState extends State<ForumScreen> {
-  late Future<List<dynamic>> _topicsFuture;
 
   @override
   void initState() {
     super.initState();
-    _loadTopics();
-  }
-
-  void _loadTopics() {
-    setState(() {
-      _topicsFuture = ApiService.getForumTopics();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ForumProvider>(context, listen: false).fetchTopics();
     });
   }
 
@@ -41,20 +40,32 @@ class _ForumScreenState extends State<ForumScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => CreateTopicScreen()),
-          ).then((_) => _loadTopics());
+          );
         },
       ),
-      body: FutureBuilder<List<dynamic>>(
-        future: _topicsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator(color: Color(0xFF6366F1)));
+      body: Consumer<ForumProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading) {
+            return ListView.builder(
+              padding: EdgeInsets.all(20),
+              itemCount: 5,
+              itemBuilder: (_, __) => ForumTopicSkeleton(),
+            );
           }
-          if (snapshot.hasError) {
-            return Center(child: Text("Error cargando foro", style: TextStyle(color: Colors.white)));
+          if (provider.error != null) {
+            return Center(child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("Error cargando foro", style: TextStyle(color: Colors.white)),
+                TextButton(
+                  onPressed: () => provider.fetchTopics(),
+                  child: Text("Reintentar")
+                )
+              ],
+            ));
           }
 
-          final topics = snapshot.data ?? [];
+          final topics = provider.topics;
 
           if (topics.isEmpty) {
             return Center(child: Text("No hay temas de discusión.", style: TextStyle(color: Colors.white54)));

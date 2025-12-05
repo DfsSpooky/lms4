@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../config/theme.dart';
+import '../widgets/modern_widgets.dart';
 import '../services/api_service.dart';
 
 class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
+
   @override
-  _SignupScreenState createState() => _SignupScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
 class _SignupScreenState extends State<SignupScreen> {
@@ -23,16 +27,26 @@ class _SignupScreenState extends State<SignupScreen> {
           _emailController.text,
           _passwordController.text,
         );
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Cuenta creada exitosamente. Inicia sesión.')),
+          SnackBar(
+            content: Text('Cuenta creada exitosamente. Inicia sesión.'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
         Navigator.pop(context);
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: AppTheme.error,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       } finally {
-        setState(() => _isLoading = false);
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }
@@ -40,72 +54,62 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF0B1120),
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.white),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(24),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Crear Cuenta",
-                style: GoogleFonts.poppins(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white)),
-              SizedBox(height: 10),
-              Text("Únete a nuestra comunidad de aprendizaje",
-                style: GoogleFonts.poppins(color: Colors.white70)),
-              SizedBox(height: 30),
+              Text(
+                "Crear Cuenta",
+                style: Theme.of(context).textTheme.displayLarge,
+              ),
+              SizedBox(height: 12),
+              Text(
+                "Únete a nuestra comunidad de aprendizaje",
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              SizedBox(height: 48),
 
-              _buildTextField("Usuario", Icons.person, _usernameController),
+              ModernTextField(
+                controller: _usernameController,
+                label: "Usuario",
+                icon: Icons.person_outline,
+              ),
               SizedBox(height: 20),
-              _buildTextField("Email", Icons.email, _emailController),
+              ModernTextField(
+                controller: _emailController,
+                label: "Email",
+                icon: Icons.email_outlined,
+                keyboardType: TextInputType.emailAddress,
+              ),
               SizedBox(height: 20),
-              _buildTextField("Contraseña", Icons.lock, _passwordController, obscureText: true),
+              ModernTextField(
+                controller: _passwordController,
+                label: "Contraseña",
+                icon: Icons.lock_outline,
+                obscureText: true,
+              ),
 
-              SizedBox(height: 40),
+              SizedBox(height: 48),
 
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _signup,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF6366F1),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: _isLoading
-                    ? CircularProgressIndicator(color: Colors.white)
-                    : Text("Registrarse", style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                ),
+              ModernButton(
+                text: "Registrarse",
+                isLoading: _isLoading,
+                onPressed: _signup,
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(String hint, IconData icon, TextEditingController controller, {bool obscureText = false}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Color(0xFF151E32),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: TextFormField(
-        controller: controller,
-        obscureText: obscureText,
-        style: TextStyle(color: Colors.white),
-        validator: (value) => value!.isEmpty ? "Campo requerido" : null,
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: TextStyle(color: Colors.white38),
-          prefixIcon: Icon(icon, color: Colors.white38),
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         ),
       ),
     );

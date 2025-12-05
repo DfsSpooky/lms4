@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../config/app_config.dart';
+
 class ApiService {
   // IMPORTANTE: Asegúrate de que esta IP sea la de tu computadora actual.
-  static const String baseUrl = 'http://192.168.1.58:8000/api'; 
+  static const String baseUrl = AppConfig.apiBaseUrl; 
 
   // Método auxiliar para obtener los headers con el token
   static Future<Map<String, String>> getHeaders() async {
@@ -231,5 +233,40 @@ class ApiService {
     final response = await http.get(Uri.parse('$baseUrl/installments/'), headers: headers);
     if (response.statusCode == 200) return jsonDecode(response.body);
     throw Exception('Error cargando pagos');
+  }
+
+  // --- EVENTS ---
+
+  static Future<List<dynamic>> getEvents() async {
+    final headers = await getHeaders();
+    final response = await http.get(Uri.parse('$baseUrl/events/'), headers: headers);
+    if (response.statusCode == 200) return jsonDecode(response.body);
+    throw Exception('Error cargando eventos');
+  }
+
+  static Future<Map<String, dynamic>> getEventDetail(int eventId) async {
+    final headers = await getHeaders();
+    final response = await http.get(Uri.parse('$baseUrl/events/$eventId/'), headers: headers);
+    if (response.statusCode == 200) return jsonDecode(response.body);
+    throw Exception('Error cargando evento');
+  }
+
+  static Future<void> registerForEvent(int eventId) async {
+    final headers = await getHeaders();
+    final response = await http.post(
+      Uri.parse('$baseUrl/events/$eventId/register/'),
+      headers: headers,
+    );
+    if (response.statusCode != 201) {
+      final body = jsonDecode(response.body);
+      throw Exception(body['error'] ?? 'Error registrándose al evento');
+    }
+  }
+
+  static Future<List<dynamic>> getMyTickets() async {
+    final headers = await getHeaders();
+    final response = await http.get(Uri.parse('$baseUrl/events/my_tickets/'), headers: headers);
+    if (response.statusCode == 200) return jsonDecode(response.body);
+    throw Exception('Error cargando mis tickets');
   }
 }

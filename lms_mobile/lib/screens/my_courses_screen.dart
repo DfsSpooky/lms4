@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../services/api_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/course_provider.dart';
 import 'course_detail_screen.dart';
 
 class MyCoursesScreen extends StatefulWidget {
+  const MyCoursesScreen({super.key});
+
   @override
-  _MyCoursesScreenState createState() => _MyCoursesScreenState();
+  State<MyCoursesScreen> createState() => _MyCoursesScreenState();
 }
 
 class _MyCoursesScreenState extends State<MyCoursesScreen> {
-  late Future<List<dynamic>> _myCoursesFuture;
 
   @override
   void initState() {
     super.initState();
-    _myCoursesFuture = ApiService.getMyCourses();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<CourseProvider>(context, listen: false).fetchMyCourses();
+    });
   }
 
   @override
@@ -28,17 +32,25 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
         title: Text("Mis Cursos", style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
         automaticallyImplyLeading: false,
       ),
-      body: FutureBuilder<List<dynamic>>(
-        future: _myCoursesFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      body: Consumer<CourseProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading) {
             return Center(child: CircularProgressIndicator(color: Color(0xFF6366F1)));
           }
-          if (snapshot.hasError) {
-            return Center(child: Text("Error cargando cursos", style: TextStyle(color: Colors.white)));
+          if (provider.error != null) {
+            return Center(child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("Error cargando cursos", style: TextStyle(color: Colors.white)),
+                TextButton(
+                  onPressed: () => provider.fetchMyCourses(),
+                  child: Text("Reintentar")
+                )
+              ],
+            ));
           }
 
-          final enrollments = snapshot.data ?? [];
+          final enrollments = provider.myCourses;
 
           if (enrollments.isEmpty) {
             return Center(
@@ -82,9 +94,7 @@ class _MyCoursesScreenState extends State<MyCoursesScreen> {
                         ),
                       ).then((_) {
                         // Refresh on back
-                        setState(() {
-                          _myCoursesFuture = ApiService.getMyCourses();
-                        });
+                        provider.fetchMyCourses();
                       });
                     },
                     child: Padding(

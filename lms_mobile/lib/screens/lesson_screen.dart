@@ -8,15 +8,16 @@ class LessonScreen extends StatefulWidget {
   final String? videoUrl;
 
   const LessonScreen({
-    Key? key, 
+    super.key, 
     required this.lessonId,
     required this.title, 
     this.content, 
     this.videoUrl
-  }) : super(key: key);
+  });
 
   @override
-  _LessonScreenState createState() => _LessonScreenState();
+  @override
+  State<LessonScreen> createState() => _LessonScreenState();
 }
 
 class _LessonScreenState extends State<LessonScreen> {

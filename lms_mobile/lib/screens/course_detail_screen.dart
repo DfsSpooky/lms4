@@ -10,10 +10,10 @@ class CourseDetailScreen extends StatefulWidget {
   final int courseId;
   final String title;
 
-  const CourseDetailScreen({Key? key, required this.courseId, required this.title}) : super(key: key);
+  const CourseDetailScreen({super.key, required this.courseId, required this.title});
 
   @override
-  _CourseDetailScreenState createState() => _CourseDetailScreenState();
+  State<CourseDetailScreen> createState() => _CourseDetailScreenState();
 }
 
 class _CourseDetailScreenState extends State<CourseDetailScreen> {
@@ -43,14 +43,14 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
               Text("Elige un plan", style: GoogleFonts.poppins(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
               SizedBox(height: 20),
               ListTile(
-                title: Text("Pago Completo", style: TextStyle(color: Colors.white)),
-                leading: Icon(Icons.check_circle, color: Colors.greenAccent),
-                onTap: () => _processEnrollment('full'),
-              ),
-              ListTile(
                 title: Text("Pago Mensual", style: TextStyle(color: Colors.white)),
                 leading: Icon(Icons.calendar_today, color: Colors.indigoAccent),
                 onTap: () => _processEnrollment('monthly'),
+              ),
+              ListTile(
+                title: Text("Pago Completo", style: TextStyle(color: Colors.white)),
+                leading: Icon(Icons.check_circle, color: Colors.greenAccent),
+                onTap: () => _processEnrollment('full'),
               ),
             ],
           ),
@@ -63,11 +63,13 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     Navigator.pop(context);
     try {
       await ApiService.enrollInCourse(widget.courseId, plan);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Inscripción realizada. Ahora sube tu voucher.")));
       setState(() {
         _loadCourse();
       });
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error al inscribirse")));
     }
   }
@@ -78,11 +80,13 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
 
     try {
       await ApiService.uploadCourseVoucher(widget.courseId, File(image.path));
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Voucher subido. Espera aprobación.")));
       setState(() {
         _loadCourse();
       });
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error al subir voucher")));
     }
   }
@@ -94,11 +98,13 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       body: FutureBuilder<Map<String, dynamic>>(
         future: _courseFuture,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) 
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
+          }
           
-          if (snapshot.hasError) 
+          if (snapshot.hasError) {
             return Center(child: Text("Error cargando curso", style: GoogleFonts.poppins(color: Colors.white)));
+          }
 
           final courseData = snapshot.data!;
           final modules = courseData['modules'] as List<dynamic>? ?? [];
@@ -172,7 +178,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                               Container(
                                 margin: EdgeInsets.only(bottom: 20),
                                 padding: EdgeInsets.all(15),
-                                decoration: BoxDecoration(color: Colors.orange.withOpacity(0.2), borderRadius: BorderRadius.circular(10)),
+                                decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)),
                                 child: Row(
                                   children: [
                                     Icon(Icons.warning_amber_rounded, color: Colors.orange),
@@ -185,7 +191,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                               Container(
                                 margin: EdgeInsets.only(bottom: 20),
                                 padding: EdgeInsets.all(15),
-                                decoration: BoxDecoration(color: Colors.blue.withOpacity(0.2), borderRadius: BorderRadius.circular(10)),
+                                decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)),
                                 child: Row(
                                   children: [
                                     Icon(Icons.access_time, color: Colors.blue),

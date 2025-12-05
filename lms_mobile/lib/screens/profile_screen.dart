@@ -5,10 +5,14 @@ import '../services/api_service.dart';
 import '../providers/auth_provider.dart';
 import 'notifications_screen.dart';
 import 'installments_screen.dart';
+import 'profile_edit_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
+
   @override
-  _ProfileScreenState createState() => _ProfileScreenState();
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
@@ -78,9 +82,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _buildMenuOption(
                 icon: Icons.edit_outlined,
                 title: "Editar Perfil",
-                onTap: () {
-                  // Implement edit logic if needed or just show snackbar
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Edición no disponible en móvil aún")));
+                onTap: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => ProfileEditScreen(user: _profile!))
+                  );
+                  if (result == true) _loadProfile();
                 },
               ),
               SizedBox(height: 20),
@@ -108,7 +115,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         leading: Container(
           padding: EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: color),
