@@ -18,7 +18,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-pon-tu-clave-aqui')
 # IMPORTANTE: False para producción en Hestia
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'aquienpasco.lat,www.aquienpasco.lat,51.222.156.179,localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'aquienpasco.lat,www.aquienpasco.lat,51.222.156.179,localhost,127.0.0.1,192.168.1.58').split(',')
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://aquienpasco.lat,https://www.aquienpasco.lat').split(',')
 
 # Configuración de seguridad para producción
