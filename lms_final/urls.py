@@ -3,19 +3,11 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views 
-from academy.views import current_user
-from rest_framework.routers import DefaultRouter
-from academy.views import CourseViewSet, ProgressViewSet, current_user
 from django.contrib.auth.views import LogoutView
-
-router = DefaultRouter()
-router.register(r'courses', CourseViewSet)
-router.register(r'progress', ProgressViewSet, basename='progress')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include(router.urls)),
-    path('api/me/', current_user),
+    path('api/', include('academy.api_urls')),
     path('', include('academy.urls')),
     path('tinymce/', include('tinymce.urls')),
     path('accounts/', include('allauth.urls')),
