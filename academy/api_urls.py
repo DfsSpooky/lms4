@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import api, api_auth, api_forum, api_payments
+from .views import api, api_auth, api_forum, api_payments, api_events
 
 router = DefaultRouter()
 router.register(r'courses', api.CourseViewSet)
@@ -8,6 +8,7 @@ router.register(r'progress', api.ProgressViewSet, basename='progress')
 router.register(r'forum', api_forum.ForumViewSet)
 router.register(r'notifications', api.NotificationViewSet, basename='notification')
 router.register(r'installments', api_payments.InstallmentViewSet, basename='installment')
+router.register(r'events', api_events.EventViewSet)
 
 urlpatterns = [
     # Auth

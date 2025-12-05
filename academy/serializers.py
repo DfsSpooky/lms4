@@ -145,3 +145,33 @@ class MyCourseSerializer(serializers.ModelSerializer):
         if total_lessons == 0: return 0
         completed = LessonProgress.objects.filter(user=obj.user, lesson__module__course=obj.course, is_completed=True).count()
         return int((completed / total_lessons) * 100)
+
+# --- EVENTS ---
+class EventSessionSerializer(serializers.ModelSerializer):
+    speaker_name = serializers.CharField(source='speaker.get_full_name', read_only=True)
+
+    class Meta:
+        model = EventSession
+        fields = ['id', 'title', 'description', 'start_time', 'end_time', 'room', 'session_type', 'speaker_name']
+
+class EventSerializer(serializers.ModelSerializer):
+    sessions = EventSessionSerializer(many=True, read_only=True)
+    spots_left = serializers.IntegerField(read_only=True)
+    is_registered = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Event
+        fields = ['id', 'title', 'slug', 'description', 'start_date', 'end_date', 'location', 'capacity', 'price', 'image', 'spots_left', 'sessions', 'is_registered']
+
+    def get_is_registered(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return Ticket.objects.filter(user=request.user, event=obj).exists()
+        return False
+
+class TicketSerializer(serializers.ModelSerializer):
+    event = EventSerializer(read_only=True)
+
+    class Meta:
+        model = Ticket
+        fields = ['id', 'event', 'purchase_date', 'is_used']

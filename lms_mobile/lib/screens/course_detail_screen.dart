@@ -43,14 +43,14 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
               Text("Elige un plan", style: GoogleFonts.poppins(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
               SizedBox(height: 20),
               ListTile(
-                title: Text("Pago Completo", style: TextStyle(color: Colors.white)),
-                leading: Icon(Icons.check_circle, color: Colors.greenAccent),
-                onTap: () => _processEnrollment('full'),
-              ),
-              ListTile(
                 title: Text("Pago Mensual", style: TextStyle(color: Colors.white)),
                 leading: Icon(Icons.calendar_today, color: Colors.indigoAccent),
                 onTap: () => _processEnrollment('monthly'),
+              ),
+              ListTile(
+                title: Text("Pago Completo", style: TextStyle(color: Colors.white)),
+                leading: Icon(Icons.check_circle, color: Colors.greenAccent),
+                onTap: () => _processEnrollment('full'),
               ),
             ],
           ),

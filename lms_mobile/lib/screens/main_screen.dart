@@ -4,6 +4,9 @@ import 'catalog_screen.dart';
 import 'my_courses_screen.dart';
 import 'forum_screen.dart';
 import 'profile_screen.dart';
+import 'events_screen.dart';
+import 'profile_edit_screen.dart';
+import '../services/api_service.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -16,9 +19,36 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = [
     CatalogScreen(),
     MyCoursesScreen(),
+    EventsScreen(),
     ForumScreen(),
     ProfileScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _checkProfileCompletion();
+  }
+
+  void _checkProfileCompletion() async {
+    try {
+      final user = await ApiService.getUserProfile();
+      final profile = user['profile'] ?? {};
+      final dni = profile['dni'];
+      final phone = profile['phone_number'];
+
+      if (dni == null || dni.toString().isEmpty || phone == null || phone.toString().isEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Navigator.push(
+             context,
+             MaterialPageRoute(builder: (_) => ProfileEditScreen(user: user))
+          );
+        });
+      }
+    } catch (e) {
+      // Ignore error, maybe offline
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +79,11 @@ class _MainScreenState extends State<MainScreen> {
               icon: Icon(Icons.school_outlined),
               activeIcon: Icon(Icons.school),
               label: 'Mis Cursos',
+            ),
+             BottomNavigationBarItem(
+              icon: Icon(Icons.calendar_today_outlined),
+              activeIcon: Icon(Icons.calendar_today),
+              label: 'Eventos',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.forum_outlined),
