@@ -1,74 +1,122 @@
 {% extends 'academy/base.html' %}
+{% load static %}
+
+{% block title %}Panel de Organizador - LMS Academy{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Dashboard de Organizador</h1>
-        <a href="{% url 'academy:organizer_event_add' %}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Crear Nuevo Evento
-        </a>
-    </div>
+<div class="min-h-screen bg-[#0B1120] py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden font-sans selection:bg-indigo-500 selection:text-white">
+    
+    <div class="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none animate-pulse"></div>
+    <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-purple-600/5 rounded-full blur-[100px] pointer-events-none"></div>
 
-    {% if events %}
-        <div class="card shadow-sm">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="bg-light">
-                            <tr>
-                                <th class="ps-4">Evento</th>
-                                <th>Fecha</th>
-                                <th>Ubicación</th>
-                                <th>Entradas Vendidas</th>
-                                <th>Estado</th>
-                                <th class="text-end pe-4">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for event in events %}
-                            <tr>
-                                <td class="ps-4">
-                                    <div class="fw-bold">{{ event.title }}</div>
-                                    <small class="text-muted">{{ event.category.name }}</small>
-                                </td>
-                                <td>
-                                    {{ event.start_date|date:"d M Y, H:i" }}
-                                </td>
-                                <td>{{ event.location }}</td>
-                                <td>
-                                    <span class="badge bg-info text-dark">
-                                        {{ event.tickets.count }} / {{ event.capacity }}
-                                    </span>
-                                </td>
-                                <td>
-                                    {% if event.is_active %}
-                                        <span class="badge bg-success">Activo</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary">Inactivo</span>
-                                    {% endif %}
-                                </td>
-                                <td class="text-end pe-4">
-                                    <a href="{% url 'academy:organizer_event_detail' event.pk %}" class="btn btn-sm btn-info me-1" title="Ver Detalles">
-                                        <i class="fas fa-chart-bar"></i>
-                                    </a>
-                                    <a href="{% url 'academy:organizer_event_edit' event.pk %}" class="btn btn-sm btn-warning" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+    <div class="max-w-7xl mx-auto relative z-10">
+        
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+            <div>
+                <h1 class="text-4xl font-black text-white tracking-tight">
+                    Panel de <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Organizador</span>
+                </h1>
+                <p class="text-slate-400 mt-2 text-lg font-light">Gestiona tus eventos, controla el aforo y monitorea tus ventas.</p>
             </div>
+            
+            <a href="{% url 'academy:organizer_event_add' %}" 
+               class="group relative inline-flex items-center justify-center px-8 py-3 font-bold text-white transition-all duration-200 bg-indigo-600 font-lg rounded-xl hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600 hover:shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5">
+                <i class="fas fa-plus mr-2 group-hover:rotate-90 transition-transform"></i>
+                <span>Crear Nuevo Evento</span>
+            </a>
         </div>
-    {% else %}
-        <div class="alert alert-info text-center py-5">
-            <i class="fas fa-calendar-times fa-3x mb-3 text-muted"></i>
-            <h4>No tienes eventos creados aún.</h4>
-            <p>¡Comienza creando tu primer evento para vender entradas!</p>
-            <a href="{% url 'academy:organizer_event_add' %}" class="btn btn-primary mt-2">Crear Evento</a>
-        </div>
-    {% endif %}
+
+        {% if events %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {% for event in events %}
+                <div class="group relative bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-3xl overflow-hidden hover:border-indigo-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1 flex flex-col h-full">
+                    
+                    <div class="relative h-48 overflow-hidden bg-slate-900">
+                        {% if event.image %}
+                            <img src="{{ event.image.url }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-90 group-hover:opacity-100">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center text-slate-600 bg-slate-800">
+                                <i class="fas fa-calendar-alt text-5xl opacity-50"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
+
+                        <div class="absolute top-4 right-4">
+                            {% if event.is_active %}
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 backdrop-blur-md">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Activo
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-500/20 text-slate-400 border border-slate-500/30 backdrop-blur-md">
+                                    Inactivo
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="absolute top-4 left-4 bg-slate-900/90 backdrop-blur border border-slate-700 rounded-xl p-2 text-center min-w-[60px] shadow-lg">
+                            <span class="block text-xs text-indigo-400 font-bold uppercase">{{ event.start_date|date:"M" }}</span>
+                            <span class="block text-xl font-black text-white leading-none">{{ event.start_date|date:"d" }}</span>
+                        </div>
+                    </div>
+
+                    <div class="p-6 flex-1 flex flex-col">
+                        <h3 class="text-xl font-bold text-white mb-2 leading-tight group-hover:text-indigo-400 transition-colors line-clamp-2">
+                            {{ event.title }}
+                        </h3>
+                        
+                        <div class="flex items-center gap-2 text-xs text-slate-400 mb-4">
+                            <i class="fas fa-map-marker-alt text-indigo-500"></i>
+                            <span class="truncate">{{ event.location }}</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mb-6 p-4 bg-slate-900/50 rounded-2xl border border-slate-700/50">
+                            <div class="text-center">
+                                <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Vendidos</p>
+                                <p class="text-lg font-black text-white">{{ event.tickets.count }}</p>
+                            </div>
+                            <div class="text-center border-l border-slate-700/50">
+                                <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Aforo</p>
+                                <p class="text-lg font-black text-slate-300">{{ event.capacity }}</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <div class="flex justify-between text-[10px] uppercase font-bold text-slate-500 mb-1">
+                                <span>Ocupación</span>
+                                <span>{% widthratio event.tickets.count event.capacity 100 %}%</span>
+                            </div>
+                            <div class="w-full bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                                <div class="bg-gradient-to-r from-indigo-500 to-purple-500 h-full rounded-full transition-all duration-1000" 
+                                     style="width: {% widthratio event.tickets.count event.capacity 100 %}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-auto grid grid-cols-2 gap-3">
+                            <a href="{% url 'academy:organizer_event_detail' event.pk %}" class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-sm transition-colors border border-slate-600 hover:border-slate-500">
+                                <i class="fas fa-chart-pie"></i> Detalles
+                            </a>
+                            <a href="{% url 'academy:organizer_event_edit' event.pk %}" class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600/10 hover:bg-indigo-600 text-indigo-400 hover:text-white font-bold text-sm transition-all border border-indigo-500/20 hover:border-indigo-500">
+                                <i class="fas fa-pen"></i> Editar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="col-span-full py-24 text-center">
+                <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-slate-800 border-2 border-slate-700 border-dashed mb-6 relative group cursor-pointer hover:border-indigo-500 transition-colors">
+                    <div class="absolute inset-0 bg-indigo-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <i class="fas fa-calendar-plus text-4xl text-slate-600 group-hover:text-indigo-400 transition-colors relative z-10"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-2">Comienza tu primer evento</h3>
+                <p class="text-slate-400 mb-8 max-w-md mx-auto leading-relaxed">Aún no tienes eventos activos. Crea uno nuevo para empezar a vender entradas y gestionar asistentes.</p>
+                <a href="{% url 'academy:organizer_event_add' %}" class="inline-flex items-center gap-2 px-8 py-3 bg-white text-slate-900 font-bold rounded-xl hover:bg-indigo-50 transition-all transform hover:-translate-y-1 shadow-lg shadow-white/10">
+                    <i class="fas fa-plus"></i> Crear Evento Ahora
+                </a>
+            </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
