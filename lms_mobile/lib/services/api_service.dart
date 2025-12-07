@@ -173,6 +173,21 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> submitQuiz(int quizId, Map<String, dynamic> answers) async {
+    final headers = await getHeaders();
+    final response = await http.post(
+      Uri.parse('$baseUrl/progress/quiz/$quizId/submit/'),
+      headers: headers,
+      body: jsonEncode({'answers': answers}),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Error al enviar examen');
+    }
+  }
+
   // --- FORUM ---
 
   static Future<List<dynamic>> getForumTopics() async {
