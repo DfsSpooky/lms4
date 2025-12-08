@@ -6,6 +6,8 @@ import '../providers/auth_provider.dart';
 import 'notifications_screen.dart';
 import 'installments_screen.dart';
 import 'profile_edit_screen.dart';
+import 'ticket_screen.dart';
+import 'certificates_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -78,6 +80,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: Icons.payment_outlined,
                 title: "Mis Pagos",
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => InstallmentsScreen())),
+              ),
+              _buildMenuOption(
+                icon: Icons.qr_code,
+                title: "Mis Tickets (QR)",
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TicketScreen())),
+              ),
+              _buildMenuOption(
+                icon: Icons.workspace_premium,
+                title: "Mis Certificados",
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CertificatesScreen())),
+              ),
+              _buildMenuOption(
+                icon: Icons.cloud_off,
+                title: "Modo Offline",
+                onTap: () {
+                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Próximamente: Descarga tus cursos.")));
+                },
               ),
               _buildMenuOption(
                 icon: Icons.edit_outlined,
