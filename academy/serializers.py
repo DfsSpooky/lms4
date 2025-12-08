@@ -29,11 +29,11 @@ class UserSerializer(serializers.ModelSerializer):
 
 # --- CONTENIDO ---
 class AnswerSerializer(serializers.ModelSerializer):
-    class Meta: model = Answer; fields = ['id', 'text'] # Ocultamos is_correct
+    class Meta: model = Answer; fields = ['id', 'text', 'match_text'] # Ocultamos is_correct
 
 class QuestionSerializer(serializers.ModelSerializer):
     answers = AnswerSerializer(many=True, read_only=True)
-    class Meta: model = Question; fields = ['id', 'text', 'answers']
+    class Meta: model = Question; fields = ['id', 'text', 'question_type', 'answers']
 
 class QuizSerializer(serializers.ModelSerializer):
     questions = QuestionSerializer(many=True, read_only=True)
