@@ -62,7 +62,7 @@ class InstallmentSerializer(serializers.ModelSerializer):
 
 class LessonSerializer(serializers.ModelSerializer):
     is_completed = serializers.SerializerMethodField()
-    class Meta: model = Lesson; fields = ['id', 'title', 'video_url', 'content', 'order', 'is_completed']
+    class Meta: model = Lesson; fields = ['id', 'title', 'video_url', 'content', 'order', 'is_completed', 'lesson_type']
 
     def get_is_completed(self, obj):
         request = self.context.get('request')
