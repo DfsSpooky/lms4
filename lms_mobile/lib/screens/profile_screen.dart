@@ -6,6 +6,7 @@ import '../providers/auth_provider.dart';
 import 'notifications_screen.dart';
 import 'installments_screen.dart';
 import 'profile_edit_screen.dart';
+import 'my_tickets_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -78,6 +79,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: Icons.payment_outlined,
                 title: "Mis Pagos",
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => InstallmentsScreen())),
+              ),
+              _buildMenuOption(
+                icon: Icons.confirmation_number_outlined,
+                title: "Mis Tickets",
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MyTicketsScreen())),
               ),
               _buildMenuOption(
                 icon: Icons.edit_outlined,

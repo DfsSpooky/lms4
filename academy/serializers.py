@@ -62,13 +62,30 @@ class InstallmentSerializer(serializers.ModelSerializer):
 
 class LessonSerializer(serializers.ModelSerializer):
     is_completed = serializers.SerializerMethodField()
-    class Meta: model = Lesson; fields = ['id', 'title', 'video_url', 'content', 'order', 'is_completed']
+    user_assignment = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Lesson
+        fields = ['id', 'title', 'video_url', 'content', 'order', 'is_completed', 'lesson_type', 'file', 'user_assignment']
 
     def get_is_completed(self, obj):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             return LessonProgress.objects.filter(user=request.user, lesson=obj, is_completed=True).exists()
         return False
+
+    def get_user_assignment(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            progress = LessonProgress.objects.filter(user=request.user, lesson=obj).first()
+            if progress and progress.assignment_file:
+                return {
+                    'file': progress.assignment_file.url,
+                    'score': progress.score,
+                    'feedback': progress.instructor_feedback,
+                    'submitted_at': progress.updated_at
+                }
+        return None
 
 class ModuleSerializer(serializers.ModelSerializer):
     lessons = LessonSerializer(many=True, read_only=True)

@@ -267,6 +267,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                             title: lesson['title'],
                                             content: lesson['content'],
                                             videoUrl: lesson['video_url'],
+                                            lessonType: lesson['lesson_type'],
+                                            fileUrl: lesson['file'],
+                                            userAssignment: lesson['user_assignment'],
                                           ),
                                         ),
                                       ).then((_) {

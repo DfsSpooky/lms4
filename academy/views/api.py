@@ -101,6 +101,27 @@ class ProgressViewSet(viewsets.ViewSet):
         LessonProgress.objects.filter(user=request.user, lesson=lesson).update(is_completed=True)
         return Response({'status': 'ok'})
 
+    @action(detail=False, methods=['post'], url_path='lesson/(?P<lesson_id>[^/.]+)/upload_assignment')
+    def upload_assignment(self, request, lesson_id=None):
+        lesson = get_object_or_404(Lesson, pk=lesson_id)
+
+        # Verify Enrollment
+        if not Enrollment.objects.filter(user=request.user, course=lesson.module.course, status='approved').exists():
+             return Response({'error': 'Acceso denegado'}, status=403)
+
+        if 'file' not in request.FILES:
+            return Response({'error': 'No se envió ningún archivo'}, status=400)
+
+        progress, created = LessonProgress.objects.get_or_create(user=request.user, lesson=lesson)
+        progress.assignment_file = request.FILES['file']
+        progress.is_completed = True # Automatically mark as complete when submitted
+        progress.save()
+
+        return Response({
+            'status': 'uploaded',
+            'file_url': progress.assignment_file.url
+        })
+
     @action(detail=False, methods=['post'], url_path='quiz/(?P<quiz_id>[^/.]+)/submit')
     def submit_quiz(self, request, quiz_id=None):
         quiz = get_object_or_404(Quiz, pk=quiz_id)
