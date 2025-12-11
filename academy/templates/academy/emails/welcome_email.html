@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #f8f9fa; padding: 20px; text-align: center; }
+        .content { padding: 20px; }
+        .footer { text-align: center; font-size: 12px; color: #777; padding: 20px; border-top: 1px solid #eee; }
+        .btn { display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>¡Bienvenido a {{ site_name }}!</h2>
+        </div>
+        <div class="content">
+            <p>Hola {{ user.username }},</p>
+            <p>Gracias por registrarte en nuestra plataforma. Estamos emocionados de tenerte aquí.</p>
+            <p>Ahora puedes acceder a todos nuestros cursos y recursos.</p>
+            <p style="text-align: center; margin-top: 30px;">
+                <a href="{{ site_url }}" class="btn">Ir a la Plataforma</a>
+            </p>
+        </div>
+        <div class="footer">
+            <p>&copy; {{ current_year }} {{ site_name }}. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>

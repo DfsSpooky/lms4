@@ -1,9 +1,38 @@
 from django.db.models.signals import post_save
 from django.contrib.auth.signals import user_logged_in
 from django.dispatch import receiver
-from .models import LessonComment, LessonProgress, Notification, ForumReply, Enrollment, UserSession
+from .models import LessonComment, LessonProgress, Notification, ForumReply, Enrollment, UserSession, Profile
 from django.contrib.sessions.models import Session
 from django.urls import reverse
+from django.conf import settings
+from django.utils import timezone
+from .services.email_service import EmailService
+
+@receiver(post_save, sender=Profile)
+def send_welcome_email(sender, instance, created, **kwargs):
+    """
+    Envía un correo de bienvenida cuando se crea un perfil de usuario.
+    """
+    if created:
+        user = instance.user
+        # Evitar enviar correos a usuarios sin email
+        if user.email:
+            site_name = getattr(settings, 'SITE_NAME', 'LMS Academy')
+            site_url = getattr(settings, 'SITE_URL', 'https://aquienpasco.lat')
+
+            context = {
+                'user': user,
+                'site_name': site_name,
+                'site_url': site_url,
+                'current_year': timezone.now().year
+            }
+
+            EmailService.send_template_email(
+                subject=f'Bienvenido a {site_name}',
+                template_name='academy/emails/welcome_email.html',
+                context=context,
+                recipient_list=[user.email]
+            )
 
 @receiver(user_logged_in)
 def manage_user_sessions(sender, user, request, **kwargs):
