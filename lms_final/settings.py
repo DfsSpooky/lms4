@@ -182,9 +182,19 @@ SOCIALACCOUNT_ADAPTER = 'academy.adapters.MySocialAccountAdapter'
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 
 # --- EMAIL CONFIGURATION (Producción) ---
-# Si no tienes SMTP configurado aún, mantén la consola para evitar errores 500,
-# pero en producción deberías cambiar esto a SMTP.
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Se configura para usar SMTP si las variables de entorno están presentes.
+# De lo contrario, se usa la consola para desarrollo.
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = os.getenv('EMAIL_PORT')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@aquienpasco.lat')
+
+if EMAIL_HOST and EMAIL_HOST_USER:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # --- TINYMCE CONFIGURATION ---
 TINYMCE_DEFAULT_CONFIG = {
