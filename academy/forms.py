@@ -1,8 +1,9 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Profile, Enrollment, Course, LessonComment, LessonProgress, Installment
+from .models import Profile, Enrollment, Course, LessonComment, LessonProgress, Installment, Ticket, TicketTier, Event
 from .forms_content import *
+from django.forms import inlineformset_factory
 from tinymce.widgets import TinyMCE
 
 class SignUpForm(UserCreationForm):
@@ -123,6 +124,43 @@ class InstallmentVoucherForm(forms.ModelForm):
                 'accept': 'image/*'
             }),
         }
+
+class TicketVoucherForm(forms.ModelForm):
+    class Meta:
+        model = Ticket
+        fields = ['voucher_image']
+        widgets = {
+             'voucher_image': forms.FileInput(attrs={
+                'class': 'w-full bg-slate-900/50 border border-slate-600 rounded-xl px-4 py-3 text-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 transition-all cursor-pointer',
+                'accept': 'image/*'
+            }),
+        }
+
+class TicketAssignForm(forms.ModelForm):
+    class Meta:
+        model = Ticket
+        fields = ['attendee_first_name', 'attendee_last_name', 'attendee_email']
+        widgets = {
+            'attendee_first_name': forms.TextInput(attrs={'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500', 'placeholder': 'Nombre del Asistente'}),
+            'attendee_last_name': forms.TextInput(attrs={'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500', 'placeholder': 'Apellido del Asistente'}),
+            'attendee_email': forms.EmailInput(attrs={'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500', 'placeholder': 'correo@ejemplo.com'}),
+        }
+
+class TicketTierForm(forms.ModelForm):
+    class Meta:
+        model = TicketTier
+        fields = ['name', 'price', 'capacity', 'description']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white', 'placeholder': 'Ej: VIP'}),
+            'price': forms.NumberInput(attrs={'class': 'w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white', 'placeholder': '0.00'}),
+            'capacity': forms.NumberInput(attrs={'class': 'w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white', 'placeholder': '100'}),
+            'description': forms.Textarea(attrs={'class': 'w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white', 'rows': 2, 'placeholder': 'Descripción...'})
+        }
+
+TicketTierFormSet = inlineformset_factory(
+    Event, TicketTier, form=TicketTierForm,
+    extra=1, can_delete=True
+)
 
 class CourseForm(forms.ModelForm):
     # --- CAMPOS PERSONALIZADOS CON WIDGETS CORREGIDOS ---

@@ -5,8 +5,11 @@ from django.views import generic
 from django.contrib import messages
 from django.http import JsonResponse
 from django.utils.text import slugify
+from django.conf import settings
 import json
 import random
+import os
+import openai
 from ..models import Course, Module, Lesson, Quiz, Question, Answer
 
 class TeacherRequiredMixin(UserPassesTestMixin):
@@ -24,94 +27,161 @@ class AICourseGeneratorView(LoginRequiredMixin, TeacherRequiredMixin, generic.Te
             messages.error(request, "Por favor ingresa un tema para el curso.")
             return redirect('academy:ai_course_generator')
 
-        # --- MOCK AI SERVICE ---
-        # In a real scenario, this would call OpenAI/Gemini API
-        course = self.generate_mock_course(topic, level, request.user)
+        try:
+            # Check for API Key
+            api_key = os.getenv('OPENAI_API_KEY')
+            if not api_key:
+                # Fallback to Mock if no key (for demo/dev without keys)
+                messages.warning(request, "API Key no encontrada. Usando modo simulación.")
+                course = self.generate_mock_course(topic, level, request.user)
+            else:
+                course = self.generate_ai_course(topic, level, request.user, api_key)
+
+            messages.success(request, f"¡Curso '{course.title}' generado exitosamente con IA!")
+            return redirect('academy:course_content', slug=course.slug)
+
+        except Exception as e:
+            print(f"Error generating course: {e}")
+            messages.error(request, f"Error al generar el curso: {str(e)}")
+            return redirect('academy:ai_course_generator')
+
+    def generate_ai_course(self, topic, level, user, api_key):
+        client = openai.OpenAI(api_key=api_key)
+
+        prompt = f"""
+        Act as an expert curriculum designer. Create a detailed course structure for "{topic}" (Level: {level}).
+        Return ONLY valid JSON with this structure:
+        {{
+            "title": "Engaging Course Title",
+            "description": "Comprehensive course description (html allowed)",
+            "short_description": "Short summary (max 300 chars)",
+            "modules": [
+                {{
+                    "title": "Module Title",
+                    "lessons": [
+                        {{
+                            "title": "Lesson Title",
+                            "type": "article",
+                            "content": "Detailed educational content in HTML format. At least 3 paragraphs.",
+                            "duration": 10
+                        }}
+                    ]
+                }}
+            ],
+            "quiz": {{
+                "title": "Final Exam Title",
+                "questions": [
+                    {{
+                        "text": "Question text?",
+                        "type": "single_choice",
+                        "answers": [
+                            {{"text": "Option A", "correct": true}},
+                            {{"text": "Option B", "correct": false}}
+                        ]
+                    }}
+                ]
+            }}
+        }}
+        Ensure the course has at least 3 modules, 3 lessons per module, and 5 quiz questions.
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-4o", # Or gpt-3.5-turbo
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"}
+        )
+
+        data = json.loads(response.choices[0].message.content)
         
-        messages.success(request, f"¡Curso '{course.title}' generado exitosamente con IA!")
-        return redirect('academy:course_content', slug=course.slug)
+        return self._create_db_objects(data, user, level)
 
     def generate_mock_course(self, topic, level, user):
-        """
-        Simulates AI generation logic.
-        Creates a Course structure with Modules, Lessons, and a Quiz.
-        """
-        
-        # 1. Create Course
+        """Fallback mock generator"""
+        # ... (Existing mock logic, re-implemented here or we can just reuse the previous structure logic if we wanted to keep it DRY, but for now I'll just keep the mock logic simple for fallback)
         titles = [
-            f"Mastering {topic}: From Zero to Hero",
-            f"{topic} Fundamentals",
-            f"Advanced {topic} Strategies",
-            f"The Complete {topic} Bootcamp"
+            f"Mastering {topic}: From Zero to Hero (Mock)",
+            f"{topic} Fundamentals (Mock)",
         ]
-        
         course_title = random.choice(titles)
-        slug = slugify(course_title)
         
-        # Unique slug check
+        data = {
+            "title": course_title,
+            "description": f"Mock course about {topic}.",
+            "short_description": f"Learn {topic} fast.",
+            "modules": [
+                {
+                    "title": "Intro (Mock)",
+                    "lessons": [
+                        {"title": "Lesson 1", "type": "article", "content": "<p>Mock Content</p>", "duration": 10},
+                        {"title": "Lesson 2", "type": "video", "content": "<p>Watch this</p>", "duration": 5},
+                    ]
+                }
+            ],
+            "quiz": {
+                "title": f"Exam {topic}",
+                "questions": [
+                    {
+                        "text": "Is this a mock?",
+                        "type": "true_false",
+                        "answers": [{"text": "True", "correct": True}, {"text": "False", "correct": False}]
+                    }
+                ]
+            }
+        }
+        return self._create_db_objects(data, user, level)
+
+    def _create_db_objects(self, data, user, level):
+        slug = slugify(data['title'])
         if Course.objects.filter(slug=slug).exists():
             slug = f"{slug}-{random.randint(100, 999)}"
 
         course = Course.objects.create(
-            title=course_title,
+            title=data['title'],
             slug=slug,
-            description=f"Un curso completo generado automáticamente sobre {topic}. Aprenderás los fundamentos y técnicas avanzadas.",
-            short_description=f"Aprende {topic} de manera rápida y efectiva.",
+            description=data['description'],
+            short_description=data['short_description'],
             level=level,
             instructor=user,
-            status='draft', # Start as draft for review
+            status='draft',
             price=29.99
         )
 
-        # 2. Create Modules & Lessons
-        modules_structure = [
-            ("Introducción", ["¿Qué es esto?", "Historia y Contexto", "Configuración Inicial"]),
-            ("Conceptos Clave", ["Fundamentos Teóricos", "Mejores Prácticas", "Errores Comunes"]),
-            ("Aplicación Práctica", ["Caso de Uso Real", "Ejercicio Paso a Paso", "Proyecto Final"]),
-            ("Conclusión", ["Próximos Pasos", "Recursos Adicionales"])
-        ]
-
-        for i, (mod_title, lessons) in enumerate(modules_structure, 1):
-            module = Module.objects.create(course=course, title=f"{mod_title}: {topic}", order=i)
-            
-            for j, lesson_title in enumerate(lessons, 1):
-                lesson_type = 'video' if j % 2 != 0 else 'article' # Alternate types
+        for i, mod_data in enumerate(data.get('modules', []), 1):
+            module = Module.objects.create(course=course, title=mod_data['title'], order=i)
+            for j, lesson_data in enumerate(mod_data.get('lessons', []), 1):
                 Lesson.objects.create(
                     module=module,
-                    title=lesson_title,
+                    title=lesson_data['title'],
                     order=j,
-                    lesson_type=lesson_type,
-                    content=f"<p>Contenido generado automáticamente para la lección: <strong>{lesson_title}</strong>.</p><p>Aquí la IA explicaría detalladamente {topic}.</p>",
-                    duration=random.randint(5, 20)
+                    lesson_type=lesson_data.get('type', 'article'),
+                    content=lesson_data.get('content', ''),
+                    duration=lesson_data.get('duration', 10)
                 )
 
-        # 3. Create a Quiz
-        final_module = Module.objects.create(course=course, title="Evaluación Final", order=5)
-        quiz = Quiz.objects.create(
-            module=final_module,
-            title=f"Examen de {topic}",
-            description="Demuestra lo que has aprendido.",
-            pass_mark=70,
-            duration=30
-        )
+        if 'quiz' in data:
+            q_data = data['quiz']
+            final_module = Module.objects.create(course=course, title="Evaluación Final", order=99)
+            quiz = Quiz.objects.create(
+                module=final_module,
+                title=q_data['title'],
+                description="Examen generado por IA",
+                pass_mark=70,
+                duration=30
+            )
 
-        # Add mock questions
-        q1 = Question.objects.create(
-            quiz=quiz, 
-            text=f"¿Cuál es el principal beneficio de {topic}?", 
-            question_type='single_choice',
-            points=10
-        )
-        Answer.objects.create(question=q1, text="Mayor eficiencia", is_correct=True)
-        Answer.objects.create(question=q1, text="Más complejidad", is_correct=False)
-        
-        q2 = Question.objects.create(
-            quiz=quiz,
-            text=f"Es {topic} una tecnología obsoleta?",
-            question_type='true_false',
-            points=10
-        )
-        Answer.objects.create(question=q2, text="Falso", is_correct=True)
-        Answer.objects.create(question=q2, text="Verdadero", is_correct=False)
+            for k, quest in enumerate(q_data.get('questions', []), 1):
+                q = Question.objects.create(
+                    quiz=quiz,
+                    text=quest['text'],
+                    question_type=quest.get('type', 'single_choice'),
+                    points=10,
+                    order=k
+                )
+                for ans in quest.get('answers', []):
+                    Answer.objects.create(
+                        question=q,
+                        text=ans['text'],
+                        is_correct=ans['correct']
+                    )
 
         return course

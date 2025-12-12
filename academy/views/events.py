@@ -3,9 +3,14 @@ from django.views.generic import TemplateView, ListView, DetailView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.urls import reverse
-from ..models import Event, Ticket, ServiceRequest
+from ..models import Event, Ticket, ServiceRequest, TicketTier
 from django.utils import timezone
 from django.http import HttpResponseBadRequest
+from ..forms import TicketVoucherForm, TicketAssignForm
+from django.http import HttpResponse
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.units import inch
 
 class EnterpriseLandingView(TemplateView):
     template_name = 'academy/enterprise.html'
@@ -54,21 +59,62 @@ class EventDetailView(DetailView):
 class EventRegistrationView(LoginRequiredMixin, View):
     def post(self, request, pk):
         event = get_object_or_404(Event, pk=pk)
+        tier_id = request.POST.get('tier_id')
 
-        # Check availability
-        if event.spots_left <= 0:
-            messages.error(request, "Lo sentimos, este evento ya no tiene cupos disponibles.")
-            return redirect('academy:event_detail', slug=event.slug)
+        tier = None
+        price = event.price
 
-        # Check existing ticket
-        if Ticket.objects.filter(user=request.user, event=event).exists():
-            messages.info(request, "Ya estás registrado en este evento.")
-            return redirect('academy:event_detail', slug=event.slug)
+        # Check specific tier availability if selected
+        if tier_id:
+            tier = get_object_or_404(TicketTier, id=tier_id, event=event)
+            if tier.remaining <= 0:
+                messages.error(request, "Lo sentimos, ese tipo de entrada está agotado.")
+                return redirect('academy:event_detail', slug=event.slug)
+            price = tier.price
+        else:
+            # General availability check
+            if event.spots_left <= 0:
+                messages.error(request, "Lo sentimos, este evento ya no tiene cupos disponibles.")
+                return redirect('academy:event_detail', slug=event.slug)
+
+        # Set status based on price
+        initial_status = 'approved' if price == 0 else 'pending'
 
         # Create ticket
-        ticket = Ticket.objects.create(user=request.user, event=event)
-        messages.success(request, "¡Registro exitoso! Aquí está tu entrada.")
-        return redirect('academy:ticket_detail', ticket_id=ticket.id)
+        ticket = Ticket.objects.create(user=request.user, event=event, status=initial_status, tier=tier)
+
+        if ticket.status == 'approved':
+            messages.success(request, "¡Registro exitoso! Aquí está tu entrada.")
+            return redirect('academy:ticket_detail', ticket_id=ticket.id)
+        else:
+            messages.info(request, "Reserva creada. Por favor sube tu comprobante de pago.")
+            return redirect('academy:ticket_payment', ticket_id=ticket.id)
+
+class TicketPaymentView(LoginRequiredMixin, View):
+    def get(self, request, ticket_id):
+        ticket = get_object_or_404(Ticket, id=ticket_id, user=request.user)
+        if ticket.status == 'approved':
+             messages.info(request, "Este ticket ya está pagado.")
+             return redirect('academy:ticket_detail', ticket_id=ticket.id)
+
+        form = TicketVoucherForm()
+        return render(request, 'academy/ticket_payment.html', {'ticket': ticket, 'form': form})
+
+    def post(self, request, ticket_id):
+        ticket = get_object_or_404(Ticket, id=ticket_id, user=request.user)
+        if ticket.status == 'approved':
+             return redirect('academy:ticket_detail', ticket_id=ticket.id)
+
+        form = TicketVoucherForm(request.POST, request.FILES, instance=ticket)
+        if form.is_valid():
+            t = form.save(commit=False)
+            t.status = 'review'
+            t.save()
+            messages.success(request, "Comprobante subido. Tu ticket está en revisión.")
+            return redirect('academy:ticket_detail', ticket_id=ticket.id)
+
+        messages.error(request, "Error al subir el comprobante. Por favor intenta de nuevo.")
+        return render(request, 'academy/ticket_payment.html', {'ticket': ticket, 'form': form})
 
 class TicketDetailView(LoginRequiredMixin, DetailView):
     model = Ticket
@@ -77,7 +123,81 @@ class TicketDetailView(LoginRequiredMixin, DetailView):
     pk_url_kwarg = 'ticket_id'
 
     def get_queryset(self):
-        # Allow users to see their own tickets, or staff to see any ticket
         if self.request.user.is_staff:
             return Ticket.objects.all()
         return Ticket.objects.filter(user=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['assign_form'] = TicketAssignForm(instance=self.object)
+        return ctx
+
+class TicketAssignView(LoginRequiredMixin, View):
+    def post(self, request, ticket_id):
+        ticket = get_object_or_404(Ticket, id=ticket_id, user=request.user)
+
+        if ticket.is_used:
+            messages.error(request, "No puedes reasignar un ticket que ya ha sido usado.")
+            return redirect('academy:ticket_detail', ticket_id=ticket.id)
+
+        form = TicketAssignForm(request.POST, instance=ticket)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Datos del asistente actualizados.")
+        else:
+            messages.error(request, "Error al actualizar datos. Verifica los campos.")
+
+        return redirect('academy:ticket_detail', ticket_id=ticket.id)
+
+class EventCertificateView(LoginRequiredMixin, View):
+    def get(self, request, ticket_id):
+        ticket = get_object_or_404(Ticket, id=ticket_id, user=request.user)
+
+        if not ticket.is_used:
+            messages.error(request, "Debes asistir al evento para obtener el certificado.")
+            return redirect('academy:ticket_detail', ticket_id=ticket.id)
+
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="certificado_{ticket.event.id}.pdf"'
+
+        # Generate PDF
+        p = canvas.Canvas(response, pagesize=letter)
+        width, height = letter
+
+        # Draw Background/Border
+        p.setStrokeColorRGB(0.2, 0.2, 0.6)
+        p.setLineWidth(5)
+        p.rect(0.5*inch, 0.5*inch, width-1*inch, height-1*inch)
+
+        # Title
+        p.setFont("Helvetica-Bold", 30)
+        p.drawCentredString(width/2, height - 3*inch, "CERTIFICADO DE ASISTENCIA")
+
+        # Body
+        p.setFont("Helvetica", 14)
+        p.drawCentredString(width/2, height - 4*inch, "Se otorga el presente certificado a:")
+
+        # Name
+        attendee_name = f"{ticket.attendee_first_name} {ticket.attendee_last_name}".strip() or ticket.user.get_full_name()
+        p.setFont("Helvetica-Bold", 24)
+        p.drawCentredString(width/2, height - 5*inch, attendee_name.upper())
+
+        # Event Details
+        p.setFont("Helvetica", 14)
+        p.drawCentredString(width/2, height - 6*inch, f"Por su participación en el evento:")
+
+        p.setFont("Helvetica-Bold", 20)
+        p.drawCentredString(width/2, height - 7*inch, ticket.event.title)
+
+        # Date
+        p.setFont("Helvetica", 12)
+        date_str = ticket.event.start_date.strftime("%d de %B de %Y")
+        p.drawCentredString(width/2, height - 8*inch, f"Realizado el {date_str}")
+
+        # Footer
+        p.setFont("Helvetica-Oblique", 10)
+        p.drawCentredString(width/2, 1*inch, "LMS Academy - Certificado Oficial")
+
+        p.showPage()
+        p.save()
+        return response

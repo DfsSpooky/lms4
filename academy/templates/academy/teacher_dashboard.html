@@ -44,7 +44,17 @@
                 </div>
                 <div>
                     <p class="text-2xl font-black text-white leading-none">{{ total_students_unique }}</p>
-                    <p class="text-xs text-slate-400 uppercase font-bold tracking-wider mt-1">Alumnos Totales</p>
+                    <p class="text-xs text-slate-400 uppercase font-bold tracking-wider mt-1">Alumnos Únicos</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/50 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400">
+                    <i class="fas fa-book-open text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-2xl font-black text-white leading-none">{{ total_enrollments|default:0 }}</p>
+                    <p class="text-xs text-slate-400 uppercase font-bold tracking-wider mt-1">Inscripciones Totales</p>
                 </div>
             </div>
 

@@ -1,6 +1,7 @@
 from django.urls import path, include
 from . import views
 from . import views_organizer
+from .views import calendar
 
 app_name = 'academy'
 
@@ -10,6 +11,7 @@ urlpatterns = [
     path('organizer/event/add/', views_organizer.OrganizerEventCreateView.as_view(), name='organizer_event_add'),
     path('organizer/event/<int:pk>/edit/', views_organizer.OrganizerEventUpdateView.as_view(), name='organizer_event_edit'),
     path('organizer/event/<int:pk>/detail/', views_organizer.OrganizerEventDetailView.as_view(), name='organizer_event_detail'),
+    path('organizer/event/<int:event_id>/checkin/', views_organizer.OrganizerTicketCheckInView.as_view(), name='organizer_event_checkin'),
 
     path('', views.CourseListView.as_view(), name='course_list'),
     path('search/', views.GlobalSearchView.as_view(), name='global_search'),
@@ -124,4 +126,8 @@ urlpatterns = [
     path('events/<slug:slug>/', views.EventDetailView.as_view(), name='event_detail'),
     path('events/<int:pk>/register/', views.EventRegistrationView.as_view(), name='event_register'),
     path('ticket/<uuid:ticket_id>/', views.TicketDetailView.as_view(), name='ticket_detail'),
+    path('ticket/<uuid:ticket_id>/payment/', views.TicketPaymentView.as_view(), name='ticket_payment'),
+    path('ticket/<uuid:ticket_id>/ics/', calendar.DownloadICSView.as_view(), name='ticket_ics'),
+    path('ticket/<uuid:ticket_id>/assign/', views.TicketAssignView.as_view(), name='ticket_assign'),
+    path('ticket/<uuid:ticket_id>/certificate/', views.EventCertificateView.as_view(), name='ticket_certificate'),
 ]

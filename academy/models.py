@@ -475,11 +475,40 @@ class EventSession(models.Model):
     class Meta: ordering = ['start_time']; verbose_name = "Sesión de Agenda"; verbose_name_plural = "Agenda del Evento"
     def __str__(self): return f"{self.title} ({self.start_time.strftime('%H:%M')})"
 
+class TicketTier(models.Model):
+    event = models.ForeignKey(Event, related_name='tiers', on_delete=models.CASCADE)
+    name = models.CharField(max_length=100, verbose_name="Nombre del Tipo (ej: VIP)")
+    description = models.TextField(blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Precio")
+    capacity = models.PositiveIntegerField(default=100, verbose_name="Cantidad Disponible")
+
+    def __str__(self): return f"{self.name} - {self.event.title}"
+
+    @property
+    def sold_count(self):
+        return self.tickets.count()
+
+    @property
+    def remaining(self):
+        return max(0, self.capacity - self.sold_count)
+
 class Ticket(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tickets')
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='tickets')
+    tier = models.ForeignKey(TicketTier, on_delete=models.PROTECT, null=True, blank=True, related_name='tickets')
     purchase_date = models.DateTimeField(auto_now_add=True)
     is_used = models.BooleanField(default=False, verbose_name="Usado / Asistió")
-    class Meta: unique_together = ('user', 'event')
+
+    # Campos para pago (similar a Enrollment)
+    STATUS_CHOICES = [('pending', 'Pendiente de Pago'), ('review', 'En Revisión'), ('approved', 'Aprobado'), ('rejected', 'Rechazado')]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='approved') # Default approved for backward compatibility/free events
+    voucher_image = models.ImageField(upload_to='vouchers/tickets/', blank=True, null=True, verbose_name="Constancia de Pago")
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Monto Pagado")
+
+    # Attendee Details (Assignment)
+    attendee_first_name = models.CharField(max_length=150, blank=True, verbose_name="Nombre Asistente")
+    attendee_last_name = models.CharField(max_length=150, blank=True, verbose_name="Apellido Asistente")
+    attendee_email = models.EmailField(blank=True, verbose_name="Email Asistente")
+
     def __str__(self): return f"Ticket {self.id} - {self.user.username}"
