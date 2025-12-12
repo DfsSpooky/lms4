@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.views import View
 from django.utils import timezone
 from .models import Event, Ticket, Profile
-from .forms import TicketTierFormSet
+from .forms import TicketTierFormSet, EventSessionFormSet
 
 # --- MIXINS ---
 
@@ -46,19 +46,24 @@ class OrganizerEventCreateView(OrganizerRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         if self.request.POST:
             context['tiers'] = TicketTierFormSet(self.request.POST)
+            context['sessions'] = EventSessionFormSet(self.request.POST)
         else:
             context['tiers'] = TicketTierFormSet()
+            context['sessions'] = EventSessionFormSet()
         return context
 
     def form_valid(self, form):
         context = self.get_context_data()
         tiers = context['tiers']
+        sessions = context['sessions']
         form.instance.organizer = self.request.user
 
-        if form.is_valid() and tiers.is_valid():
+        if form.is_valid() and tiers.is_valid() and sessions.is_valid():
             self.object = form.save()
             tiers.instance = self.object
             tiers.save()
+            sessions.instance = self.object
+            sessions.save()
             messages.success(self.request, "Evento creado exitosamente.")
             return redirect(self.success_url)
         else:
@@ -78,17 +83,21 @@ class OrganizerEventUpdateView(OrganizerRequiredMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         if self.request.POST:
             context['tiers'] = TicketTierFormSet(self.request.POST, instance=self.object)
+            context['sessions'] = EventSessionFormSet(self.request.POST, instance=self.object)
         else:
             context['tiers'] = TicketTierFormSet(instance=self.object)
+            context['sessions'] = EventSessionFormSet(instance=self.object)
         return context
 
     def form_valid(self, form):
         context = self.get_context_data()
         tiers = context['tiers']
+        sessions = context['sessions']
 
-        if form.is_valid() and tiers.is_valid():
+        if form.is_valid() and tiers.is_valid() and sessions.is_valid():
             self.object = form.save()
             tiers.save()
+            sessions.save()
             messages.success(self.request, "Evento actualizado exitosamente.")
             return redirect(self.success_url)
         else:

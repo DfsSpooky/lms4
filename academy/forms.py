@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Profile, Enrollment, Course, LessonComment, LessonProgress, Installment, Ticket, TicketTier, Event
+from .models import Profile, Enrollment, Course, LessonComment, LessonProgress, Installment, Ticket, TicketTier, Event, EventSession
 from .forms_content import *
 from django.forms import inlineformset_factory
 from tinymce.widgets import TinyMCE
@@ -159,6 +159,45 @@ class TicketTierForm(forms.ModelForm):
 
 TicketTierFormSet = inlineformset_factory(
     Event, TicketTier, form=TicketTierForm,
+    extra=1, can_delete=True
+)
+
+class EventSessionForm(forms.ModelForm):
+    # Campos DateTime con widgets HTML5 personalizados
+    start_time = forms.DateTimeField(
+        widget=forms.DateTimeInput(
+            attrs={
+                'class': 'w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white',
+                'type': 'datetime-local'
+            },
+            format='%Y-%m-%dT%H:%M'
+        ),
+        input_formats=['%Y-%m-%dT%H:%M']
+    )
+    end_time = forms.DateTimeField(
+        widget=forms.DateTimeInput(
+            attrs={
+                'class': 'w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white',
+                'type': 'datetime-local'
+            },
+            format='%Y-%m-%dT%H:%M'
+        ),
+        input_formats=['%Y-%m-%dT%H:%M']
+    )
+
+    class Meta:
+        model = EventSession
+        fields = ['title', 'start_time', 'end_time', 'session_type', 'room', 'description', 'speaker']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white', 'placeholder': 'Título de la sesión'}),
+            'session_type': forms.Select(attrs={'class': 'w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white'}),
+            'room': forms.TextInput(attrs={'class': 'w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white', 'placeholder': 'Sala / Ambiente'}),
+            'description': forms.Textarea(attrs={'class': 'w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white', 'rows': 2, 'placeholder': 'Descripción...'}),
+            'speaker': forms.Select(attrs={'class': 'w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white'})
+        }
+
+EventSessionFormSet = inlineformset_factory(
+    Event, EventSession, form=EventSessionForm,
     extra=1, can_delete=True
 )
 
