@@ -10,6 +10,7 @@ urlpatterns = [
     path('organizer/event/add/', views_organizer.OrganizerEventCreateView.as_view(), name='organizer_event_add'),
     path('organizer/event/<int:pk>/edit/', views_organizer.OrganizerEventUpdateView.as_view(), name='organizer_event_edit'),
     path('organizer/event/<int:pk>/detail/', views_organizer.OrganizerEventDetailView.as_view(), name='organizer_event_detail'),
+    path('organizer/event/<int:event_id>/checkin/', views_organizer.OrganizerTicketCheckInView.as_view(), name='organizer_event_checkin'),
 
     path('', views.CourseListView.as_view(), name='course_list'),
     path('search/', views.GlobalSearchView.as_view(), name='global_search'),
