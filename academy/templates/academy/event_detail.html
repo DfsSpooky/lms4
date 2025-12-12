@@ -187,33 +187,56 @@
                         </div>
 
                         {% if user.is_authenticated %}
-                            {% if user_ticket %}
-                                <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-center mb-4">
-                                    <div class="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-white mx-auto mb-2 shadow-lg shadow-emerald-500/20">
-                                        <i class="fas fa-check text-xl"></i>
+                            <!-- Formulario de Registro con Tiers -->
+                            <form action="{% url 'academy:event_register' pk=event.pk %}" method="post">
+                                {% csrf_token %}
+
+                                {% if event.tiers.exists %}
+                                    <div class="space-y-3 mb-6">
+                                        <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">Selecciona tu entrada</p>
+                                        {% for tier in event.tiers.all %}
+                                            <label class="relative flex items-center p-4 rounded-xl border border-slate-700 cursor-pointer bg-slate-900/50 hover:bg-indigo-600/10 hover:border-indigo-500/50 transition-all group/tier select-none">
+                                                <input type="radio" name="tier_id" value="{{ tier.id }}" required class="peer sr-only" {% if tier.remaining == 0 %}disabled{% endif %}>
+
+                                                <div class="w-5 h-5 rounded-full border-2 border-slate-500 peer-checked:border-indigo-500 peer-checked:bg-indigo-500 transition-all mr-4 flex items-center justify-center bg-slate-800 shadow-sm peer-disabled:opacity-50">
+                                                    <div class="w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100 transition-all transform scale-0 peer-checked:scale-100"></div>
+                                                </div>
+
+                                                <div class="flex-1 opacity-100 peer-disabled:opacity-50">
+                                                    <div class="flex justify-between items-center mb-1">
+                                                        <span class="text-white font-bold">{{ tier.name }}</span>
+                                                        <span class="text-emerald-400 font-mono font-bold">
+                                                            {% if tier.price > 0 %}S/ {{ tier.price|floatformat:0 }}{% else %}Gratis{% endif %}
+                                                        </span>
+                                                    </div>
+                                                    <p class="text-xs text-slate-500">{{ tier.description|truncatechars:60 }}</p>
+                                                </div>
+
+                                                <!-- Border Highlight -->
+                                                <div class="absolute inset-0 rounded-xl border-2 border-transparent peer-checked:border-indigo-500 pointer-events-none transition-all"></div>
+
+                                                {% if tier.remaining == 0 %}
+                                                    <div class="absolute inset-0 bg-slate-900/80 rounded-xl flex items-center justify-center backdrop-blur-[1px]">
+                                                        <span class="text-red-400 font-black text-xs uppercase tracking-widest transform -rotate-12 border-2 border-red-500 px-2 py-1 rounded">Agotado</span>
+                                                    </div>
+                                                {% endif %}
+                                            </label>
+                                        {% endfor %}
                                     </div>
-                                    <h3 class="text-white font-bold mb-1">¡Ya estás registrado!</h3>
-                                    <p class="text-emerald-400 text-xs mb-3">Tienes tu entrada asegurada.</p>
-                                    <a href="{% url 'academy:ticket_detail' ticket_id=user_ticket.id %}" class="block w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-sm transition-colors shadow-lg">
-                                        <i class="fas fa-ticket-alt mr-2"></i> Ver mi Ticket
-                                    </a>
-                                </div>
-                            {% else %}
+                                {% endif %}
+
                                 {% if event.spots_left > 0 %}
-                                    <form action="{% url 'academy:event_register' pk=event.pk %}" method="post">
-                                        {% csrf_token %}
-                                        <button type="submit" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-lg shadow-lg shadow-indigo-500/25 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2 group">
-                                            <span>Registrarme Ahora</span>
-                                            <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
-                                        </button>
-                                    </form>
+                                    <button type="submit" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-lg shadow-lg shadow-indigo-500/25 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2 group">
+                                        <span>Registrarme Ahora</span>
+                                        <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                                    </button>
                                     <p class="text-center text-[10px] text-slate-500 mt-3">Al registrarte aceptas nuestros términos y condiciones.</p>
                                 {% else %}
                                     <button disabled class="w-full py-4 bg-slate-700 text-slate-400 rounded-xl font-bold text-lg cursor-not-allowed border border-slate-600">
-                                        Agotado
+                                        Evento Agotado
                                     </button>
                                 {% endif %}
-                            {% endif %}
+                            </form>
                         {% else %}
                             <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-700 text-center">
                                 <p class="text-slate-300 text-sm mb-3">Inicia sesión para registrarte en este evento.</p>

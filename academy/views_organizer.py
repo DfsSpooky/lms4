@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.views import View
 from django.utils import timezone
 from .models import Event, Ticket, Profile
+from .forms import TicketTierFormSet
 
 # --- MIXINS ---
 
@@ -41,11 +42,27 @@ class OrganizerEventCreateView(OrganizerRequiredMixin, CreateView):
     fields = ['title', 'description', 'start_date', 'end_date', 'location', 'capacity', 'price', 'image', 'is_active']
     success_url = reverse_lazy('academy:organizer_dashboard')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['tiers'] = TicketTierFormSet(self.request.POST)
+        else:
+            context['tiers'] = TicketTierFormSet()
+        return context
+
     def form_valid(self, form):
-        # ASSIGNMENT: Automatically set the organizer to the current user
+        context = self.get_context_data()
+        tiers = context['tiers']
         form.instance.organizer = self.request.user
-        messages.success(self.request, "Evento creado exitosamente.")
-        return super().form_valid(form)
+
+        if form.is_valid() and tiers.is_valid():
+            self.object = form.save()
+            tiers.instance = self.object
+            tiers.save()
+            messages.success(self.request, "Evento creado exitosamente.")
+            return redirect(self.success_url)
+        else:
+            return self.render_to_response(self.get_context_data(form=form))
 
 class OrganizerEventUpdateView(OrganizerRequiredMixin, UpdateView):
     model = Event
@@ -57,9 +74,25 @@ class OrganizerEventUpdateView(OrganizerRequiredMixin, UpdateView):
         # ISOLATION: Ensure user can only edit their own events
         return Event.objects.filter(organizer=self.request.user)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['tiers'] = TicketTierFormSet(self.request.POST, instance=self.object)
+        else:
+            context['tiers'] = TicketTierFormSet(instance=self.object)
+        return context
+
     def form_valid(self, form):
-        messages.success(self.request, "Evento actualizado exitosamente.")
-        return super().form_valid(form)
+        context = self.get_context_data()
+        tiers = context['tiers']
+
+        if form.is_valid() and tiers.is_valid():
+            self.object = form.save()
+            tiers.save()
+            messages.success(self.request, "Evento actualizado exitosamente.")
+            return redirect(self.success_url)
+        else:
+            return self.render_to_response(self.get_context_data(form=form))
 
 class OrganizerEventDetailView(OrganizerRequiredMixin, DetailView):
     model = Event

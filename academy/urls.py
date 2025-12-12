@@ -1,6 +1,7 @@
 from django.urls import path, include
 from . import views
 from . import views_organizer
+from .views import calendar
 
 app_name = 'academy'
 
@@ -126,4 +127,5 @@ urlpatterns = [
     path('events/<int:pk>/register/', views.EventRegistrationView.as_view(), name='event_register'),
     path('ticket/<uuid:ticket_id>/', views.TicketDetailView.as_view(), name='ticket_detail'),
     path('ticket/<uuid:ticket_id>/payment/', views.TicketPaymentView.as_view(), name='ticket_payment'),
+    path('ticket/<uuid:ticket_id>/ics/', calendar.DownloadICSView.as_view(), name='ticket_ics'),
 ]

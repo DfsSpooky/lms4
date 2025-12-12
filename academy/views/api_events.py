@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from ..models import Event, Ticket
+from ..models import Event, Ticket, TicketTier
 from ..serializers import EventSerializer, TicketSerializer
 
 class EventViewSet(viewsets.ReadOnlyModelViewSet):
@@ -25,16 +25,29 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, methods=['post'])
     def register(self, request, pk=None):
         event = self.get_object()
+        tier_id = request.data.get('tier_id')
 
-        # Check availability
-        if event.spots_left <= 0:
-             return Response({'error': 'Evento agotado'}, status=status.HTTP_400_BAD_REQUEST)
+        tier = None
+        price = event.price
+
+        if tier_id:
+            try:
+                tier = TicketTier.objects.get(id=tier_id, event=event)
+                if tier.remaining <= 0:
+                    return Response({'error': 'Tipo de entrada agotado'}, status=status.HTTP_400_BAD_REQUEST)
+                price = tier.price
+            except TicketTier.DoesNotExist:
+                return Response({'error': 'Tipo de entrada inválido'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # Check availability general
+            if event.spots_left <= 0:
+                 return Response({'error': 'Evento agotado'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Determine initial status
-        initial_status = 'approved' if event.price == 0 else 'pending'
+        initial_status = 'approved' if price == 0 else 'pending'
 
         # Create ticket
-        ticket = Ticket.objects.create(user=request.user, event=event, status=initial_status)
+        ticket = Ticket.objects.create(user=request.user, event=event, status=initial_status, tier=tier)
 
         return Response({
             'status': ticket.status,

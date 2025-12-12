@@ -109,6 +109,46 @@
                     </div>
                 </div>
 
+                <!-- Ticket Tiers Inline Formset -->
+                <div class="space-y-6">
+                    <h3 class="text-lg font-bold text-white border-b border-slate-700 pb-2 mb-4">Tipos de Entradas (Tiers)</h3>
+                    <p class="text-xs text-slate-400 mb-4">Define diferentes categorías de entradas (ej: General, VIP). Si no defines ninguna, se usará el precio general.</p>
+
+                    {{ tiers.management_form }}
+                    <div class="grid gap-4">
+                        {% for tier_form in tiers %}
+                            <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700 relative">
+                                {{ tier_form.id }}
+                                {% if tier_form.instance.pk %}
+                                    <div class="absolute top-2 right-2">
+                                        <label class="text-xs text-red-400 flex items-center gap-1 cursor-pointer">
+                                            {{ tier_form.DELETE }} Eliminar
+                                        </label>
+                                    </div>
+                                {% endif %}
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <div>
+                                        <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">Nombre</label>
+                                        {{ tier_form.name }}
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">Precio</label>
+                                        {{ tier_form.price }}
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">Stock</label>
+                                        {{ tier_form.capacity }}
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">Descripción</label>
+                                        {{ tier_form.description }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
                 <div class="pt-6 border-t border-slate-700 flex justify-end gap-3">
                     <a href="{% url 'academy:organizer_dashboard' %}" class="px-6 py-3 rounded-xl border border-slate-700 text-slate-400 font-bold hover:bg-slate-800 hover:text-white transition-all text-sm">
                         Cancelar

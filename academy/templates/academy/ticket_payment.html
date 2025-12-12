@@ -26,7 +26,10 @@
 
                 <div class="bg-indigo-600/10 border border-indigo-500/20 rounded-xl p-6 mb-8 text-center">
                     <p class="text-indigo-300 text-sm font-medium mb-1">Total a Pagar</p>
-                    <p class="text-4xl font-black text-white">S/ {{ ticket.event.price|floatformat:2 }}</p>
+                    <p class="text-4xl font-black text-white">S/ {% if ticket.tier %}{{ ticket.tier.price|floatformat:2 }}{% else %}{{ ticket.event.price|floatformat:2 }}{% endif %}</p>
+                    {% if ticket.tier %}
+                        <p class="text-xs text-indigo-300 mt-2 font-bold uppercase tracking-widest">Entrada: {{ ticket.tier.name }}</p>
+                    {% endif %}
                 </div>
 
                 <div class="space-y-4">

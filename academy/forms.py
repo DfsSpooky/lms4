@@ -1,8 +1,9 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Profile, Enrollment, Course, LessonComment, LessonProgress, Installment, Ticket
+from .models import Profile, Enrollment, Course, LessonComment, LessonProgress, Installment, Ticket, TicketTier, Event
 from .forms_content import *
+from django.forms import inlineformset_factory
 from tinymce.widgets import TinyMCE
 
 class SignUpForm(UserCreationForm):
@@ -134,6 +135,22 @@ class TicketVoucherForm(forms.ModelForm):
                 'accept': 'image/*'
             }),
         }
+
+class TicketTierForm(forms.ModelForm):
+    class Meta:
+        model = TicketTier
+        fields = ['name', 'price', 'capacity', 'description']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white', 'placeholder': 'Ej: VIP'}),
+            'price': forms.NumberInput(attrs={'class': 'w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white', 'placeholder': '0.00'}),
+            'capacity': forms.NumberInput(attrs={'class': 'w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white', 'placeholder': '100'}),
+            'description': forms.Textarea(attrs={'class': 'w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white', 'rows': 2, 'placeholder': 'Descripción...'})
+        }
+
+TicketTierFormSet = inlineformset_factory(
+    Event, TicketTier, form=TicketTierForm,
+    extra=1, can_delete=True
+)
 
 class CourseForm(forms.ModelForm):
     # --- CAMPOS PERSONALIZADOS CON WIDGETS CORREGIDOS ---

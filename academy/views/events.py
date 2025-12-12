@@ -3,7 +3,7 @@ from django.views.generic import TemplateView, ListView, DetailView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.urls import reverse
-from ..models import Event, Ticket, ServiceRequest
+from ..models import Event, Ticket, ServiceRequest, TicketTier
 from django.utils import timezone
 from django.http import HttpResponseBadRequest
 from ..forms import TicketVoucherForm
@@ -55,17 +55,29 @@ class EventDetailView(DetailView):
 class EventRegistrationView(LoginRequiredMixin, View):
     def post(self, request, pk):
         event = get_object_or_404(Event, pk=pk)
+        tier_id = request.POST.get('tier_id')
 
-        # Check availability
-        if event.spots_left <= 0:
-            messages.error(request, "Lo sentimos, este evento ya no tiene cupos disponibles.")
-            return redirect('academy:event_detail', slug=event.slug)
+        tier = None
+        price = event.price
+
+        # Check specific tier availability if selected
+        if tier_id:
+            tier = get_object_or_404(TicketTier, id=tier_id, event=event)
+            if tier.remaining <= 0:
+                messages.error(request, "Lo sentimos, ese tipo de entrada está agotado.")
+                return redirect('academy:event_detail', slug=event.slug)
+            price = tier.price
+        else:
+            # General availability check
+            if event.spots_left <= 0:
+                messages.error(request, "Lo sentimos, este evento ya no tiene cupos disponibles.")
+                return redirect('academy:event_detail', slug=event.slug)
 
         # Set status based on price
-        initial_status = 'approved' if event.price == 0 else 'pending'
+        initial_status = 'approved' if price == 0 else 'pending'
 
         # Create ticket
-        ticket = Ticket.objects.create(user=request.user, event=event, status=initial_status)
+        ticket = Ticket.objects.create(user=request.user, event=event, status=initial_status, tier=tier)
 
         if ticket.status == 'approved':
             messages.success(request, "¡Registro exitoso! Aquí está tu entrada.")
