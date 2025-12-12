@@ -482,4 +482,10 @@ class Ticket(models.Model):
     purchase_date = models.DateTimeField(auto_now_add=True)
     is_used = models.BooleanField(default=False, verbose_name="Usado / Asistió")
 
+    # Campos para pago (similar a Enrollment)
+    STATUS_CHOICES = [('pending', 'Pendiente de Pago'), ('review', 'En Revisión'), ('approved', 'Aprobado'), ('rejected', 'Rechazado')]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='approved') # Default approved for backward compatibility/free events
+    voucher_image = models.ImageField(upload_to='vouchers/tickets/', blank=True, null=True, verbose_name="Constancia de Pago")
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Monto Pagado")
+
     def __str__(self): return f"Ticket {self.id} - {self.user.username}"

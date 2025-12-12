@@ -1,4 +1,5 @@
 {% extends 'academy/base.html' %}
+{% load security_tags %}
 
 {% block title %}{{ event.title }} - Eventos LMS{% endblock %}
 
@@ -76,7 +77,7 @@
                         Sobre el evento
                     </h2>
                     <div class="prose prose-invert prose-lg max-w-none text-slate-400 leading-relaxed">
-                        {{ event.description|linebreaks }}
+                        {{ event.description|sanitize }}
                     </div>
                 </div>
 

@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Profile, Enrollment, Course, LessonComment, LessonProgress, Installment
+from .models import Profile, Enrollment, Course, LessonComment, LessonProgress, Installment, Ticket
 from .forms_content import *
 from tinymce.widgets import TinyMCE
 
@@ -120,6 +120,17 @@ class InstallmentVoucherForm(forms.ModelForm):
         widgets = {
             'voucher_image': forms.FileInput(attrs={
                 'class': 'w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer',
+                'accept': 'image/*'
+            }),
+        }
+
+class TicketVoucherForm(forms.ModelForm):
+    class Meta:
+        model = Ticket
+        fields = ['voucher_image']
+        widgets = {
+             'voucher_image': forms.FileInput(attrs={
+                'class': 'w-full bg-slate-900/50 border border-slate-600 rounded-xl px-4 py-3 text-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 transition-all cursor-pointer',
                 'accept': 'image/*'
             }),
         }

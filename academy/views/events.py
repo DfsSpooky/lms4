@@ -6,6 +6,7 @@ from django.urls import reverse
 from ..models import Event, Ticket, ServiceRequest
 from django.utils import timezone
 from django.http import HttpResponseBadRequest
+from ..forms import TicketVoucherForm
 
 class EnterpriseLandingView(TemplateView):
     template_name = 'academy/enterprise.html'
@@ -60,10 +61,44 @@ class EventRegistrationView(LoginRequiredMixin, View):
             messages.error(request, "Lo sentimos, este evento ya no tiene cupos disponibles.")
             return redirect('academy:event_detail', slug=event.slug)
 
+        # Set status based on price
+        initial_status = 'approved' if event.price == 0 else 'pending'
+
         # Create ticket
-        ticket = Ticket.objects.create(user=request.user, event=event)
-        messages.success(request, "¡Registro exitoso! Aquí está tu entrada.")
-        return redirect('academy:ticket_detail', ticket_id=ticket.id)
+        ticket = Ticket.objects.create(user=request.user, event=event, status=initial_status)
+
+        if ticket.status == 'approved':
+            messages.success(request, "¡Registro exitoso! Aquí está tu entrada.")
+            return redirect('academy:ticket_detail', ticket_id=ticket.id)
+        else:
+            messages.info(request, "Reserva creada. Por favor sube tu comprobante de pago.")
+            return redirect('academy:ticket_payment', ticket_id=ticket.id)
+
+class TicketPaymentView(LoginRequiredMixin, View):
+    def get(self, request, ticket_id):
+        ticket = get_object_or_404(Ticket, id=ticket_id, user=request.user)
+        if ticket.status == 'approved':
+             messages.info(request, "Este ticket ya está pagado.")
+             return redirect('academy:ticket_detail', ticket_id=ticket.id)
+
+        form = TicketVoucherForm()
+        return render(request, 'academy/ticket_payment.html', {'ticket': ticket, 'form': form})
+
+    def post(self, request, ticket_id):
+        ticket = get_object_or_404(Ticket, id=ticket_id, user=request.user)
+        if ticket.status == 'approved':
+             return redirect('academy:ticket_detail', ticket_id=ticket.id)
+
+        form = TicketVoucherForm(request.POST, request.FILES, instance=ticket)
+        if form.is_valid():
+            t = form.save(commit=False)
+            t.status = 'review'
+            t.save()
+            messages.success(request, "Comprobante subido. Tu ticket está en revisión.")
+            return redirect('academy:ticket_detail', ticket_id=ticket.id)
+
+        messages.error(request, "Error al subir el comprobante. Por favor intenta de nuevo.")
+        return render(request, 'academy/ticket_payment.html', {'ticket': ticket, 'form': form})
 
 class TicketDetailView(LoginRequiredMixin, DetailView):
     model = Ticket

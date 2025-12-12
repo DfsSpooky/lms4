@@ -82,30 +82,51 @@
                 <div class="w-full md:w-80 bg-slate-950 p-8 flex flex-col items-center justify-center text-center relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-full h-1 bg-cyan-500/50 blur-sm animate-scan pointer-events-none"></div>
 
-                    <div class="bg-white p-3 rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.1)] mb-6 relative group/qr">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ ticket.id }}" 
-                             alt="QR Code" 
-                             class="w-40 h-40 mix-blend-multiply opacity-90 group-hover/qr:opacity-100 transition-opacity">
-                        
-                        <div class="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-indigo-500 rounded-tl-lg"></div>
-                        <div class="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-indigo-500 rounded-tr-lg"></div>
-                        <div class="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-indigo-500 rounded-bl-lg"></div>
-                        <div class="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-indigo-500 rounded-br-lg"></div>
-                    </div>
+                    {% if ticket.status == 'approved' %}
+                        <div class="bg-white p-3 rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.1)] mb-6 relative group/qr">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ ticket.id }}"
+                                alt="QR Code"
+                                class="w-40 h-40 mix-blend-multiply opacity-90 group-hover/qr:opacity-100 transition-opacity">
 
-                    {% if ticket.is_used %}
-                        <div class="px-4 py-1.5 rounded-full bg-red-500/10 border border-red-500/50 text-red-400 text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                            <span class="w-2 h-2 bg-red-500 rounded-full"></span> Usado
+                            <div class="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-indigo-500 rounded-tl-lg"></div>
+                            <div class="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-indigo-500 rounded-tr-lg"></div>
+                            <div class="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-indigo-500 rounded-bl-lg"></div>
+                            <div class="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-indigo-500 rounded-br-lg"></div>
                         </div>
+
+                        {% if ticket.is_used %}
+                            <div class="px-4 py-1.5 rounded-full bg-red-500/10 border border-red-500/50 text-red-400 text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                                <span class="w-2 h-2 bg-red-500 rounded-full"></span> Usado
+                            </div>
+                        {% else %}
+                            <div class="px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 text-xs font-black uppercase tracking-widest flex items-center gap-2 animate-pulse">
+                                <span class="w-2 h-2 bg-emerald-500 rounded-full"></span> Válido
+                            </div>
+                        {% endif %}
+
+                        <p class="text-[10px] text-slate-500 mt-6 max-w-[200px]">
+                            Escanea este código en la entrada.
+                        </p>
                     {% else %}
-                        <div class="px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 text-xs font-black uppercase tracking-widest flex items-center gap-2 animate-pulse">
-                            <span class="w-2 h-2 bg-emerald-500 rounded-full"></span> Válido
+                        <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 mb-6 flex flex-col items-center justify-center h-48 w-48 mx-auto">
+                            {% if ticket.status == 'pending' %}
+                                <i class="fas fa-clock text-4xl text-yellow-500 mb-2"></i>
+                                <span class="text-yellow-400 font-bold text-sm uppercase">Pendiente de Pago</span>
+                                <a href="{% url 'academy:ticket_payment' ticket.id %}" class="mt-4 px-3 py-1 bg-yellow-600/20 text-yellow-400 text-[10px] rounded border border-yellow-600/50 hover:bg-yellow-600/30">
+                                    Pagar Ahora
+                                </a>
+                            {% elif ticket.status == 'review' %}
+                                <i class="fas fa-search-dollar text-4xl text-blue-400 mb-2"></i>
+                                <span class="text-blue-300 font-bold text-sm uppercase">En Revisión</span>
+                            {% elif ticket.status == 'rejected' %}
+                                <i class="fas fa-times-circle text-4xl text-red-500 mb-2"></i>
+                                <span class="text-red-400 font-bold text-sm uppercase">Rechazado</span>
+                            {% endif %}
                         </div>
+                        <p class="text-xs text-slate-500 text-center px-4">
+                            Tu entrada no es válida hasta que se complete el pago.
+                        </p>
                     {% endif %}
-
-                    <p class="text-[10px] text-slate-500 mt-6 max-w-[200px]">
-                        Escanea este código en la entrada.
-                    </p>
                 </div>
 
             </div>
