@@ -27,3 +27,4 @@ python-dotenv==1.0.1
 django-crispy-forms==2.3
 crispy-bootstrap5==2024.2
 openai==1.55.3
+reportlab==4.1.0

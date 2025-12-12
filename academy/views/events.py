@@ -6,7 +6,11 @@ from django.urls import reverse
 from ..models import Event, Ticket, ServiceRequest, TicketTier
 from django.utils import timezone
 from django.http import HttpResponseBadRequest
-from ..forms import TicketVoucherForm
+from ..forms import TicketVoucherForm, TicketAssignForm
+from django.http import HttpResponse
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.units import inch
 
 class EnterpriseLandingView(TemplateView):
     template_name = 'academy/enterprise.html'
@@ -119,7 +123,81 @@ class TicketDetailView(LoginRequiredMixin, DetailView):
     pk_url_kwarg = 'ticket_id'
 
     def get_queryset(self):
-        # Allow users to see their own tickets, or staff to see any ticket
         if self.request.user.is_staff:
             return Ticket.objects.all()
         return Ticket.objects.filter(user=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['assign_form'] = TicketAssignForm(instance=self.object)
+        return ctx
+
+class TicketAssignView(LoginRequiredMixin, View):
+    def post(self, request, ticket_id):
+        ticket = get_object_or_404(Ticket, id=ticket_id, user=request.user)
+
+        if ticket.is_used:
+            messages.error(request, "No puedes reasignar un ticket que ya ha sido usado.")
+            return redirect('academy:ticket_detail', ticket_id=ticket.id)
+
+        form = TicketAssignForm(request.POST, instance=ticket)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Datos del asistente actualizados.")
+        else:
+            messages.error(request, "Error al actualizar datos. Verifica los campos.")
+
+        return redirect('academy:ticket_detail', ticket_id=ticket.id)
+
+class EventCertificateView(LoginRequiredMixin, View):
+    def get(self, request, ticket_id):
+        ticket = get_object_or_404(Ticket, id=ticket_id, user=request.user)
+
+        if not ticket.is_used:
+            messages.error(request, "Debes asistir al evento para obtener el certificado.")
+            return redirect('academy:ticket_detail', ticket_id=ticket.id)
+
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="certificado_{ticket.event.id}.pdf"'
+
+        # Generate PDF
+        p = canvas.Canvas(response, pagesize=letter)
+        width, height = letter
+
+        # Draw Background/Border
+        p.setStrokeColorRGB(0.2, 0.2, 0.6)
+        p.setLineWidth(5)
+        p.rect(0.5*inch, 0.5*inch, width-1*inch, height-1*inch)
+
+        # Title
+        p.setFont("Helvetica-Bold", 30)
+        p.drawCentredString(width/2, height - 3*inch, "CERTIFICADO DE ASISTENCIA")
+
+        # Body
+        p.setFont("Helvetica", 14)
+        p.drawCentredString(width/2, height - 4*inch, "Se otorga el presente certificado a:")
+
+        # Name
+        attendee_name = f"{ticket.attendee_first_name} {ticket.attendee_last_name}".strip() or ticket.user.get_full_name()
+        p.setFont("Helvetica-Bold", 24)
+        p.drawCentredString(width/2, height - 5*inch, attendee_name.upper())
+
+        # Event Details
+        p.setFont("Helvetica", 14)
+        p.drawCentredString(width/2, height - 6*inch, f"Por su participación en el evento:")
+
+        p.setFont("Helvetica-Bold", 20)
+        p.drawCentredString(width/2, height - 7*inch, ticket.event.title)
+
+        # Date
+        p.setFont("Helvetica", 12)
+        date_str = ticket.event.start_date.strftime("%d de %B de %Y")
+        p.drawCentredString(width/2, height - 8*inch, f"Realizado el {date_str}")
+
+        # Footer
+        p.setFont("Helvetica-Oblique", 10)
+        p.drawCentredString(width/2, 1*inch, "LMS Academy - Certificado Oficial")
+
+        p.showPage()
+        p.save()
+        return response

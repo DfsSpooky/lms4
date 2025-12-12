@@ -136,6 +136,16 @@ class TicketVoucherForm(forms.ModelForm):
             }),
         }
 
+class TicketAssignForm(forms.ModelForm):
+    class Meta:
+        model = Ticket
+        fields = ['attendee_first_name', 'attendee_last_name', 'attendee_email']
+        widgets = {
+            'attendee_first_name': forms.TextInput(attrs={'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500', 'placeholder': 'Nombre del Asistente'}),
+            'attendee_last_name': forms.TextInput(attrs={'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500', 'placeholder': 'Apellido del Asistente'}),
+            'attendee_email': forms.EmailInput(attrs={'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500', 'placeholder': 'correo@ejemplo.com'}),
+        }
+
 class TicketTierForm(forms.ModelForm):
     class Meta:
         model = TicketTier

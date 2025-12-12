@@ -128,4 +128,6 @@ urlpatterns = [
     path('ticket/<uuid:ticket_id>/', views.TicketDetailView.as_view(), name='ticket_detail'),
     path('ticket/<uuid:ticket_id>/payment/', views.TicketPaymentView.as_view(), name='ticket_payment'),
     path('ticket/<uuid:ticket_id>/ics/', calendar.DownloadICSView.as_view(), name='ticket_ics'),
+    path('ticket/<uuid:ticket_id>/assign/', views.TicketAssignView.as_view(), name='ticket_assign'),
+    path('ticket/<uuid:ticket_id>/certificate/', views.EventCertificateView.as_view(), name='ticket_certificate'),
 ]

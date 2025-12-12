@@ -506,4 +506,9 @@ class Ticket(models.Model):
     voucher_image = models.ImageField(upload_to='vouchers/tickets/', blank=True, null=True, verbose_name="Constancia de Pago")
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Monto Pagado")
 
+    # Attendee Details (Assignment)
+    attendee_first_name = models.CharField(max_length=150, blank=True, verbose_name="Nombre Asistente")
+    attendee_last_name = models.CharField(max_length=150, blank=True, verbose_name="Apellido Asistente")
+    attendee_email = models.EmailField(blank=True, verbose_name="Email Asistente")
+
     def __str__(self): return f"Ticket {self.id} - {self.user.username}"
