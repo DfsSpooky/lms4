@@ -30,13 +30,46 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
         if event.spots_left <= 0:
              return Response({'error': 'Evento agotado'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Determine initial status
+        initial_status = 'approved' if event.price == 0 else 'pending'
+
         # Create ticket
-        ticket = Ticket.objects.create(user=request.user, event=event)
+        ticket = Ticket.objects.create(user=request.user, event=event, status=initial_status)
 
         return Response({
-            'status': 'registered',
-            'ticket_id': ticket.id
+            'status': ticket.status,
+            'ticket_id': ticket.id,
+            'message': 'Registro exitoso' if ticket.status == 'approved' else 'Reserva creada. Sube tu comprobante.'
         }, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'], url_path='upload-voucher')
+    def upload_voucher(self, request, pk=None):
+        # NOTE: pk here refers to EVENT pk because this is EventViewSet,
+        # BUT logically we upload for a TICKET.
+        # Standard DRF pattern: nested route or specific TicketViewSet.
+        # Since we don't have TicketViewSet, we can accept ticket_id in body OR
+        # create a standalone action that finds the latest pending ticket for this event.
+
+        event = self.get_object()
+        ticket_id = request.data.get('ticket_id')
+
+        if ticket_id:
+            ticket = get_object_or_404(Ticket, id=ticket_id, user=request.user, event=event)
+        else:
+            # Fallback: Find latest pending ticket
+            ticket = Ticket.objects.filter(user=request.user, event=event, status__in=['pending', 'rejected']).order_by('-purchase_date').first()
+
+        if not ticket:
+            return Response({'error': 'No se encontró un ticket pendiente para este evento'}, status=status.HTTP_404_NOT_FOUND)
+
+        if 'file' not in request.FILES:
+             return Response({'error': 'No se envió ningún archivo'}, status=status.HTTP_400_BAD_REQUEST)
+
+        ticket.voucher_image = request.FILES['file']
+        ticket.status = 'review'
+        ticket.save()
+
+        return Response({'status': 'uploaded', 'ticket_status': 'review'})
 
     @action(detail=False, methods=['get'])
     def my_tickets(self, request):

@@ -191,4 +191,4 @@ class TicketSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ticket
-        fields = ['id', 'event', 'purchase_date', 'is_used']
+        fields = ['id', 'event', 'purchase_date', 'is_used', 'status', 'voucher_image', 'amount_paid']

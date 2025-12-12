@@ -35,11 +35,13 @@ class TeacherDashboardView(LoginRequiredMixin, TeacherRequiredMixin, generic.Lis
         # Dashboard Analytics
         instructor_courses = Course.objects.filter(instructor=self.request.user)
 
-        # 1. Total Students (Unique)
-        context['total_students_unique'] = Enrollment.objects.filter(
+        # 1. Total Students (Unique) & Enrollments
+        approved_enrollments = Enrollment.objects.filter(
             course__in=instructor_courses,
             status='approved'
-        ).values('user').distinct().count()
+        )
+        context['total_students_unique'] = approved_enrollments.values('user').distinct().count()
+        context['total_enrollments'] = approved_enrollments.count()
 
         # 2. Total Reviews & Rating
         reviews = Review.objects.filter(course__in=instructor_courses)
@@ -61,8 +63,6 @@ class TeacherDashboardView(LoginRequiredMixin, TeacherRequiredMixin, generic.Lis
         # Actually QuizSubmission has 'passed' and 'score', if score is set it's graded.
         # But auto-grading sets score immediately.
         # Let's count assignments for now as they are the primary manual task.
-
-        context['pending_grading'] = pending_assignments
 
         context['pending_grading'] = pending_assignments
 
