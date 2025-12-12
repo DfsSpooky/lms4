@@ -15,7 +15,8 @@ class AcademyTestCase(TestCase):
             category=self.category,
             description='Intro to Python',
             instructor=self.instructor,
-            price=10.00
+            price=10.00,
+            status='published'
         )
         self.module = Module.objects.create(course=self.course, title='Basics')
         self.lesson = Lesson.objects.create(module=self.module, title='Hello World', content='Print hello')

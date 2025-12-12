@@ -130,4 +130,9 @@ class PublicProfileView(generic.DetailView):
         completed_enrollments = Enrollment.objects.filter(user=user, status='approved', is_completed=True).select_related('course')
         context['completed_courses'] = completed_enrollments
         context['certificates_count'] = completed_enrollments.count()
+        
+        if user.profile.role == 'teacher':
+            from ..models import Course
+            context['teaching_courses'] = Course.objects.filter(instructor=user, status='published').order_by('-created_at')
+            
         return context
