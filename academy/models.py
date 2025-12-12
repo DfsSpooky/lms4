@@ -481,5 +481,5 @@ class Ticket(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='tickets')
     purchase_date = models.DateTimeField(auto_now_add=True)
     is_used = models.BooleanField(default=False, verbose_name="Usado / Asistió")
-    class Meta: unique_together = ('user', 'event')
+
     def __str__(self): return f"Ticket {self.id} - {self.user.username}"

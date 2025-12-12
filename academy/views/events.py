@@ -60,11 +60,6 @@ class EventRegistrationView(LoginRequiredMixin, View):
             messages.error(request, "Lo sentimos, este evento ya no tiene cupos disponibles.")
             return redirect('academy:event_detail', slug=event.slug)
 
-        # Check existing ticket
-        if Ticket.objects.filter(user=request.user, event=event).exists():
-            messages.info(request, "Ya estás registrado en este evento.")
-            return redirect('academy:event_detail', slug=event.slug)
-
         # Create ticket
         ticket = Ticket.objects.create(user=request.user, event=event)
         messages.success(request, "¡Registro exitoso! Aquí está tu entrada.")

@@ -26,10 +26,6 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
     def register(self, request, pk=None):
         event = self.get_object()
 
-        # Check if already registered
-        if Ticket.objects.filter(user=request.user, event=event).exists():
-            return Response({'error': 'Ya estás registrado en este evento'}, status=status.HTTP_400_BAD_REQUEST)
-
         # Check availability
         if event.spots_left <= 0:
              return Response({'error': 'Evento agotado'}, status=status.HTTP_400_BAD_REQUEST)
