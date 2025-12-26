@@ -1,9 +1,10 @@
 {% extends 'academy/base.html' %}
-
+{% load static %}
 {% block title %}Contenido: {{ course.title }} - LMS Academy{% endblock %}
 
 {% block content %}
 {{ lesson_form.media }}
+<script src="{% static 'js/sortable.min.js' %}"></script>
 
 <div class="min-h-screen bg-[#0B1120] py-12 px-4 sm:px-6 lg:px-8 relative" 
      x-data="{ 
@@ -28,8 +29,8 @@
             </div>
             
             <div class="flex items-center gap-3">
-                <a href="{% url 'academy:course_detail' course.slug %}" target="_blank" class="px-4 py-2.5 rounded-xl border border-slate-700 text-slate-300 font-medium hover:bg-slate-800 hover:text-white transition-all flex items-center gap-2">
-                    <i class="fas fa-eye"></i> <span class="hidden sm:inline">Ver Curso</span>
+                <a href="{% url 'academy:course_preview' course.slug %}" target="_blank" class="px-4 py-2.5 rounded-xl border border-slate-700 text-slate-300 font-medium hover:bg-slate-800 hover:text-white transition-all flex items-center gap-2">
+                    <i class="fas fa-eye"></i> <span class="hidden sm:inline">Vista Previa</span>
                 </a>
                 <button @click="moduleModalOpen = true" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-indigo-500/25 transition-all hover:-translate-y-0.5 flex items-center gap-2">
                     <i class="fas fa-folder-plus"></i> Nuevo Módulo
@@ -37,19 +38,23 @@
             </div>
         </div>
 
-        <div class="space-y-6">
+        <div class="space-y-6" id="modules-list">
             {% for module in modules %}
-            <div class="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl overflow-hidden transition-all duration-300 hover:border-slate-600" x-data="{ expanded: true }">
+            <div class="module-item bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl overflow-hidden transition-all duration-300 hover:border-slate-600"
+                 x-data="{ expanded: true }"
+                 data-id="{{ module.id }}">
                 
-                <div class="px-6 py-4 bg-slate-800/80 border-b border-slate-700/50 flex items-center justify-between select-none cursor-pointer" @click="expanded = !expanded">
+                <div class="px-6 py-4 bg-slate-800/80 border-b border-slate-700/50 flex items-center justify-between select-none cursor-pointer group/header" @click="expanded = !expanded">
                     <div class="flex items-center gap-4">
+                        <div class="handle-module cursor-move text-slate-600 hover:text-slate-400 px-2" @click.stop>
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
                         <div class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center text-slate-400 transition-transform duration-300" :class="expanded ? 'rotate-180' : ''">
                             <i class="fas fa-chevron-down text-xs"></i>
                         </div>
                         <div>
                             <h3 class="text-lg font-bold text-white flex items-center gap-3">
                                 {{ module.title }}
-                                <span class="px-2 py-0.5 rounded text-[10px] bg-slate-700 text-slate-300 font-mono border border-slate-600">Orden: {{ module.order }}</span>
                             </h3>
                         </div>
                     </div>
@@ -69,14 +74,13 @@
 
                 <div x-show="expanded" x-collapse>
                     {% if module.lessons.all or module.quizzes.all %}
-                        <div class="divide-y divide-slate-700/30">
+                        <div class="divide-y divide-slate-700/30 lessons-list" data-module-id="{{ module.id }}">
                             <!-- LESSONS -->
                             {% for lesson in module.lessons.all %}
-                            <div class="px-6 py-4 flex items-center justify-between hover:bg-slate-700/10 transition-colors group">
+                            <div class="lesson-item px-6 py-4 flex items-center justify-between hover:bg-slate-700/10 transition-colors group" data-id="{{ lesson.id }}">
                                 <div class="flex items-center gap-4">
-                                    <div class="flex flex-col items-center justify-center w-8 text-slate-600 font-mono text-xs">
-                                        <i class="fas fa-grip-vertical opacity-0 group-hover:opacity-50 cursor-move mb-1"></i>
-                                        <span>{{ lesson.order }}</span>
+                                    <div class="flex flex-col items-center justify-center w-8 text-slate-600 font-mono text-xs handle-lesson cursor-move">
+                                        <i class="fas fa-grip-vertical hover:text-slate-400"></i>
                                     </div>
                                     
                                     <div class="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
@@ -306,4 +310,68 @@
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar sortable para módulos
+        const modulesList = document.getElementById('modules-list');
+        if(modulesList) {
+            new Sortable(modulesList, {
+                animation: 150,
+                handle: '.handle-module',
+                ghostClass: 'bg-slate-700',
+                onEnd: function(evt) {
+                    updateOrder('module');
+                }
+            });
+        }
+
+        // Inicializar sortable para lecciones en cada módulo
+        document.querySelectorAll('.lessons-list').forEach(function(el) {
+            new Sortable(el, {
+                animation: 150,
+                group: 'lessons', // Permite mover lecciones entre módulos si se desea
+                handle: '.handle-lesson',
+                ghostClass: 'bg-slate-700/50',
+                onEnd: function(evt) {
+                    updateOrder('lesson');
+                }
+            });
+        });
+    });
+
+    function updateOrder(type) {
+        let items = [];
+        if (type === 'module') {
+            document.querySelectorAll('.module-item').forEach((el, index) => {
+                items.push({ id: el.dataset.id, order: index + 1 });
+            });
+        } else {
+            // Para lecciones, necesitamos saber a qué módulo pertenecen ahora
+            document.querySelectorAll('.lesson-item').forEach((el, index) => {
+                // Encontrar el módulo padre
+                const moduleEl = el.closest('.lessons-list');
+                const moduleId = moduleEl.dataset.moduleId;
+                items.push({ id: el.dataset.id, order: index + 1, module_id: moduleId });
+            });
+        }
+
+        fetch("{% url 'academy:reorder_content' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ type: type, items: items })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'success') {
+                console.log('Orden actualizado');
+            } else {
+                console.error('Error al actualizar orden');
+            }
+        });
+    }
+</script>
 {% endblock %}

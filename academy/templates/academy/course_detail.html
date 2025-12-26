@@ -1,110 +1,141 @@
 {% extends 'academy/base.html' %}
+{% load security_tags %}
 
 {% block title %}{{ course.title }} - LMS Academy{% endblock %}
 
 {% block content %}
 <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-    <div class="absolute top-0 right-0 -mr-20 -mt-20 w-[600px] h-[600px] bg-indigo-600/5 rounded-full blur-[100px] animate-pulse"></div>
-    <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-[500px] h-[500px] bg-cyan-600/5 rounded-full blur-[100px] animate-pulse"></div>
+    <div class="absolute top-0 right-0 -mr-40 -mt-40 w-[800px] h-[800px] bg-indigo-600/20 rounded-full blur-[120px] animate-pulse"></div>
+    <div class="absolute bottom-0 left-0 -ml-40 -mb-40 w-[600px] h-[600px] bg-cyan-600/10 rounded-full blur-[100px] animate-pulse" style="animation-delay: 1s;"></div>
     <div class="absolute inset-0 bg-[#0B1120] -z-10"></div>
+    <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-20"></div>
 </div>
 
 <div class="relative z-10 min-h-screen text-slate-300 font-sans selection:bg-indigo-500 selection:text-white pb-24 lg:pb-0">
 
-    <div class="relative border-b border-slate-800 bg-slate-900/60 backdrop-blur-xl overflow-hidden">
+    <div class="relative border-b border-slate-800/60 bg-slate-900/60 backdrop-blur-xl overflow-hidden">
         
         <div class="absolute inset-0 w-full h-full pointer-events-none z-0">
-            <div class="absolute inset-0 bg-gradient-to-r from-[#0B1120] via-[#0B1120]/90 to-[#0B1120]/30 z-10"></div>
-            
+            <div class="absolute inset-0 bg-gradient-to-r from-[#0B1120] via-[#0B1120]/95 to-[#0B1120]/40 z-10"></div>
             {% if course.thumbnail %}
-                <img src="{{ course.thumbnail.url }}" 
-                     class="w-full h-full object-cover opacity-70 transition-transform duration-700 hover:scale-105" 
-                     alt="{{ course.title }}">
+                <img src="{{ course.thumbnail.url }}" class="w-full h-full object-cover opacity-50 transition-transform duration-[20s] hover:scale-110" alt="{{ course.title }}">
             {% else %}
-                <div class="w-full h-full flex items-center justify-center bg-slate-800 opacity-50">
-                    <i class="fas fa-graduation-cap text-9xl text-slate-700"></i>
-                </div>
+                <div class="w-full h-full flex items-center justify-center bg-slate-800 opacity-50"><i class="fas fa-graduation-cap text-9xl text-slate-700"></i></div>
             {% endif %}
         </div>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 relative z-20">
-            <div class="lg:w-2/3">
+            <div class="lg:w-3/4">
                 
-                <div class="flex flex-wrap items-center gap-3 text-sm font-bold mb-6 animate-fade-in">
-                    {% if course.category %}
-                        <a href="{% url 'academy:course_catalog' %}?category={{ course.category.slug }}" class="text-indigo-400 hover:text-indigo-300 transition uppercase tracking-wider hover:underline decoration-indigo-500/30 underline-offset-4 shadow-black drop-shadow-md">
-                            {{ course.category.name }}
-                        </a>
-                        <i class="fas fa-chevron-right text-[10px] text-slate-500"></i>
-                    {% endif %}
+                <div class="flex flex-col sm:flex-row sm:items-center gap-6 mb-8 animate-fade-in">
                     
-                    <span class="flex items-center gap-1.5 bg-slate-900/90 text-slate-300 px-3 py-1 rounded-full border border-slate-700 text-[10px] uppercase tracking-wide shadow-lg">
-                        <span class="w-1.5 h-1.5 rounded-full 
-                            {% if course.level == 'beginner' %}bg-emerald-400
-                            {% elif course.level == 'intermediate' %}bg-yellow-400
-                            {% else %}bg-red-500{% endif %}"></span>
-                        {{ course.get_level_display }}
-                    </span>
-                </div>
+                    <div class="flex items-center gap-3">
+                        {% if course.category %}
+                            <a href="{% url 'academy:course_catalog' %}?category={{ course.category.slug }}" 
+                               class="text-xs font-bold text-indigo-400 hover:text-white transition uppercase tracking-widest border border-indigo-500/30 rounded-lg px-3 py-1.5 hover:bg-indigo-500 hover:border-indigo-500 hover:shadow-[0_0_15px_rgba(99,102,241,0.4)]">
+                                {{ course.category.name }}
+                            </a>
+                        {% endif %}
+                        
+                        <span class="flex items-center gap-2 bg-slate-800/50 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 text-[10px] uppercase tracking-wide backdrop-blur-md">
+                            <span class="w-1.5 h-1.5 rounded-full 
+                                {% if course.level == 'beginner' %}bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]
+                                {% elif course.level == 'intermediate' %}bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.6)]
+                                {% else %}bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]{% endif %} animate-pulse"></span>
+                            {{ course.get_level_display }}
+                        </span>
+                    </div>
 
-                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-6 text-white leading-[1.1] drop-shadow-2xl animate-fade-in" 
-                    style="text-shadow: 0 4px 30px rgba(0,0,0,0.8);">
+                    {% if course.institution %}
+                        <div class="group relative sm:ml-auto">
+                            <div class="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 rounded-full opacity-30 blur group-hover:opacity-70 transition duration-500 group-hover:duration-200 animate-gradient-x"></div>
+                            
+                            <a {% if course.institution.website %}href="{{ course.institution.website }}" target="_blank"{% endif %} 
+                               class="relative flex items-center gap-4 bg-slate-900 ring-1 ring-white/10 rounded-full p-1.5 pr-6 transition-all duration-300 hover:bg-slate-800">
+                                
+                                <div class="relative w-10 h-10 flex-shrink-0 bg-white rounded-full p-0.5 flex items-center justify-center shadow-lg overflow-hidden group-hover:scale-105 transition-transform duration-300">
+                                    {% if course.institution.logo %}
+                                        <img src="{{ course.institution.logo.url }}" class="w-full h-full object-contain" alt="{{ course.institution.name }}">
+                                    {% else %}
+                                        <i class="fas fa-university text-slate-800 text-lg"></i>
+                                    {% endif %}
+                                </div>
+
+                                <div class="flex flex-col">
+                                    <span class="text-[9px] uppercase font-black tracking-[0.2em] text-indigo-400 group-hover:text-indigo-300 transition-colors">
+                                        Certificado Oficial
+                                    </span>
+                                    <span class="text-sm font-bold text-white group-hover:text-indigo-100 transition-colors leading-none mt-0.5">
+                                        {{ course.institution.name }}
+                                    </span>
+                                </div>
+
+                                <i class="fas fa-check-circle text-indigo-500 text-sm ml-2 opacity-50 group-hover:opacity-100 group-hover:text-indigo-400 transition-all"></i>
+                            </a>
+                        </div>
+                    {% endif %}
+                    </div>
+
+                <h1 class="text-4xl md:text-5xl lg:text-7xl font-black tracking-tight mb-8 text-white leading-[1.05] drop-shadow-2xl animate-fade-in" 
+                    style="text-shadow: 0 0 40px rgba(79, 70, 229, 0.2);">
                     {{ course.title }}
                 </h1>
 
-                <p class="text-lg md:text-xl text-slate-200 mb-8 max-w-2xl leading-relaxed font-light animate-fade-in drop-shadow-md">
-                    {{ course.short_description|default:course.description|striptags|safe|truncatechars:200 }}
+                <p class="text-lg md:text-xl text-slate-300 mb-10 max-w-3xl leading-relaxed font-light animate-fade-in border-l-4 border-indigo-500/50 pl-6">
+                    {{ course.short_description|default:course.description|striptags|truncatechars:250 }}
                 </p>
 
-                <div class="flex flex-wrap items-center gap-6 md:gap-8 mb-8 text-sm font-medium text-slate-300 border-y border-slate-700/50 py-6 bg-slate-900/40 backdrop-blur-md rounded-xl px-6 animate-fade-in border border-white/5">
-                    <div class="flex items-center gap-2">
-                        <span class="text-yellow-400 font-bold text-2xl">{{ avg_rating|floatformat:1 }}</span>
+                <div class="flex flex-wrap items-center gap-8 mb-8 text-sm font-medium text-slate-300 bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 w-fit animate-fade-in hover:bg-white/10 transition-colors duration-300">
+                    <div class="flex items-center gap-3 group cursor-pointer">
+                        <div class="flex flex-col items-center">
+                            <span class="text-yellow-400 font-black text-2xl leading-none group-hover:scale-110 transition-transform">{{ avg_rating|floatformat:1 }}</span>
+                        </div>
                         <div class="flex flex-col">
-                            <div class="flex text-yellow-400 text-xs gap-0.5">
+                            <div class="flex text-yellow-400 text-[10px] gap-0.5 mb-1">
                                 {% with ''|center:5 as range %}
-                                    {% for _ in range %}
-                                        <i class="{% if forloop.counter <= avg_rating %}fas{% else %}far{% endif %} fa-star"></i>
-                                    {% endfor %}
+                                    {% for _ in range %}<i class="{% if forloop.counter <= avg_rating %}fas{% else %}far{% endif %} fa-star"></i>{% endfor %}
                                 {% endwith %}
                             </div>
-                            <a href="#reviews" class="text-[10px] text-indigo-300 hover:text-white underline decoration-dotted uppercase font-bold tracking-wide transition-colors">Ver {{ reviews.count }} reseñas</a>
+                            <a href="#reviews" class="text-[10px] text-slate-400 group-hover:text-white uppercase font-bold tracking-wider transition-colors underline decoration-dotted">{{ reviews.count }} Reseñas</a>
                         </div>
                     </div>
                     
-                    <div class="w-px h-8 bg-slate-700 hidden sm:block"></div>
+                    <div class="w-px h-8 bg-white/10 hidden sm:block"></div>
 
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-indigo-400 border border-slate-600 shadow-lg">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 border border-indigo-500/30">
                             <i class="fas fa-user-graduate"></i>
                         </div>
                         <div>
-                            <span class="block text-white font-bold">{{ course.enrollments.count }}</span>
-                            <span class="text-xs text-slate-400 uppercase tracking-wide">Alumnos</span>
+                            <span class="block text-white font-bold text-lg leading-none">{{ course.enrollments.count }}</span>
+                            <span class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Alumnos</span>
                         </div>
                     </div>
                     
+                    <div class="w-px h-8 bg-white/10 hidden sm:block"></div>
+
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-cyan-400 border border-slate-600 shadow-lg">
+                        <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-cyan-400 border border-cyan-500/30">
                             <i class="far fa-clock"></i>
                         </div>
                         <div>
-                            <span class="block text-white font-bold">{{ course.total_duration }}</span>
-                            <span class="text-xs text-slate-400 uppercase tracking-wide">Contenido</span>
+                            <span class="block text-white font-bold text-lg leading-none">{{ course.total_duration }}</span>
+                            <span class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Duración</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-4 animate-fade-in p-4 bg-slate-900/80 rounded-2xl border border-slate-700/50 backdrop-blur-md w-fit hover:bg-slate-800 transition-colors cursor-pointer shadow-xl group" onclick="document.getElementById('instructor-bio').scrollIntoView({behavior: 'smooth'})">
+                <div class="flex items-center gap-4 animate-fade-in p-2 pr-6 bg-slate-900/40 rounded-full border border-slate-700/50 hover:border-indigo-500/50 hover:bg-slate-800 transition-all cursor-pointer w-fit group" onclick="document.getElementById('instructor-bio').scrollIntoView({behavior: 'smooth'})">
                     {% if course.instructor.profile.avatar %}
-                        <img class="h-12 w-12 rounded-full border-2 border-indigo-500/50 object-cover" src="{{ course.instructor.profile.avatar.url }}" alt="">
+                        <img class="h-10 w-10 rounded-full border border-slate-600 object-cover group-hover:border-indigo-400 transition-colors" src="{{ course.instructor.profile.avatar.url }}" alt="">
                     {% else %}
-                        <div class="h-12 w-12 rounded-full bg-slate-700 flex items-center justify-center text-slate-400"><i class="fas fa-user"></i></div>
+                        <div class="h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center text-slate-400"><i class="fas fa-user"></i></div>
                     {% endif %}
-                    <div>
-                        <p class="text-[10px] text-indigo-400 uppercase tracking-widest font-bold mb-0.5">Creado por</p>
-                        <p class="font-bold text-white text-base group-hover:text-indigo-300 transition-colors">
+                    <div class="flex flex-col">
+                        <span class="text-[9px] text-indigo-400 uppercase tracking-widest font-bold">Impartido por</span>
+                        <span class="font-bold text-white text-sm group-hover:text-indigo-200 transition-colors">
                             {{ course.instructor.get_full_name|default:course.instructor.username }}
-                        </p>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -116,59 +147,101 @@
             
             <div class="lg:col-span-2 space-y-12">
                 
-                <div class="bg-slate-800/30 rounded-3xl border border-slate-700/50 p-8 backdrop-blur-sm shadow-xl">
-                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                        <span class="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
-                            <i class="fas fa-align-left text-sm"></i>
+                <div class="bg-slate-800/20 rounded-[2rem] border border-slate-700/50 p-8 backdrop-blur-sm shadow-xl">
+                    <h2 class="text-2xl font-black text-white mb-8 flex items-center gap-4">
+                        <span class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/20 transform rotate-3">
+                            <i class="fas fa-lightbulb text-lg"></i>
                         </span>
                         Lo que aprenderás
                     </h2>
-                    <div class="prose prose-invert prose-lg max-w-none text-slate-400 leading-relaxed prose-headings:text-white prose-a:text-indigo-400 hover:prose-a:text-indigo-300 prose-strong:text-white">
-                        {{ course.description|safe }}
+                    
+                    <div class="prose prose-invert prose-lg max-w-none text-slate-400 leading-relaxed prose-headings:text-white prose-a:text-indigo-400 hover:prose-a:text-indigo-300 prose-strong:text-white prose-li:marker:text-indigo-500">
+                        {{ course.description|sanitize }}
                     </div>
                 </div>
 
+                {% if course.learning_objectives or course.requirements %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {% if course.learning_objectives %}
+                    <div class="bg-slate-800/50 rounded-2xl p-8 border border-slate-700/50">
+                        <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                            <i class="fas fa-check-circle text-emerald-400"></i> Objetivos
+                        </h3>
+                        <ul class="space-y-3">
+                            {% for line in course.learning_objectives.splitlines %}
+                                {% if line %}
+                                <li class="flex items-start gap-3 text-slate-300 text-sm">
+                                    <i class="fas fa-check text-emerald-500 mt-1"></i>
+                                    <span>{{ line|cut:"-"|stringformat:"s"|trim|sanitize }}</span>
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    {% if course.requirements %}
+                    <div class="bg-slate-800/50 rounded-2xl p-8 border border-slate-700/50">
+                        <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                            <i class="fas fa-info-circle text-indigo-400"></i> Requisitos
+                        </h3>
+                        <ul class="space-y-3">
+                            {% for line in course.requirements.splitlines %}
+                                {% if line %}
+                                <li class="flex items-start gap-3 text-slate-300 text-sm">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-2 shrink-0"></span>
+                                    <span>{{ line|cut:"-"|stringformat:"s"|trim|sanitize }}</span>
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
                 <div id="curriculum">
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-2xl font-bold text-white flex items-center gap-3">
-                            <span class="w-8 h-8 rounded-lg bg-cyan-500 flex items-center justify-center text-white shadow-lg shadow-cyan-500/30">
-                                <i class="fas fa-layer-group text-sm"></i>
+                    <div class="flex items-center justify-between mb-8">
+                        <h2 class="text-2xl font-black text-white flex items-center gap-4">
+                            <span class="w-10 h-10 rounded-xl bg-cyan-600 flex items-center justify-center text-white shadow-lg shadow-cyan-600/20 transform -rotate-3">
+                                <i class="fas fa-layer-group text-lg"></i>
                             </span>
-                            Contenido del Curso
+                            Plan de Estudios
                         </h2>
-                        <span class="text-xs font-bold text-slate-500 bg-slate-800 px-3 py-1 rounded-full border border-slate-700">{{ modules.count }} Módulos</span>
+                        <span class="text-xs font-bold text-indigo-300 bg-indigo-900/30 px-4 py-2 rounded-full border border-indigo-500/20">{{ modules.count }} Módulos Completos</span>
                     </div>
                     
                     <div class="space-y-4" x-data="{ activeModule: 0 }">
                         {% for module in modules %}
-                            <div class="rounded-2xl border border-slate-700/50 overflow-hidden bg-slate-800/20 backdrop-blur-sm transition-all duration-300 hover:border-slate-600">
+                            <div class="rounded-2xl border border-slate-700/50 overflow-hidden bg-slate-800/20 backdrop-blur-sm transition-all duration-300 hover:border-slate-600 hover:bg-slate-800/30">
                                 
                                 <button @click="activeModule === {{ forloop.counter0 }} ? activeModule = null : activeModule = {{ forloop.counter0 }}"
-                                        class="w-full flex items-center justify-between p-5 text-left focus:outline-none bg-slate-800/40 hover:bg-slate-800/60 transition-colors">
-                                    <div class="flex items-center gap-4">
-                                        <div class="flex flex-col items-center justify-center w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 group-hover:text-white transition-colors">
-                                            <span class="text-[10px] uppercase font-bold text-slate-600">MOD</span>
-                                            <span class="font-mono font-bold leading-none">{{ forloop.counter }}</span>
+                                        class="w-full flex items-center justify-between p-6 text-left focus:outline-none">
+                                    <div class="flex items-center gap-5">
+                                        <div class="flex flex-col items-center justify-center w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 group-hover:text-white transition-colors shadow-inner">
+                                            <span class="text-[9px] uppercase font-bold text-slate-600">MOD</span>
+                                            <span class="font-mono font-bold text-xl leading-none text-slate-300">{{ forloop.counter }}</span>
                                         </div>
                                         <div>
-                                            <span class="font-bold text-white block text-lg">{{ module.title }}</span>
-                                            <span class="text-xs text-slate-500 font-medium uppercase tracking-wider flex items-center gap-2">
-                                                <span>{{ module.lessons.count }} lecciones</span>
-                                                <span class="w-1 h-1 rounded-full bg-slate-600"></span>
-                                                <span>{{ module.quizzes.count }} exámenes</span>
+                                            <span class="font-bold text-white block text-lg mb-1">{{ module.title }}</span>
+                                            <span class="text-xs text-slate-500 font-bold uppercase tracking-wider flex items-center gap-3">
+                                                <span class="flex items-center gap-1"><i class="fas fa-play-circle text-indigo-500"></i> {{ module.lessons.count }} lecciones</span>
+                                                {% if module.quizzes.count > 0 %}
+                                                <span class="flex items-center gap-1"><i class="fas fa-clipboard-check text-emerald-500"></i> {{ module.quizzes.count }} exámenes</span>
+                                                {% endif %}
                                             </span>
                                         </div>
                                     </div>
-                                    <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 transition-transform duration-300"
+                                    <div class="w-8 h-8 rounded-full bg-slate-700/50 flex items-center justify-center text-slate-400 transition-transform duration-300"
                                          :class="{ 'rotate-180 bg-indigo-600 text-white': activeModule === {{ forloop.counter0 }} }">
                                         <i class="fas fa-chevron-down text-xs"></i>
                                     </div>
                                 </button>
                                 
                                 <div x-show="activeModule === {{ forloop.counter0 }}" x-collapse>
-                                    <ul class="divide-y divide-slate-700/30 bg-black/20">
+                                    <ul class="divide-y divide-slate-700/30 bg-black/20 border-t border-slate-700/30">
                                         {% for lesson in module.lessons.all %}
-                                            <li class="p-4 pl-[4.5rem] flex items-center justify-between hover:bg-white/5 transition-colors group/item">
+                                            <li class="p-4 pl-[5.5rem] flex items-center justify-between hover:bg-white/5 transition-colors group/item">
                                                 <div class="flex items-center gap-4 min-w-0">
                                                     <div class="text-slate-600 group-hover/item:text-indigo-400 transition-colors shrink-0">
                                                         {% if is_enrolled %}
@@ -189,7 +262,7 @@
                                         {% endfor %}
                                         
                                         {% for quiz in module.quizzes.all %}
-                                             <li class="p-4 pl-[4.5rem] flex items-center justify-between bg-indigo-900/10 hover:bg-indigo-900/20 transition-colors border-l-2 border-indigo-500/50">
+                                             <li class="p-4 pl-[5.5rem] flex items-center justify-between bg-indigo-900/10 hover:bg-indigo-900/20 transition-colors border-l-4 border-indigo-500/50">
                                                 <div class="flex items-center gap-3">
                                                     <div class="w-6 h-6 rounded bg-indigo-500/20 flex items-center justify-center text-indigo-400">
                                                         <i class="fas fa-star text-xs"></i>
@@ -206,42 +279,48 @@
                     </div>
                 </div>
 
-                <div id="instructor-bio" class="bg-slate-800/30 rounded-3xl border border-slate-700/50 p-8 backdrop-blur-sm">
-                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                        <span class="w-8 h-8 rounded-lg bg-pink-500 flex items-center justify-center text-white shadow-lg shadow-pink-500/30">
-                            <i class="fas fa-chalkboard-teacher text-sm"></i>
+                <div id="instructor-bio" class="bg-gradient-to-br from-slate-800/40 to-slate-900/40 rounded-[2rem] border border-slate-700/50 p-8 backdrop-blur-sm">
+                    <h2 class="text-2xl font-black text-white mb-8 flex items-center gap-4">
+                        <span class="w-10 h-10 rounded-xl bg-pink-600 flex items-center justify-center text-white shadow-lg shadow-pink-600/20">
+                            <i class="fas fa-chalkboard-teacher text-lg"></i>
                         </span>
-                        Conoce a tu Instructor
+                        Tu Instructor
                     </h2>
                     
                     <div class="flex flex-col md:flex-row gap-8 items-start">
-                        <div class="shrink-0 text-center md:text-left">
+                        <div class="shrink-0 text-center md:text-left relative group">
+                            <div class="absolute -inset-2 bg-pink-500 rounded-2xl opacity-20 blur-md group-hover:opacity-40 transition-opacity"></div>
                             {% if course.instructor.profile.avatar %}
-                                <img src="{{ course.instructor.profile.avatar.url }}" class="w-32 h-32 rounded-2xl object-cover border-4 border-slate-700 shadow-xl mx-auto md:mx-0">
+                                <img src="{{ course.instructor.profile.avatar.url }}" class="relative w-32 h-32 rounded-2xl object-cover border-2 border-slate-600 shadow-2xl mx-auto md:mx-0 z-10">
                             {% else %}
-                                <div class="w-32 h-32 rounded-2xl bg-slate-700 flex items-center justify-center text-6xl text-slate-500 border-4 border-slate-600 mx-auto md:mx-0">
+                                <div class="relative w-32 h-32 rounded-2xl bg-slate-700 flex items-center justify-center text-6xl text-slate-500 border-2 border-slate-600 mx-auto md:mx-0 z-10">
                                     <i class="fas fa-user"></i>
                                 </div>
                             {% endif %}
                             
-                            <div class="mt-4 flex justify-center md:justify-start gap-3">
-                                <a href="#" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-colors"><i class="fab fa-linkedin-in"></i></a>
-                                <a href="#" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-blue-500 hover:text-white transition-colors"><i class="fab fa-twitter"></i></a>
+                            <div class="mt-6 flex justify-center md:justify-center gap-3 relative z-10">
+                                <a href="#" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-[#0077b5] hover:text-white transition-all transform hover:scale-110"><i class="fab fa-linkedin-in"></i></a>
+                                <a href="#" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-[#1da1f2] hover:text-white transition-all transform hover:scale-110"><i class="fab fa-twitter"></i></a>
                             </div>
                         </div>
                         
                         <div class="flex-1">
-                            <h3 class="text-xl font-bold text-white mb-1">{{ course.instructor.get_full_name|default:course.instructor.username }}</h3>
-                            <p class="text-indigo-400 text-sm font-bold uppercase tracking-widest mb-4">{{ course.instructor.profile.role|default:"Profesor Experto" }}</p>
+                            <h3 class="text-2xl font-bold text-white mb-1">{{ course.instructor.get_full_name|default:course.instructor.username }}</h3>
+                            <p class="text-indigo-400 text-sm font-bold uppercase tracking-widest mb-6 border-b border-slate-700/50 pb-4 inline-block">{{ course.instructor.profile.role|default:"Profesor Experto" }}</p>
                             
-                            <div class="prose prose-sm prose-invert text-slate-400 mb-6">
+                            <div class="prose prose-sm prose-invert text-slate-400 mb-8 leading-relaxed">
                                 <p>{{ course.instructor.profile.bio|default:"Este instructor prefiere enseñar con el ejemplo y aún no ha escrito su biografía." }}</p>
                             </div>
                             
-                            <div class="flex gap-6 text-sm font-bold text-slate-300">
-                                <div>
-                                    <span class="block text-xl text-white">{{ course.instructor.course_set.count }}</span>
-                                    <span class="text-xs text-slate-500 uppercase tracking-wide">Cursos</span>
+                            <div class="flex gap-8 text-sm font-bold text-slate-300 bg-slate-800/50 rounded-xl p-4 w-fit border border-slate-700">
+                                <div class="flex flex-col items-center px-4">
+                                    <span class="block text-2xl text-white font-black">{{ course.instructor.course_set.count }}</span>
+                                    <span class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Cursos</span>
+                                </div>
+                                <div class="w-px bg-slate-700"></div>
+                                <div class="flex flex-col items-center px-4">
+                                    <span class="block text-2xl text-white font-black">4.9</span>
+                                    <span class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Rating</span>
                                 </div>
                             </div>
                         </div>
@@ -249,45 +328,51 @@
                 </div>
 
                 <div id="reviews">
-                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                        <span class="w-8 h-8 rounded-lg bg-yellow-500 flex items-center justify-center text-white shadow-lg shadow-yellow-500/30">
-                            <i class="fas fa-comment-alt text-sm"></i>
+                    <h2 class="text-2xl font-black text-white mb-8 flex items-center gap-4">
+                        <span class="w-10 h-10 rounded-xl bg-yellow-500 flex items-center justify-center text-white shadow-lg shadow-yellow-500/20">
+                            <i class="fas fa-comment-alt text-lg"></i>
                         </span>
-                        Opiniones de Alumnos
+                        Lo que dicen los alumnos
                     </h2>
 
                     {% if reviews %}
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {% for review in reviews %}
-                            <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50 hover:border-slate-600 transition-colors">
-                                <div class="flex items-center gap-4 mb-4">
+                            <div class="bg-slate-800/30 p-8 rounded-[2rem] border border-slate-700/50 hover:border-slate-500/50 hover:bg-slate-800/50 transition-all duration-300 group">
+                                <div class="flex items-center gap-4 mb-6">
                                     {% if review.user.profile.avatar %}
-                                        <img src="{{ review.user.profile.avatar.url }}" class="w-10 h-10 rounded-full object-cover border border-slate-600">
+                                        <img src="{{ review.user.profile.avatar.url }}" class="w-12 h-12 rounded-full object-cover border-2 border-slate-700 group-hover:border-yellow-500 transition-colors">
                                     {% else %}
-                                        <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 font-bold">
+                                        <div class="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 font-bold border-2 border-slate-600">
                                             {{ review.user.username|slice:":1" }}
                                         </div>
                                     {% endif %}
                                     <div>
-                                        <p class="font-bold text-white text-sm">{{ review.user.get_full_name|default:review.user.username }}</p>
-                                        <div class="flex text-[10px] text-yellow-400 gap-0.5">
+                                        <p class="font-bold text-white text-base">{{ review.user.get_full_name|default:review.user.username }}</p>
+                                        <div class="flex text-[10px] text-yellow-400 gap-1 mt-1">
                                             {% with ''|center:5 as range %}
                                                 {% for _ in range %}
                                                     <i class="{% if forloop.counter <= review.rating %}fas{% else %}far{% endif %} fa-star"></i>
                                                 {% endfor %}
                                             {% endwith %}
-                                            <span class="text-slate-500 ml-2">{{ review.created_at|timesince }} atrás</span>
                                         </div>
                                     </div>
+                                    <span class="ml-auto text-xs text-slate-600 font-mono">{{ review.created_at|timesince }}</span>
                                 </div>
-                                <p class="text-slate-400 text-sm italic">"{{ review.comment }}"</p>
+                                <div class="relative">
+                                    <i class="fas fa-quote-left text-4xl text-slate-800 absolute -top-4 -left-2 -z-10 group-hover:text-slate-700 transition-colors"></i>
+                                    <p class="text-slate-300 text-sm leading-relaxed italic relative z-10">"{{ review.comment }}"</p>
+                                </div>
                             </div>
                             {% endfor %}
                         </div>
                     {% else %}
-                        <div class="text-center py-12 bg-slate-800/20 rounded-2xl border border-slate-700/50 border-dashed">
-                            <i class="far fa-comment-dots text-4xl text-slate-600 mb-3"></i>
-                            <p class="text-slate-500">Este curso es nuevo y aún no tiene reseñas. ¡Sé el primero!</p>
+                        <div class="text-center py-16 bg-slate-800/20 rounded-[2rem] border border-slate-700/50 border-dashed">
+                            <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-600">
+                                <i class="far fa-comment-dots text-4xl"></i>
+                            </div>
+                            <p class="text-slate-500 font-medium">Este curso es nuevo y aún no tiene reseñas.</p>
+                            <p class="text-indigo-400 text-sm font-bold mt-2">¡Sé el primero en compartir tu experiencia!</p>
                         </div>
                     {% endif %}
                 </div>
@@ -309,12 +394,12 @@
                                             <div class="w-full h-full flex items-center justify-center bg-slate-900"><i class="fas fa-graduation-cap text-6xl text-slate-700"></i></div>
                                         {% endif %}
                                         <div class="absolute inset-0 flex items-center justify-center">
-                                            <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 border border-white/30 shadow-2xl animate-pulse">
-                                                <i class="fas fa-play text-white text-xl ml-1 drop-shadow-lg"></i>
+                                            <div class="w-20 h-20 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 border border-white/20 shadow-2xl animate-pulse ring-4 ring-white/5">
+                                                <i class="fas fa-play text-white text-2xl ml-1 drop-shadow-lg"></i>
                                             </div>
                                         </div>
-                                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900 to-transparent p-6 pt-12">
-                                            <p class="text-white text-xs font-bold text-center uppercase tracking-widest text-shadow">Vista previa gratuita</p>
+                                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent p-6 pt-12">
+                                            <p class="text-white text-[10px] font-black text-center uppercase tracking-[0.2em] text-shadow">Vista previa gratuita</p>
                                         </div>
                                      </div>
                                 </template>
@@ -330,71 +415,97 @@
                             {% endif %}
                         </div>
 
-                        <div class="p-6 relative overflow-hidden">
-                            <div class="absolute top-0 right-0 w-40 h-40 bg-indigo-500/10 rounded-full blur-[60px] pointer-events-none"></div>
+                        <div class="p-8 relative overflow-hidden bg-slate-800">
+                            <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px] pointer-events-none"></div>
 
-                            <div class="mb-6 relative z-10" 
+                            <div class="mb-8 relative z-10" 
                                  x-data="{ 
-                                    pricingMode: 'full', 
+                                    pricingMode: {{ course.allow_monthly_payment|yesno:"'monthly','full'" }},
                                     hasMonthly: {{ course.allow_monthly_payment|yesno:'true,false' }} 
                                  }">
 
                                 {% if course.price > 0 %}
                                     
-                                    <div x-show="hasMonthly" class="flex bg-slate-900 p-1 rounded-xl mb-6 border border-slate-700 w-full relative">
-                                        <div class="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-indigo-600 rounded-lg transition-all duration-300 shadow-lg"
-                                             :class="pricingMode === 'full' ? 'left-1' : 'left-[calc(50%+4px)]'"></div>
+                                    <div x-show="hasMonthly" class="flex bg-slate-950 p-1.5 rounded-xl mb-6 border border-slate-700/50 w-full relative shadow-inner">
+                                        <div class="absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-indigo-600 rounded-lg transition-all duration-300 shadow-lg"
+                                             :class="pricingMode === 'monthly' ? 'left-1.5' : 'left-[calc(50%+6px)]'"></div>
                                         
-                                        <button @click="pricingMode = 'full'" 
-                                                class="flex-1 py-2 text-xs font-bold uppercase tracking-wide relative z-10 transition-colors"
-                                                :class="pricingMode === 'full' ? 'text-white' : 'text-slate-400 hover:text-white'">
-                                            Un Solo Pago
-                                        </button>
                                         <button @click="pricingMode = 'monthly'" 
-                                                class="flex-1 py-2 text-xs font-bold uppercase tracking-wide relative z-10 transition-colors"
+                                                class="flex-1 py-2.5 text-[10px] font-black uppercase tracking-wider relative z-10 transition-colors"
                                                 :class="pricingMode === 'monthly' ? 'text-white' : 'text-slate-400 hover:text-white'">
-                                            En Cuotas
+                                            Pago Mensual
+                                        </button>
+                                        <button @click="pricingMode = 'full'"
+                                                class="flex-1 py-2.5 text-[10px] font-black uppercase tracking-wider relative z-10 transition-colors"
+                                                :class="pricingMode === 'full' ? 'text-white' : 'text-slate-400 hover:text-white'">
+                                            Pago Único
                                         </button>
                                     </div>
 
-                                    <div x-show="pricingMode === 'full'" x-transition:enter.duration.300ms>
-                                        <div class="flex items-end gap-2 mb-2">
-                                            <span class="text-5xl font-black text-white tracking-tighter leading-none">
-                                                <span class="text-2xl text-slate-400 font-bold align-top mr-0.5">S/</span>{{ course.price|floatformat:0 }}<span class="text-xl text-slate-400 font-bold align-top">.00</span>
-                                            </span>
-                                            {% if course.old_price and course.old_price > course.price %}
-                                                <span class="text-slate-500 line-through decoration-slate-600 text-lg mb-1">S/ {{ course.old_price|floatformat:0 }}</span>
-                                            {% endif %}
-                                        </div>
-                                        
+                                    <div x-show="pricingMode === 'full'" x-transition:enter.duration.300ms class="text-center relative py-2">
                                         {% if course.old_price and course.old_price > course.price %}
-                                            <div class="inline-block bg-gradient-to-r from-rose-600 to-pink-600 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg border border-white/10 mb-4 animate-pulse">
-                                                🔥 ¡AHORRAS {{ course.discount_percent }}%!
+                                            <div class="absolute -top-4 -right-2 z-20 transform rotate-12 animate-bounce" style="animation-duration: 2s;">
+                                                <div class="relative">
+                                                    <div class="absolute inset-0 bg-red-600 blur opacity-50 rounded-full animate-pulse"></div>
+                                                    <span class="relative bg-gradient-to-r from-red-600 to-rose-500 text-white text-xs font-black px-3 py-1.5 rounded-full shadow-xl border border-white/20 flex items-center gap-1">
+                                                        <i class="fas fa-fire text-yellow-300 animate-pulse"></i>
+                                                        AHORRAS {{ course.discount_percent }}%
+                                                    </span>
+                                                </div>
                                             </div>
                                         {% endif %}
+
+                                        <div class="relative group inline-block">
+                                            {% if course.old_price and course.old_price > course.price %}
+                                                <div class="absolute -inset-4 bg-gradient-to-r from-emerald-500/20 via-cyan-500/20 to-emerald-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                                            {% endif %}
+
+                                            <div class="relative flex flex-col items-center">
+                                                {% if course.old_price and course.old_price > course.price %}
+                                                    <span class="text-slate-500 text-sm font-bold line-through decoration-red-500/60 decoration-2 mb-[-5px] block">
+                                                        Precio Normal: S/ {{ course.old_price|floatformat:0 }}
+                                                    </span>
+                                                {% endif %}
+
+                                                <div class="flex items-end justify-center gap-1">
+                                                    <span class="text-3xl text-slate-400 font-bold mb-2">S/</span>
+                                                    <span class="text-7xl font-black text-white tracking-tighter drop-shadow-2xl">
+                                                        {{ course.price|floatformat:0 }}
+                                                    </span>
+                                                </div>
+                                                
+                                                {% if course.old_price and course.old_price > course.price %}
+                                                    <p class="text-[10px] font-bold text-emerald-400 uppercase tracking-[0.2em] mt-1 animate-pulse">
+                                                        ¡Oferta por tiempo limitado!
+                                                    </p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <template x-if="hasMonthly">
-                                        <div x-show="pricingMode === 'monthly'" style="display: none;" x-transition:enter.duration.300ms>
-                                            <div class="flex items-end gap-2 mb-2">
-                                                <span class="text-5xl font-black text-white tracking-tighter leading-none">
-                                                    <span class="text-2xl text-slate-400 font-bold align-top mr-0.5">S/</span>{{ course.monthly_price|floatformat:0 }}
+                                        <div x-show="pricingMode === 'monthly'" style="display: none;" x-transition:enter.duration.300ms class="text-center">
+                                            <div class="flex items-end justify-center gap-2 mb-2">
+                                                <span class="text-6xl font-black text-white tracking-tighter leading-none">
+                                                    <span class="text-2xl text-slate-400 font-bold align-top mr-1">S/</span>{{ course.monthly_price|floatformat:0 }}
                                                 </span>
-                                                <span class="text-slate-400 font-bold mb-1">/mes</span>
+                                                <span class="text-slate-400 font-bold mb-1.5">/mes</span>
                                             </div>
                                             
-                                            <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-lg p-2 flex items-center gap-2 mb-4">
-                                                <div class="bg-indigo-500 text-white w-6 h-6 rounded flex items-center justify-center font-bold text-xs">
+                                            <div class="bg-indigo-900/30 border border-indigo-500/30 rounded-xl p-3 flex items-center justify-center gap-3 mb-4 mx-auto w-fit">
+                                                <div class="bg-indigo-500 text-white w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shadow-lg">
                                                     {{ course.duration_months }}
                                                 </div>
-                                                <span class="text-xs text-indigo-200 font-medium">Pagos mensuales sin intereses.</span>
+                                                <span class="text-xs text-indigo-200 font-bold tracking-wide">Cuotas sin intereses</span>
                                             </div>
                                         </div>
                                     </template>
 
                                 {% else %}
-                                    <span class="text-5xl font-black text-emerald-400 tracking-tight">Gratis</span>
-                                    <p class="text-slate-400 text-xs mt-1 mb-6">Acceso libre por tiempo limitado</p>
+                                    <div class="text-center mb-6">
+                                        <span class="text-6xl font-black text-emerald-400 tracking-tight drop-shadow-[0_0_15px_rgba(52,211,153,0.4)]">Gratis</span>
+                                        <p class="text-slate-400 text-xs mt-2 font-bold uppercase tracking-wider">Acceso libre por tiempo limitado</p>
+                                    </div>
                                 {% endif %}
                             </div>
 
@@ -404,21 +515,48 @@
                                         
                                         {% if course.is_upcoming %}
                                             <div class="text-center">
-                                                <button disabled class="w-full bg-slate-700 text-slate-400 font-bold py-4 rounded-xl cursor-not-allowed mb-2 border border-slate-600 shadow-inner flex items-center justify-center gap-2">
-                                                    <i class="fas fa-lock"></i> Acceso Bloqueado
+                                                <button disabled class="w-full bg-slate-700/50 text-slate-400 font-bold py-4 rounded-2xl cursor-not-allowed mb-4 border border-slate-600 border-dashed flex items-center justify-center gap-2">
+                                                    <i class="fas fa-lock"></i> Contenido Bloqueado
                                                 </button>
-                                                <div x-data="courseCountdown('{{ course.launch_date|date:'Y-m-d H:i:s' }}')" class="flex justify-center gap-2 text-xs font-mono text-slate-400 bg-slate-900/50 p-2 rounded-lg">
-                                                    <span x-text="days + 'd'"></span> : <span x-text="hours + 'h'"></span> : <span x-text="minutes + 'm'"></span>
+                                                
+                                                <div x-data="courseCountdown('{{ course.launch_date|date:'c' }}')" class="p-5 bg-slate-900/80 rounded-2xl border border-indigo-500/30 shadow-[0_0_30px_rgba(99,102,241,0.1)] relative overflow-hidden group">
+                                                    <div class="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-purple-500/10 to-indigo-500/5 animate-pulse"></div>
+                                                    
+                                                    <p class="text-[9px] font-black text-indigo-400 uppercase tracking-[0.25em] mb-4 relative z-10 flex items-center justify-center gap-2">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping"></span> Lanzamiento en:
+                                                    </p>
+                                                    
+                                                    <div class="flex justify-center gap-2 relative z-10">
+                                                        <div class="bg-slate-950 rounded-xl p-2.5 min-w-[50px] border border-slate-800 flex flex-col items-center shadow-lg">
+                                                            <span class="text-xl font-mono font-black text-white leading-none" x-text="days">00</span>
+                                                            <span class="text-[8px] text-slate-500 font-bold uppercase mt-1">Días</span>
+                                                        </div>
+                                                        <span class="text-slate-600 font-bold self-center -mt-3 text-lg opacity-30">:</span>
+                                                        <div class="bg-slate-950 rounded-xl p-2.5 min-w-[50px] border border-slate-800 flex flex-col items-center shadow-lg">
+                                                            <span class="text-xl font-mono font-black text-white leading-none" x-text="hours">00</span>
+                                                            <span class="text-[8px] text-slate-500 font-bold uppercase mt-1">Hrs</span>
+                                                        </div>
+                                                        <span class="text-slate-600 font-bold self-center -mt-3 text-lg opacity-30">:</span>
+                                                        <div class="bg-slate-950 rounded-xl p-2.5 min-w-[50px] border border-slate-800 flex flex-col items-center shadow-lg">
+                                                            <span class="text-xl font-mono font-black text-white leading-none" x-text="minutes">00</span>
+                                                            <span class="text-[8px] text-slate-500 font-bold uppercase mt-1">Min</span>
+                                                        </div>
+                                                        <span class="text-slate-600 font-bold self-center -mt-3 text-lg opacity-30">:</span>
+                                                        <div class="bg-slate-950 rounded-xl p-2.5 min-w-[50px] border border-slate-800 flex flex-col items-center shadow-lg shadow-indigo-500/10 border-indigo-500/20">
+                                                            <span class="text-xl font-mono font-black text-indigo-400 leading-none" x-text="seconds">00</span>
+                                                            <span class="text-[8px] text-slate-500 font-bold uppercase mt-1">Seg</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         {% else %}
                                             {% if course.course_type == 'seminar' and course.live_url %}
-                                                <a href="{{ course.live_url }}" target="_blank" class="flex items-center justify-center w-full bg-red-600 hover:bg-red-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-red-500/20 transition-all hover:-translate-y-1 gap-3 animate-pulse">
+                                                <a href="{{ course.live_url }}" target="_blank" class="flex items-center justify-center w-full bg-red-600 hover:bg-red-500 text-white font-bold py-4 rounded-2xl shadow-[0_10px_30px_rgba(220,38,38,0.3)] transition-all hover:-translate-y-1 gap-3 animate-pulse border-b-4 border-red-800">
                                                     <i class="fas fa-video text-xl"></i>
                                                     <span>Unirse al Live</span>
                                                 </a>
                                             {% else %}
-                                                <a href="{% url 'academy:dashboard' %}" class="flex items-center justify-center w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-500/20 transition-all hover:-translate-y-1 gap-3">
+                                                <a href="{% url 'academy:dashboard' %}" class="flex items-center justify-center w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-2xl shadow-[0_10px_30px_rgba(5,150,105,0.3)] transition-all hover:-translate-y-1 gap-3 border-b-4 border-emerald-800">
                                                     <i class="fas fa-play-circle text-xl"></i>
                                                     <span>Ir al Aula Virtual</span>
                                                 </a>
@@ -426,61 +564,107 @@
                                         {% endif %}
 
                                     {% elif enrollment.status == 'review' %}
-                                        <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 text-center">
-                                            <div class="animate-spin inline-block w-5 h-5 border-2 border-current border-t-transparent text-blue-400 rounded-full mb-1"></div>
+                                        <div class="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4 text-center">
+                                            <div class="animate-spin inline-block w-6 h-6 border-2 border-current border-t-transparent text-blue-400 rounded-full mb-2"></div>
                                             <p class="text-blue-400 font-bold text-sm">Validando tu pago...</p>
                                         </div>
                                     {% else %}
-                                        <a href="{% url 'academy:payment_gateway' enrollment.id %}" class="block w-full text-center bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-4 rounded-xl transition-all shadow-lg shadow-amber-500/20 animate-pulse">
+                                        <a href="{% url 'academy:payment_gateway' enrollment.id %}" class="block w-full text-center bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-4 rounded-2xl transition-all shadow-lg shadow-amber-500/20 animate-pulse border-b-4 border-amber-600">
                                             Completar Pago Pendiente
                                         </a>
                                     {% endif %}
                                 {% else %}
+                                    
                                     <a href="{% url 'academy:enroll_step1' course.slug %}" 
-                                       class="block relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 p-4 text-center font-bold text-white shadow-[0_10px_40px_-10px_rgba(99,102,241,0.5)] transition-all hover:from-indigo-500 hover:to-violet-500 hover:-translate-y-1 group/buy">
+                                       class="block relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 p-4 text-center font-bold text-white shadow-[0_10px_40px_-10px_rgba(99,102,241,0.5)] transition-all hover:from-indigo-500 hover:to-purple-500 hover:-translate-y-1 group/buy border-b-4 border-indigo-800">
                                         <div class="absolute inset-0 bg-white/20 group-hover/buy:translate-x-full transition-transform duration-700 -skew-x-12 -translate-x-full"></div>
-                                        <span class="relative z-10 flex items-center justify-center gap-2 text-lg">
+                                        <span class="relative z-10 flex items-center justify-center gap-2 text-lg py-1">
                                             {% if course.is_upcoming %}¡Pre-inscribirme Ahora!{% else %}¡Inscribirme Ahora!{% endif %} 
                                             <i class="fas fa-arrow-right group-hover/buy:translate-x-1 transition-transform"></i>
                                         </span>
                                     </a>
-                                    <p class="text-center text-[10px] text-slate-500 font-medium flex items-center justify-center gap-1.5 bg-slate-900/50 py-1.5 rounded-lg border border-slate-700/50">
+                                    
+                                    {% if course.is_upcoming %}
+                                        <div x-data="courseCountdown('{{ course.launch_date|date:'c' }}')" class="mt-8 p-5 bg-slate-900/80 rounded-2xl border border-indigo-500/30 shadow-[0_0_30px_rgba(99,102,241,0.1)] relative overflow-hidden group">
+                                            <div class="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-purple-500/10 to-indigo-500/5 animate-pulse"></div>
+                                            
+                                            <p class="text-[9px] font-black text-indigo-400 uppercase tracking-[0.25em] mb-4 relative z-10 flex items-center justify-center gap-2">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping"></span> Lanzamiento en:
+                                            </p>
+                                            
+                                            <div class="flex justify-center gap-2 relative z-10">
+                                                <div class="bg-slate-950 rounded-xl p-2.5 min-w-[50px] border border-slate-800 flex flex-col items-center shadow-lg">
+                                                    <span class="text-xl font-mono font-black text-white leading-none" x-text="days">00</span>
+                                                    <span class="text-[8px] text-slate-500 font-bold uppercase mt-1">Días</span>
+                                                </div>
+                                                <span class="text-slate-600 font-bold self-center -mt-3 text-lg opacity-30">:</span>
+                                                <div class="bg-slate-950 rounded-xl p-2.5 min-w-[50px] border border-slate-800 flex flex-col items-center shadow-lg">
+                                                    <span class="text-xl font-mono font-black text-white leading-none" x-text="hours">00</span>
+                                                    <span class="text-[8px] text-slate-500 font-bold uppercase mt-1">Hrs</span>
+                                                </div>
+                                                <span class="text-slate-600 font-bold self-center -mt-3 text-lg opacity-30">:</span>
+                                                <div class="bg-slate-950 rounded-xl p-2.5 min-w-[50px] border border-slate-800 flex flex-col items-center shadow-lg">
+                                                    <span class="text-xl font-mono font-black text-white leading-none" x-text="minutes">00</span>
+                                                    <span class="text-[8px] text-slate-500 font-bold uppercase mt-1">Min</span>
+                                                </div>
+                                                <span class="text-slate-600 font-bold self-center -mt-3 text-lg opacity-30">:</span>
+                                                <div class="bg-slate-950 rounded-xl p-2.5 min-w-[50px] border border-slate-800 flex flex-col items-center shadow-lg shadow-indigo-500/10 border-indigo-500/20">
+                                                    <span class="text-xl font-mono font-black text-indigo-400 leading-none" x-text="seconds">00</span>
+                                                    <span class="text-[8px] text-slate-500 font-bold uppercase mt-1">Seg</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+
+                                    <p class="text-center text-[10px] text-slate-500 font-medium flex items-center justify-center gap-1.5 mt-4">
                                         <i class="fas fa-shield-alt text-emerald-500"></i> Garantía de 7 días o te devolvemos el dinero
                                     </p>
                                 {% endif %}
                             </div>
 
-                            <div class="mt-8 pt-6 border-t border-slate-700/50">
-                                <h4 class="font-bold text-white text-[10px] mb-4 uppercase tracking-widest text-slate-500">Este curso incluye:</h4>
-                                <ul class="space-y-3">
-                                    <li class="flex items-center gap-3 text-sm text-slate-300 group/item">
-                                        <div class="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-indigo-500 group-hover/item:bg-indigo-500 group-hover/item:text-white transition-colors">
+                            <div class="mt-8 pt-8 border-t border-slate-700/50">
+                                <h4 class="font-bold text-slate-500 text-[10px] mb-5 uppercase tracking-widest text-center">Todo esto incluido:</h4>
+                                <ul class="space-y-4">
+                                    <li class="flex items-center gap-4 text-sm text-slate-300 group/item">
+                                        <div class="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-indigo-500 group-hover/item:bg-indigo-500 group-hover/item:text-white transition-colors border border-slate-700">
                                             <i class="fas fa-video text-xs"></i>
                                         </div>
-                                        <span>Video bajo demanda en HD</span>
+                                        <span class="font-medium">Video bajo demanda en HD</span>
                                     </li>
-                                    <li class="flex items-center gap-3 text-sm text-slate-300 group/item">
-                                        <div class="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-indigo-500 group-hover/item:bg-indigo-500 group-hover/item:text-white transition-colors">
+                                    <li class="flex items-center gap-4 text-sm text-slate-300 group/item">
+                                        <div class="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-indigo-500 group-hover/item:bg-indigo-500 group-hover/item:text-white transition-colors border border-slate-700">
                                             <i class="fas fa-file-download text-xs"></i>
                                         </div>
-                                        <span>Recursos descargables</span>
+                                        <span class="font-medium">Recursos descargables</span>
                                     </li>
-                                    <li class="flex items-center gap-3 text-sm text-slate-300 group/item">
-                                        <div class="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-indigo-500 group-hover/item:bg-indigo-500 group-hover/item:text-white transition-colors">
-                                            <i class="fas fa-infinity text-xs"></i>
-                                        </div>
-                                        <span>Acceso de por vida</span>
-                                    </li>
-                                    <li class="flex items-center gap-3 text-sm text-slate-300 group/item">
-                                        <div class="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-indigo-500 group-hover/item:bg-indigo-500 group-hover/item:text-white transition-colors">
+                                    <li class="flex items-center gap-4 text-sm text-slate-300 group/item">
+                                        <div class="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-indigo-500 group-hover/item:bg-indigo-500 group-hover/item:text-white transition-colors border border-slate-700">
                                             <i class="fas fa-mobile-alt text-xs"></i>
                                         </div>
-                                        <span>Acceso en móviles y TV</span>
+                                        <span class="font-medium">Acceso multidispositivo</span>
                                     </li>
-                                    <li class="flex items-center gap-3 text-sm font-bold text-white group/item bg-gradient-to-r from-yellow-500/10 to-transparent p-2 rounded-lg -mx-2 border border-yellow-500/20">
-                                        <i class="fas fa-trophy text-yellow-500 w-5 text-center"></i>
+                                    <li class="flex items-center gap-4 text-sm font-bold text-white group/item bg-gradient-to-r from-yellow-500/10 to-transparent p-2 rounded-xl -mx-2 border border-yellow-500/20">
+                                        <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center text-yellow-400">
+                                            <i class="fas fa-trophy text-xs"></i>
+                                        </div>
                                         <span>Certificado de finalización</span>
                                     </li>
+                                    
+                                    {% if course.institution %}
+                                        <li class="flex items-center gap-4 text-sm font-bold text-white group/item bg-gradient-to-r from-indigo-500/10 to-transparent p-2 rounded-xl -mx-2 border border-indigo-500/20 mb-2">
+                                            <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center p-1 shrink-0">
+                                                {% if course.institution.logo %}
+                                                    <img src="{{ course.institution.logo.url }}" class="w-full h-full object-contain">
+                                                {% else %}
+                                                    <i class="fas fa-university text-slate-900"></i>
+                                                {% endif %}
+                                            </div>
+                                            <div class="flex flex-col leading-tight">
+                                                <span class="text-[9px] text-indigo-400 uppercase tracking-widest font-black">Validado por</span>
+                                                <span>{{ course.institution.name }}</span>
+                                            </div>
+                                        </li>
+                                    {% endif %}
                                 </ul>
                             </div>
                         </div>
@@ -492,15 +676,47 @@
     </div>
     
     <div class="fixed bottom-0 left-0 right-0 p-4 bg-[#0B1120]/95 backdrop-blur-xl border-t border-slate-800 z-50 lg:hidden shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-        <div class="flex items-center justify-between gap-4 max-w-7xl mx-auto">
-            <div>
-                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Precio Total</p>
-                <p class="text-2xl font-black text-white leading-none">{% if course.price > 0 %}S/ {{ course.price|floatformat:0 }}{% else %}Gratis{% endif %}</p>
+        {% if enrollment %}
+             {% if enrollment.status == 'approved' %}
+                 {% if course.is_upcoming %}
+                      <div class="w-full text-center">
+                           <button disabled class="w-full bg-slate-700 text-slate-400 font-bold py-3 rounded-xl cursor-not-allowed mb-2 border border-slate-600 shadow-inner flex items-center justify-center gap-2">
+                                <i class="fas fa-lock"></i> Acceso Bloqueado
+                           </button>
+                      </div>
+                 {% else %}
+                      {% if course.course_type == 'seminar' and course.live_url %}
+                          <a href="{{ course.live_url }}" target="_blank" class="flex items-center justify-center w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-red-500/30 transition-colors gap-2">
+                               <i class="fas fa-video"></i> Unirse al Live
+                          </a>
+                      {% else %}
+                          <a href="{% url 'academy:dashboard' %}" class="flex items-center justify-center w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-emerald-500/30 transition-colors gap-2">
+                               <i class="fas fa-play-circle"></i> Ir al Aula Virtual
+                          </a>
+                      {% endif %}
+                 {% endif %}
+             {% elif enrollment.status == 'review' %}
+                 <div class="w-full bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 text-center">
+                      <p class="text-blue-400 font-bold text-sm">Validando tu pago...</p>
+                 </div>
+             {% else %}
+                 <a href="{% url 'academy:payment_gateway' enrollment.id %}" class="block w-full text-center bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-3 px-4 rounded-xl shadow-lg shadow-amber-500/20 transition-colors">
+                      Completar Pago
+                 </a>
+             {% endif %}
+        {% else %}
+            <div class="flex flex-col gap-2">
+                 <div class="flex items-center justify-between gap-4 max-w-7xl mx-auto w-full">
+                    <div>
+                        <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Precio Total</p>
+                        <p class="text-2xl font-black text-white leading-none">{% if course.price > 0 %}S/ {{ course.price|floatformat:0 }}{% else %}Gratis{% endif %}</p>
+                    </div>
+                    <a href="{% url 'academy:enroll_step1' course.slug %}" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-xl text-center shadow-lg shadow-indigo-500/30 transition-colors">
+                        {% if course.is_upcoming %}Pre-inscribirme{% else %}Inscribirme{% endif %}
+                    </a>
+                </div>
             </div>
-            <a href="{% url 'academy:enroll_step1' course.slug %}" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-xl text-center shadow-lg shadow-indigo-500/30 transition-colors">
-                Inscribirse
-            </a>
-        </div>
+        {% endif %}
     </div>
 
 </div>
@@ -537,5 +753,15 @@
 <style>
     .animate-fade-in { animation: fadeIn 0.8s ease-out forwards; opacity: 0; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .animate-gradient-x {
+        background-size: 200% 200%;
+        animation: gradient-x 3s ease infinite;
+    }
+    @keyframes gradient-x {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
 </style>
 {% endblock %}
