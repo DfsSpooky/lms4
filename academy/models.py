@@ -25,6 +25,8 @@ class Profile(models.Model):
     academic_profile = models.CharField(max_length=20, choices=ACADEMIC_CHOICES, default='student', verbose_name="Perfil Académico")
     gender = models.CharField(max_length=10, choices=[('male', 'Masculino'), ('female', 'Femenino')], blank=True, verbose_name="Género")
     phone_number = models.CharField(max_length=20, blank=True, verbose_name="Número de Celular")
+    facebook_url = models.URLField(max_length=200, blank=True, verbose_name="Facebook")
+    website = models.URLField(max_length=200, blank=True, verbose_name="Sitio Web")
 
     def __str__(self): return self.user.username
 

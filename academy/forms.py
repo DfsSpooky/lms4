@@ -71,7 +71,7 @@ class ProfileUpdateForm(forms.ModelForm):
 
     class Meta:
         model = Profile
-        fields = ['avatar', 'bio', 'dni', 'address', 'academic_profile', 'gender', 'phone_number']
+        fields = ['avatar', 'bio', 'dni', 'address', 'academic_profile', 'gender', 'phone_number', 'facebook_url', 'website']
 
     def clean_dni(self):
         dni = self.cleaned_data.get('dni')

@@ -3,8 +3,11 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views import generic
 from django.urls import reverse_lazy
 from django.contrib import messages
+from django.utils.decorators import method_decorator
+from ..decorators import student_required
 from ..models import ForumTopic, ForumReply, Enrollment
 
+@method_decorator(student_required, name='dispatch')
 class ForumTopicListView(LoginRequiredMixin, UserPassesTestMixin, generic.ListView):
     model = ForumTopic
     template_name = 'academy/forum_list.html'
