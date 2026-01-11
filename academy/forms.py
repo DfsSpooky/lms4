@@ -64,6 +64,11 @@ class UserUpdateForm(forms.ModelForm):
         fields = ['username', 'first_name', 'last_name', 'email']
 
 class ProfileUpdateForm(forms.ModelForm):
+    # Hacer explícitamente obligatorios los campos para la edición de perfil (ej. al completar registro Google)
+    dni = forms.CharField(max_length=8, min_length=8, required=True, label='DNI', help_text="8 dígitos")
+    phone_number = forms.CharField(max_length=20, required=True, label='Celular')
+    address = forms.CharField(max_length=255, required=True, label='Dirección')
+
     class Meta:
         model = Profile
         fields = ['avatar', 'bio', 'dni', 'address', 'academic_profile', 'gender', 'phone_number']
@@ -120,8 +125,9 @@ class InstallmentVoucherForm(forms.ModelForm):
         }
 
 class CourseForm(forms.ModelForm):
-    # Definimos los campos aquí para hacerlos NO requeridos a nivel de HTML,
-    # y así poder validarlos manualmente en el método clean()
+    # --- CAMPOS PERSONALIZADOS CON WIDGETS CORREGIDOS ---
+    
+    # Precios
     duration_months = forms.IntegerField(
         required=False, 
         initial=1,
@@ -138,15 +144,66 @@ class CourseForm(forms.ModelForm):
         })
     )
 
+    # Fechas (CORRECCIÓN CRÍTICA: input_formats y format en el widget)
+    launch_date = forms.DateTimeField(
+        required=False,
+        input_formats=['%Y-%m-%dT%H:%M'],
+        widget=forms.DateTimeInput(
+            attrs={
+                'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500',
+                'type': 'datetime-local'
+            },
+            format='%Y-%m-%dT%H:%M' # Forzar formato con 'T' para que el navegador lo lea
+        )
+    )
+    start_date = forms.DateTimeField(
+        required=False,
+        input_formats=['%Y-%m-%dT%H:%M'],
+        widget=forms.DateTimeInput(
+            attrs={
+                'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500',
+                'type': 'datetime-local'
+            },
+            format='%Y-%m-%dT%H:%M'
+        )
+    )
+    end_date = forms.DateTimeField(
+        required=False,
+        input_formats=['%Y-%m-%dT%H:%M'],
+        widget=forms.DateTimeInput(
+            attrs={
+                'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500',
+                'type': 'datetime-local'
+            },
+            format='%Y-%m-%dT%H:%M'
+        )
+    )
+
     class Meta:
         model = Course
         fields = [
-            'title', 'category', 'course_type', 'level', 
+            'title', 'category', 'course_type', 'level', 'status', 'institution',
             'price', 'old_price', 'allow_monthly_payment', 'monthly_price', 'duration_months',
             'start_date', 'end_date', 'live_url', 'launch_date',
-            'preview_video_url', 'description', 'short_description', 'thumbnail'
+            'preview_video_url', 'description', 'short_description', 'learning_objectives', 'requirements', 'thumbnail'
         ]
         widgets = {
+            'learning_objectives': forms.Textarea(attrs={
+                'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-slate-500 transition-all resize-y font-mono text-sm',
+                'rows': 5,
+                'placeholder': '- Aprenderás a crear apps con Django\n- Dominarás el ORM\n- Desplegarás en producción'
+            }),
+            'requirements': forms.Textarea(attrs={
+                'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-slate-500 transition-all resize-y font-mono text-sm',
+                'rows': 4,
+                'placeholder': '- Conocimientos básicos de Python\n- Computadora con acceso a internet'
+            }),
+            'status': forms.Select(attrs={
+                'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all cursor-pointer'
+            }),
+            'institution': forms.Select(attrs={
+                'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all cursor-pointer'
+            }),
             'title': forms.TextInput(attrs={
                 'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-slate-500 transition-all font-bold text-lg',
                 'placeholder': 'Ej: Master en Python 2025'
@@ -192,19 +249,6 @@ class CourseForm(forms.ModelForm):
                 'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all cursor-pointer',
                 'x-model': 'courseType'
             }),
-            'start_date': forms.DateTimeInput(attrs={
-                'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500',
-                'type': 'datetime-local'
-            }),
-            'end_date': forms.DateTimeInput(attrs={
-                'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500',
-                'type': 'datetime-local'
-            }),
-            'launch_date': forms.DateTimeInput(attrs={
-                'class': 'w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500',
-                'type': 'datetime-local',
-                'placeholder': 'Dejar vacío para lanzamiento inmediato'
-            }),
         }
 
     def clean(self):
@@ -238,7 +282,6 @@ class CourseForm(forms.ModelForm):
 
         else:
             # Si se DESACTIVA el pago mensual, guardamos valores seguros (0 y 1)
-            # Esto evita que la base de datos lance error de integridad (NOT NULL)
             cleaned_data['monthly_price'] = 0
             cleaned_data['duration_months'] = 1
 

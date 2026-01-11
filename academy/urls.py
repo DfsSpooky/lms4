@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 
 app_name = 'academy'
@@ -49,6 +49,10 @@ urlpatterns = [
     path('teacher/lesson/<int:pk>/edit/', views.edit_lesson, name='edit_lesson'),
     path('teacher/lesson/<int:lesson_id>/submissions/', views.lesson_submissions, name='lesson_submissions'),
     path('teacher/submission/<int:progress_id>/grade/', views.grade_submission, name='grade_submission'),
+    path('teacher/content/reorder/', views.reorder_content, name='reorder_content'),
+    path('teacher/course/<slug:slug>/preview/', views.course_preview, name='course_preview'),
+    path('teacher/inbox/', views.TeacherInboxView.as_view(), name='teacher_inbox'),
+    path('teacher/inbox/reply/<int:comment_id>/', views.teacher_reply_comment, name='teacher_reply_comment'),
 
     # Quiz Management
     path('teacher/quiz/add/', views.add_quiz, name='add_quiz'),
@@ -85,6 +89,10 @@ urlpatterns = [
     path('admin-dashboard/payment-method/add/', views.PaymentMethodCreateView.as_view(), name='payment_method_add'),
     path('admin-dashboard/payment-method/<int:pk>/edit/', views.PaymentMethodUpdateView.as_view(), name='payment_method_edit'),
 
+    # RUTAS AÑADIDAS PARA GESTIÓN DE EVENTOS
+    path('admin-dashboard/event/add/', views.EventCreateView.as_view(), name='admin_event_add'),
+    path('admin-dashboard/event/<int:pk>/edit/', views.EventUpdateView.as_view(), name='admin_event_edit'),
+
     # Certificate
     path('course/<slug:slug>/certificate/', views.CertificateView.as_view(), name='certificate'),
 
@@ -99,4 +107,11 @@ urlpatterns = [
     # Notifications
     path('notifications/read/<int:notification_id>/', views.mark_notification_read, name='mark_notification_read'),
     path('notifications/read-all/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
+
+    # Empresas y Eventos
+    path('empresas/', views.EnterpriseLandingView.as_view(), name='enterprise_services'),
+    path('events/', views.EventListView.as_view(), name='event_list'),
+    path('events/<slug:slug>/', views.EventDetailView.as_view(), name='event_detail'),
+    path('events/<int:pk>/register/', views.EventRegistrationView.as_view(), name='event_register'),
+    path('ticket/<uuid:ticket_id>/', views.TicketDetailView.as_view(), name='ticket_detail'),
 ]
