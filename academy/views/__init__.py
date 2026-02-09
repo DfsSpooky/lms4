@@ -6,3 +6,6 @@ from .teacher import *
 from .forum import *
 from .admin_dashboard import *
 from .events import *
+from .general import *
+from .settings import *
+from .ai_generator import *

@@ -4,6 +4,9 @@ from django.dispatch import receiver
 from .models import LessonComment, LessonProgress, Notification, ForumReply, Enrollment, UserSession
 from django.contrib.sessions.models import Session
 from django.urls import reverse
+from django.core.mail import send_mail
+from django.conf import settings
+from django.contrib.auth.models import User
 
 @receiver(user_logged_in)
 def manage_user_sessions(sender, user, request, **kwargs):
@@ -57,6 +60,18 @@ def notify_comment_reply(sender, instance, created, **kwargs):
                 link=reverse('academy:lesson_detail', args=[instance.lesson.id]) + "#comments-section",
                 notification_type='reply'
             )
+            
+            # Send Email
+            try:
+                send_mail(
+                    subject=f"Respuesta a tu comentario en {instance.lesson.title}",
+                    message=f"Hola {parent_user.first_name},\n\n{instance.user.username} ha respondido a tu comentario.\n\nPuedes verlo aquí: {settings.CSRF_TRUSTED_ORIGINS[0]}{reverse('academy:lesson_detail', args=[instance.lesson.id])}",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[parent_user.email],
+                    fail_silently=True
+                )
+            except Exception as e:
+                print(f"Error sending email: {e}")
 
 @receiver(post_save, sender=LessonProgress)
 def notify_assignment_grade(sender, instance, created, **kwargs):
@@ -76,6 +91,18 @@ def notify_assignment_grade(sender, instance, created, **kwargs):
                 notification_type='grade'
             )
 
+            # Send Email
+            try:
+                send_mail(
+                    subject=f"Tarea Calificada: {instance.lesson.title}",
+                    message=f"Hola {instance.user.first_name},\n\nTu tarea ha sido calificada con una nota de: {instance.score}.\n\nRevisa el feedback aquí: {settings.CSRF_TRUSTED_ORIGINS[0]}{reverse('academy:lesson_detail', args=[instance.lesson.id])}",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[instance.user.email],
+                    fail_silently=True
+                )
+            except Exception as e:
+                print(f"Error sending email: {e}")
+
 @receiver(post_save, sender=ForumReply)
 def notify_forum_reply(sender, instance, created, **kwargs):
     if created:
@@ -88,3 +115,52 @@ def notify_forum_reply(sender, instance, created, **kwargs):
                 link=reverse('academy:forum_topic_detail', args=[instance.topic.id]),
                 notification_type='reply'
             )
+
+            # Send Email
+            try:
+                send_mail(
+                    subject=f"Nueva respuesta en tu tema: {instance.topic.title}",
+                    message=f"Hola {topic_owner.first_name},\n\n{instance.user.username} ha respondido a tu tema en el foro.\n\nVer respuesta: {settings.CSRF_TRUSTED_ORIGINS[0]}{reverse('academy:forum_topic_detail', args=[instance.topic.id])}",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[topic_owner.email],
+                    fail_silently=True
+                )
+            except Exception as e:
+                print(f"Error sending email: {e}")
+
+@receiver(post_save, sender=User)
+def send_welcome_email(sender, instance, created, **kwargs):
+    if created and instance.email:
+        try:
+            send_mail(
+                subject=f"¡Bienvenido a LMS Academy, {instance.first_name}!",
+                message=f"Hola {instance.first_name},\n\nGracias por unirte a nuestra comunidad de aprendizaje. Estamos emocionados de tenerte aquí.\n\nExplora nuestros cursos: {settings.CSRF_TRUSTED_ORIGINS[0]}{reverse('academy:course_catalog')}",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[instance.email],
+                fail_silently=True
+            )
+        except Exception as e:
+            print(f"Error sending welcome email: {e}")
+
+@receiver(post_save, sender=Enrollment)
+def send_enrollment_confirmation(sender, instance, created, **kwargs):
+    if instance.status == 'approved':
+        # Check if we already sent an email for this enrollment (optional logic, but for now simple)
+        # We can use a flag or just send it. Since status can change multiple times, we might want to be careful.
+        # For simplicity, we'll send it if it's just approved. Ideally we'd track 'email_sent'.
+        pass 
+        # NOTE: To avoid spamming on updates, we might want to check if previous status was NOT approved.
+        # But post_save doesn't give previous state easily without a custom save method or pre_save.
+        # We will skip complex logic for now and assume 'created' or explicit status change handling elsewhere.
+        
+    if created and instance.status == 'approved':
+         try:
+            send_mail(
+                subject=f"Inscripción Confirmada: {instance.course.title}",
+                message=f"Hola {instance.user.first_name},\n\nTu inscripción al curso '{instance.course.title}' ha sido confirmada.\n\nEmpieza a aprender ahora: {settings.CSRF_TRUSTED_ORIGINS[0]}{reverse('academy:course_play', args=[instance.course.slug])}",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[instance.user.email],
+                fail_silently=True
+            )
+         except Exception as e:
+            print(f"Error sending enrollment email: {e}")

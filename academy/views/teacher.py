@@ -64,6 +64,59 @@ class TeacherDashboardView(LoginRequiredMixin, TeacherRequiredMixin, generic.Lis
 
         context['pending_grading'] = pending_assignments
 
+        context['pending_grading'] = pending_assignments
+
+        # 4. Course Completion Rates for Charts (ApexCharts format)
+        completion_data = []
+        for course in instructor_courses:
+            total_enrolled = Enrollment.objects.filter(course=course, status='approved').count()
+            if total_enrolled > 0:
+                completed_count = Enrollment.objects.filter(course=course, status='approved', is_completed=True).count()
+                rate = (completed_count / total_enrolled) * 100
+            else:
+                rate = 0
+            completion_data.append({
+                'x': course.title,
+                'y': round(rate, 1),
+                'goals': [{'name': 'Meta', 'value': 80, 'strokeHeight': 5, 'strokeColor': '#775DD0'}]
+            })
+        context['completion_data_json'] = json.dumps(completion_data)
+
+        # 5. Sales Analytics (Last 30 Days)
+        from django.db.models.functions import TruncDate
+        from django.db.models import Sum
+        from django.utils import timezone
+        import datetime
+
+        last_30 = timezone.now() - datetime.timedelta(days=30)
+        sales_qs = Enrollment.objects.filter(
+            course__in=instructor_courses,
+            status='approved',
+            enrolled_at__gte=last_30
+        ).annotate(
+            date=TruncDate('enrolled_at')
+        ).values('date').annotate(
+            total=Sum('course__price')
+        ).order_by('date')
+
+        # Fill missing days
+        sales_data = []
+        dates = []
+        current_date = last_30.date()
+        today = timezone.now().date()
+        
+        sales_dict = {item['date']: item['total'] for item in sales_qs}
+
+        while current_date <= today:
+            dates.append(current_date.strftime('%d %b'))
+            val = sales_dict.get(current_date, 0)
+            sales_data.append(float(val))
+            current_date += datetime.timedelta(days=1)
+
+        context['sales_dates'] = json.dumps(dates)
+        context['sales_values'] = json.dumps(sales_data)
+        context['total_revenue_30d'] = sum(sales_data)
+
         return context
 
 class TeacherCourseStudentsView(LoginRequiredMixin, TeacherRequiredMixin, generic.DetailView):

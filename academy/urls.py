@@ -12,10 +12,12 @@ urlpatterns = [
     path('organizer/event/<int:pk>/detail/', views_organizer.OrganizerEventDetailView.as_view(), name='organizer_event_detail'),
 
     path('', views.CourseListView.as_view(), name='course_list'),
+    path('search/', views.GlobalSearchView.as_view(), name='global_search'),
     path('dashboard/', views.StudentDashboardView.as_view(), name='dashboard'),
     path('login/', views.CustomLoginView.as_view(), name='login'),
     path('signup/', views.SignUpView.as_view(), name='signup'),
-    path('profile/', views.profile_edit, name='profile_edit'),
+    path('profile/', views.user_settings, name='profile_edit'),
+    path('settings/', views.user_settings, name='user_settings'),
     
     path('courses/', views.CourseCatalogView.as_view(), name='course_catalog'),
     path('course/<slug:slug>/', views.CourseDetailView.as_view(), name='course_detail'),
@@ -55,6 +57,7 @@ urlpatterns = [
     path('teacher/lesson/<int:pk>/delete/', views.delete_lesson, name='delete_lesson'),
     path('teacher/lesson/<int:pk>/edit/', views.edit_lesson, name='edit_lesson'),
     path('teacher/lesson/<int:lesson_id>/submissions/', views.lesson_submissions, name='lesson_submissions'),
+    path('teacher/course/generate-ai/', views.AICourseGeneratorView.as_view(), name='ai_course_generator'),
     path('teacher/submission/<int:progress_id>/grade/', views.grade_submission, name='grade_submission'),
     path('teacher/content/reorder/', views.reorder_content, name='reorder_content'),
     path('teacher/course/<slug:slug>/preview/', views.course_preview, name='course_preview'),

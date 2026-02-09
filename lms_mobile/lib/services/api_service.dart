@@ -173,6 +173,21 @@ class ApiService {
     }
   }
 
+  static Future<void> uploadAssignment(int lessonId, File file) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/progress/lesson/$lessonId/upload_assignment/'));
+    if (token != null) request.headers['Authorization'] = 'Token $token';
+
+    request.files.add(await http.MultipartFile.fromPath('file', file.path));
+
+    var response = await request.send();
+    if (response.statusCode != 200) {
+      throw Exception('Error al subir tarea');
+    }
+  }
+
   static Future<Map<String, dynamic>> submitQuiz(int quizId, Map<String, dynamic> answers) async {
     final headers = await getHeaders();
     final response = await http.post(
