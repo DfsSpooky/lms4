@@ -99,4 +99,11 @@ urlpatterns = [
     # Notifications
     path('notifications/read/<int:notification_id>/', views.mark_notification_read, name='mark_notification_read'),
     path('notifications/read-all/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
+
+    # Empresas y Eventos
+    path('empresas/', views.EnterpriseLandingView.as_view(), name='enterprise_services'),
+    path('events/', views.EventListView.as_view(), name='event_list'),
+    path('events/<slug:slug>/', views.EventDetailView.as_view(), name='event_detail'),
+    path('events/<int:pk>/register/', views.EventRegistrationView.as_view(), name='event_register'),
+    path('ticket/<uuid:ticket_id>/', views.TicketDetailView.as_view(), name='ticket_detail'),
 ]

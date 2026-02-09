@@ -1,9 +1,11 @@
 import re
+import uuid
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.text import slugify
+from .validators import validate_file_extension
 
 # --- USUARIO EXTENDIDO ---
 class Profile(models.Model):
@@ -30,6 +32,14 @@ class Profile(models.Model):
     phone_number = models.CharField(max_length=20, blank=True, verbose_name="Número de Celular")
 
     def __str__(self): return self.user.username
+
+class UserSession(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessions')
+    session_key = models.CharField(max_length=40, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.session_key}"
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
@@ -207,7 +217,7 @@ class Lesson(models.Model):
     lesson_type = models.CharField(max_length=20, choices=LESSON_TYPES, default='video', verbose_name="Tipo de Lección")
     video_url = models.URLField(blank=True, null=True, verbose_name="URL del Video")
     content = models.TextField(blank=True, verbose_name="Contenido / Descripción")
-    file = models.FileField(upload_to='lessons/files/', blank=True, null=True, verbose_name="Archivo Adjunto")
+    file = models.FileField(upload_to='lessons/files/', blank=True, null=True, verbose_name="Archivo Adjunto", validators=[validate_file_extension])
     due_date = models.DateTimeField(blank=True, null=True, verbose_name="Fecha de Entrega")
     duration = models.PositiveIntegerField(default=0, help_text="Duration in minutes")
     order = models.PositiveIntegerField(default=0)
@@ -440,7 +450,7 @@ class LessonProgress(models.Model):
     is_completed = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
     assignment_text = models.TextField(blank=True, verbose_name="Texto de la Tarea")
-    assignment_file = models.FileField(upload_to='assignments/', blank=True, null=True, verbose_name="Archivo de la Tarea")
+    assignment_file = models.FileField(upload_to='assignments/', blank=True, null=True, verbose_name="Archivo de la Tarea", validators=[validate_file_extension])
     score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name="Nota")
     instructor_feedback = models.TextField(blank=True, verbose_name="Feedback del Instructor")
 
@@ -619,3 +629,61 @@ class SiteConfiguration(models.Model):
     def get_solo(cls):
         obj, created = cls.objects.get_or_create(id=1)
         return obj
+
+# --- EMPRESAS Y EVENTOS ---
+
+class ServiceRequest(models.Model):
+    company_name = models.CharField(max_length=200, verbose_name="Nombre de la Empresa")
+    contact_name = models.CharField(max_length=200, verbose_name="Nombre de Contacto")
+    email = models.EmailField(verbose_name="Correo Electrónico")
+    phone = models.CharField(max_length=20, verbose_name="Teléfono")
+    message = models.TextField(verbose_name="Mensaje / Requerimiento")
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_handled = models.BooleanField(default=False, verbose_name="Atendido")
+
+    def __str__(self):
+        return f"{self.company_name} - {self.contact_name}"
+
+class Event(models.Model):
+    title = models.CharField(max_length=200, verbose_name="Título del Evento")
+    slug = models.SlugField(unique=True, blank=True)
+    description = models.TextField(verbose_name="Descripción")
+    date = models.DateTimeField(verbose_name="Fecha y Hora")
+    location = models.CharField(max_length=200, verbose_name="Ubicación (Dirección o Link)")
+    capacity = models.PositiveIntegerField(default=100, verbose_name="Capacidad Máxima")
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Precio de Entrada")
+    image = models.ImageField(upload_to='events/', blank=True, null=True, verbose_name="Imagen del Evento")
+    is_active = models.BooleanField(default=True, verbose_name="Activo")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+            original_slug = self.slug
+            count = 1
+            while Event.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
+                self.slug = f"{original_slug}-{count}"
+                count += 1
+        super().save(*args, **kwargs)
+
+    @property
+    def spots_left(self):
+        sold = self.tickets.count()
+        return max(0, self.capacity - sold)
+
+class Ticket(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tickets')
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='tickets')
+    purchase_date = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False, verbose_name="Usado / Asistió")
+
+    class Meta:
+        unique_together = ('user', 'event')
+
+    def __str__(self):
+        return f"Ticket {self.id} - {self.user.username}"

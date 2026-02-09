@@ -152,3 +152,23 @@ admin.site.register(Enrollment, EnrollmentAdmin)
 admin.site.register(Installment)
 admin.site.register(HeroSlide, HeroSlideAdmin)
 admin.site.register(CertificationCard, CertificationCardAdmin)
+
+@admin.register(Event)
+class EventAdmin(admin.ModelAdmin):
+    list_display = ('title', 'date', 'location', 'capacity', 'spots_left', 'is_active')
+    list_filter = ('is_active', 'date')
+    search_fields = ('title', 'location')
+    prepopulated_fields = {'slug': ('title',)}
+
+@admin.register(Ticket)
+class TicketAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'event', 'purchase_date', 'is_used')
+    list_filter = ('is_used', 'event')
+    search_fields = ('id', 'user__username', 'event__title')
+
+@admin.register(ServiceRequest)
+class ServiceRequestAdmin(admin.ModelAdmin):
+    list_display = ('company_name', 'contact_name', 'email', 'created_at', 'is_handled')
+    list_filter = ('is_handled', 'created_at')
+    search_fields = ('company_name', 'email', 'contact_name')
+    list_editable = ('is_handled',)

@@ -208,11 +208,11 @@
 
                 <div class="bg-slate-800/50 backdrop-blur-md border border-slate-700/50 rounded-3xl p-6 shadow-xl space-y-6">
                     <h3 class="text-white font-bold text-lg border-b border-slate-700/50 pb-3 flex items-center gap-2">
-                        <i class="fas fa-tag text-emerald-400"></i> Precios y Venta
+                        <i class="fas fa-tag text-emerald-400"></i> Clasificación y Precios
                     </h3>
                     
                     <div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase">Categoría</label>
                                 {{ form.category }}
@@ -220,6 +220,10 @@
                             <div>
                                 <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase">Nivel</label>
                                 {{ form.level }}
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase">Institución</label>
+                                {{ form.institution }}
                             </div>
                         </div>
 

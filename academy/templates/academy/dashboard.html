@@ -1,4 +1,5 @@
 {% extends 'academy/base.html' %}
+{% load security_tags %}
 
 {% block title %}Mi Panel - LMS Academy{% endblock %}
 
@@ -133,7 +134,7 @@
                             </h2>
                             
                             <p class="text-slate-300 text-lg line-clamp-2 mb-8 max-w-2xl font-light">
-                                {{ hero.course.short_description|default:hero.course.description|striptags|safe }}
+                                {{ hero.course.short_description|default:hero.course.description|striptags|sanitize }}
                             </p>
                             
                             {% if hero.course.is_upcoming %}

@@ -123,6 +123,26 @@
                             </span>
                         </a>
 
+                        <a href="{% url 'academy:event_list' %}"
+                           class="px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200
+                           {% if request.resolver_match.url_name == 'event_list' %}
+                               text-white bg-white/10
+                           {% else %}
+                               text-slate-400 hover:text-white hover:bg-white/5
+                           {% endif %}">
+                            Eventos
+                        </a>
+
+                        <a href="{% url 'academy:enterprise_services' %}"
+                           class="px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200
+                           {% if request.resolver_match.url_name == 'enterprise_services' %}
+                               text-white bg-white/10
+                           {% else %}
+                               text-slate-400 hover:text-white hover:bg-white/5
+                           {% endif %}">
+                            Empresas
+                        </a>
+
                         {% if user.is_authenticated %}
                             {% if user.enrollments.exists %}
                             <a href="{% url 'academy:forum_list' %}"
@@ -250,7 +270,7 @@
                             </div>
                         </div>
                     {% else %}
-                        <a href="{% url 'login' %}" class="text-slate-300 hover:text-white font-medium text-sm transition-colors">Iniciar Sesión</a>
+                        <a href="{% url 'academy:login' %}" class="text-slate-300 hover:text-white font-medium text-sm transition-colors">Iniciar Sesión</a>
                         <a href="{% url 'academy:signup' %}" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-full text-sm font-bold shadow-lg shadow-indigo-500/30 transition-all transform hover:-translate-y-0.5 hover:shadow-indigo-500/50">
                             Únete Gratis
                         </a>
@@ -278,6 +298,9 @@
                     <i class="fas fa-chevron-right text-sm opacity-50"></i>
                 </a>
 
+                <a href="{% url 'academy:event_list' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">Eventos</a>
+                <a href="{% url 'academy:enterprise_services' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">Empresas</a>
+
                 {% if user.is_authenticated %}
                     {% if user.enrollments.exists %}
                     <a href="{% url 'academy:forum_list' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-purple-400 hover:text-white hover:bg-slate-800 transition-colors">
@@ -302,7 +325,7 @@
                     </div>
                 {% else %}
                     <div class="border-t border-slate-700 my-2 pt-4 flex flex-col gap-3">
-                        <a href="{% url 'login' %}" class="block w-full text-center px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700">Iniciar Sesión</a>
+                        <a href="{% url 'academy:login' %}" class="block w-full text-center px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700">Iniciar Sesión</a>
                         <a href="{% url 'academy:signup' %}" class="block w-full text-center px-3 py-2 rounded-lg text-base font-medium text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg">Registrarse</a>
                     </div>
                 {% endif %}
