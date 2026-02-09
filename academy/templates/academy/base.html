@@ -238,11 +238,19 @@
                                     <a href="{% url 'academy:profile_edit' %}" class="group flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors">
                                         <i class="fas fa-user-circle w-5 text-slate-500 group-hover:text-indigo-400"></i> Mi Perfil
                                     </a>
+                                    
                                     {% if user.profile.role == 'teacher' %}
                                         <a href="{% url 'academy:teacher_dashboard' %}" class="group flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors">
                                             <i class="fas fa-chalkboard-teacher w-5 text-slate-500 group-hover:text-indigo-400"></i> Panel Instructor
                                         </a>
                                     {% endif %}
+
+                                    {% if user.profile.role == 'organizer' %}
+                                        <a href="{% url 'academy:organizer_dashboard' %}" class="group flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors">
+                                            <i class="fas fa-calendar-alt w-5 text-slate-500 group-hover:text-indigo-400"></i> Panel Organizador
+                                        </a>
+                                    {% endif %}
+                                    
                                     {% if user.is_superuser %}
                                     <a href="{% url 'academy:admin_dashboard' %}" class="group flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors">
                                         <i class="fas fa-user-shield w-5 text-slate-500 group-hover:text-indigo-400"></i> Admin Panel
@@ -309,6 +317,11 @@
                         {% if user.profile.role == 'teacher' %}
                             <a href="{% url 'academy:teacher_dashboard' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800">Panel Instructor</a>
                         {% endif %}
+                        
+                        {% if user.profile.role == 'organizer' %}
+                            <a href="{% url 'academy:organizer_dashboard' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800">Panel Organizador</a>
+                        {% endif %}
+
                         {% if user.is_superuser %}
                             <a href="{% url 'academy:admin_dashboard' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800">Admin Panel</a>
                         {% endif %}

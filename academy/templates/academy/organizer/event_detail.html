@@ -1,0 +1,104 @@
+{% extends 'academy/base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'academy:organizer_dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ event.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="display-5">{{ event.title }}</h1>
+            <p class="lead text-muted">{{ event.start_date|date:"l d F Y, H:i" }} | {{ event.location }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'academy:organizer_event_edit' event.pk %}" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Editar Evento
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-5">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Entradas Vendidas</h5>
+                    <h2 class="display-4 fw-bold">{{ tickets_sold }}</h2>
+                    <p class="card-text">de {{ event.capacity }} disponibles</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Ingresos Estimados</h5>
+                    <h2 class="display-4 fw-bold">${{ revenue }}</h2>
+                    <p class="card-text">Precio unitario: ${{ event.price }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-dark h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Ocupación</h5>
+                    <h2 class="display-4 fw-bold">
+                        {% widthratio tickets_sold event.capacity 100 %}%
+                    </h2>
+                    <div class="progress mt-3" style="height: 10px;">
+                        <div class="progress-bar bg-dark" role="progressbar" style="width: {% widthratio tickets_sold event.capacity 100 %}%;" aria-valuenow="{% widthratio tickets_sold event.capacity 100 %}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendees List -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h4 class="card-title mb-0">Lista de Asistentes</h4>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Ticket ID</th>
+                            <th>Asistente</th>
+                            <th>Email</th>
+                            <th>Fecha Compra</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ticket in tickets %}
+                        <tr>
+                            <td class="ps-4 font-monospace small">{{ ticket.id|truncatechars:8 }}</td>
+                            <td>
+                                {{ ticket.user.get_full_name|default:ticket.user.username }}
+                            </td>
+                            <td>{{ ticket.user.email }}</td>
+                            <td>{{ ticket.purchase_date|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if ticket.is_used %}
+                                    <span class="badge bg-success">Ingresó</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Pendiente</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4">No hay entradas vendidas aún.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

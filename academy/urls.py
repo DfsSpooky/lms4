@@ -1,9 +1,16 @@
 from django.urls import path, include
 from . import views
+from . import views_organizer
 
 app_name = 'academy'
 
 urlpatterns = [
+    # --- RUTAS DE ORGANIZADOR ---
+    path('organizer/dashboard/', views_organizer.OrganizerDashboardView.as_view(), name='organizer_dashboard'),
+    path('organizer/event/add/', views_organizer.OrganizerEventCreateView.as_view(), name='organizer_event_add'),
+    path('organizer/event/<int:pk>/edit/', views_organizer.OrganizerEventUpdateView.as_view(), name='organizer_event_edit'),
+    path('organizer/event/<int:pk>/detail/', views_organizer.OrganizerEventDetailView.as_view(), name='organizer_event_detail'),
+
     path('', views.CourseListView.as_view(), name='course_list'),
     path('dashboard/', views.StudentDashboardView.as_view(), name='dashboard'),
     path('login/', views.CustomLoginView.as_view(), name='login'),
